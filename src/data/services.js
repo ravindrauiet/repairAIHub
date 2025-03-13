@@ -25,11 +25,11 @@ const services = [
       "Follow-up support to make sure you're satisfied with the repair"
     ],
     pricing: [
-      { service: "Diagnostic Fee", price: "$49 (waived if repair completed)" },
-      { service: "Screen Replacement", price: "Starts at $199" },
-      { service: "Power Supply Repair", price: "Starts at $99" },
-      { service: "Backlight Repair", price: "Starts at $149" },
-      { service: "Motherboard Repair", price: "Starts at $179" }
+      { service: "Diagnostic Fee", price: "₹499 (waived if repair completed)" },
+      { service: "Screen Replacement", price: "Starts at ₹4,999" },
+      { service: "Power Supply Repair", price: "Starts at ₹1,499" },
+      { service: "Backlight Repair", price: "Starts at ₹2,499" },
+      { service: "Motherboard Repair", price: "Starts at ₹3,499" }
     ],
     faqs: [
       {
@@ -53,7 +53,7 @@ const services = [
         answer: "Yes, we can replace cracked or damaged screens. The cost varies depending on your TV model and screen size."
       }
     ],
-    imageUrl: "/images/services/tv-repair.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1593784991095-a205069470b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
   },
   {
     id: "mobile-repair",
@@ -81,11 +81,11 @@ const services = [
       "Final quality check before returning your device"
     ],
     pricing: [
-      { service: "Screen Replacement", price: "Starts at $79" },
-      { service: "Battery Replacement", price: "Starts at $49" },
-      { service: "Charging Port Repair", price: "Starts at $59" },
-      { service: "Water Damage Treatment", price: "Starts at $89" },
-      { service: "Camera Replacement", price: "Starts at $69" }
+      { service: "Screen Replacement", price: "Starts at ₹1,499" },
+      { service: "Battery Replacement", price: "Starts at ₹999" },
+      { service: "Charging Port Repair", price: "Starts at ₹899" },
+      { service: "Water Damage Treatment", price: "Starts at ₹1,999" },
+      { service: "Camera Replacement", price: "Starts at ₹1,299" }
     ],
     faqs: [
       {
@@ -109,7 +109,7 @@ const services = [
         answer: "Yes, all our mobile repairs come with a 90-day warranty covering both parts and labor for the specific repair performed."
       }
     ],
-    imageUrl: "/images/services/mobile-repair.jpg"
+    imageUrl: "https://images.unsplash.com/photo-1580910051074-3eb694886505?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2065&q=80"
   },
   {
     id: "ac-repair",
@@ -138,11 +138,11 @@ const services = [
       "Maintenance recommendations to prevent future problems"
     ],
     pricing: [
-      { service: "Diagnostic Service", price: "$79" },
-      { service: "Basic AC Tune-up", price: "$149" },
-      { service: "Refrigerant Recharge", price: "Starts at $199" },
-      { service: "Compressor Replacement", price: "Starts at $799" },
-      { service: "Annual Maintenance Plan", price: "$249/year" }
+      { service: "Diagnostic Service", price: "₹799" },
+      { service: "Basic AC Tune-up", price: "₹1,499" },
+      { service: "Refrigerant Recharge", price: "Starts at ₹2,499" },
+      { service: "Compressor Replacement", price: "Starts at ₹7,999" },
+      { service: "Annual Maintenance Plan", price: "₹3,999/year" }
     ],
     faqs: [
       {
@@ -163,10 +163,10 @@ const services = [
       },
       {
         question: "What brands of air conditioners do you service?",
-        answer: "We service all major brands including Carrier, Trane, Lennox, Rheem, Goodman, Daikin, Mitsubishi, LG, Samsung, and many others."
+        answer: "We service all major brands including Voltas, Blue Star, Daikin, LG, Samsung, Carrier, Hitachi, Mitsubishi, O General, and many others."
       }
     ],
-    imageUrl: "/images/services/ac-repair.jpg"
+    imageUrl: "https://img.freepik.com/free-photo/checking-conditioner_1098-17787.jpg?t=st=1741893895~exp=1741897495~hmac=3c16309b9a2850b8641149593c8ed2ce6ca16aa9206a5ea197f5060cf406daac&w=1380"
   },
   {
     id: "refrigerator-repair",
@@ -195,11 +195,11 @@ const services = [
       "Tips for maintaining your refrigerator and preventing future issues"
     ],
     pricing: [
-      { service: "Diagnostic Fee", price: "$79 (waived with repair)" },
-      { service: "Thermostat Replacement", price: "Starts at $159" },
-      { service: "Compressor Repair/Replace", price: "Starts at $399" },
-      { service: "Ice Maker Repair", price: "Starts at $179" },
-      { service: "Door Seal Replacement", price: "Starts at $129" }
+      { service: "Diagnostic Fee", price: "₹799 (waived with repair)" },
+      { service: "Thermostat Replacement", price: "Starts at ₹1,999" },
+      { service: "Compressor Repair/Replace", price: "Starts at ₹4,999" },
+      { service: "Ice Maker Repair", price: "Starts at ₹2,499" },
+      { service: "Door Seal Replacement", price: "Starts at ₹1,499" }
     ],
     faqs: [
       {
@@ -216,14 +216,14 @@ const services = [
       },
       {
         question: "How can I maintain my refrigerator to avoid repairs?",
-        answer: "Regular maintenance includes: cleaning the condenser coils, checking door seals, keeping the refrigerator at the proper temperature (35-38°F), not overloading it, and ensuring proper ventilation around the unit."
+        answer: "Regular maintenance includes: cleaning the condenser coils, checking door seals, keeping the refrigerator at the proper temperature (2-4°C), not overloading it, and ensuring proper ventilation around the unit."
       },
       {
         question: "Is it worth repairing an old refrigerator?",
         answer: "Generally, if your refrigerator is less than 8 years old and the repair cost is less than half the price of a new unit, repair is often worth it. We can help you evaluate the most cost-effective option for your situation."
       }
     ],
-    imageUrl: "/images/services/refrigerator-repair.jpg"
+    imageUrl: "https://watermark.lovepik.com/photo/20211127/large/lovepik-workers-come-to-repair-refrigerators-picture_501157481.jpg"
   },
   {
     id: "ro-repair",
@@ -252,11 +252,11 @@ const services = [
       "Post-repair testing to ensure optimal performance"
     ],
     pricing: [
-      { service: "System Diagnostic", price: "$59" },
-      { service: "Filter Replacement (Set)", price: "Starts at $89" },
-      { service: "Membrane Replacement", price: "Starts at $129" },
-      { service: "Leak Repair", price: "Starts at $79" },
-      { service: "Annual Maintenance", price: "$149/year" }
+      { service: "System Diagnostic", price: "₹599" },
+      { service: "Filter Replacement (Set)", price: "Starts at ₹1,499" },
+      { service: "Membrane Replacement", price: "Starts at ₹1,999" },
+      { service: "Leak Repair", price: "Starts at ₹899" },
+      { service: "Annual Maintenance", price: "₹2,499/year" }
     ],
     faqs: [
       {
@@ -280,7 +280,7 @@ const services = [
         answer: "Yes, we can install TDS (Total Dissolved Solids) monitors and other water quality monitoring systems to help you track your water quality and know exactly when maintenance is needed."
       }
     ],
-    imageUrl: "/images/services/ro-repair.jpg"
+    imageUrl: "https://media.istockphoto.com/id/1499501309/photo/reverse-osmosis-water-filter-system.jpg?s=612x612&w=0&k=20&c=3I3sknhP_Q4Rf8GXsP2mkrC8yAiXrCZh8ywvus_zMkc="
   }
 ];
 

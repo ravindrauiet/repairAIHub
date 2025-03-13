@@ -7,7 +7,7 @@ const ContactPage = () => {
       <Hero 
         title="Contact Us" 
         subtitle="Get in touch with our team for any inquiries or support"
-        backgroundImage="/images/contact-bg.jpg"
+        backgroundImage="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
         ctaText="Book a Service"
         ctaLink="/book-service"
       />
@@ -21,14 +21,14 @@ const ContactPage = () => {
               <div className="contact-methods">
                 <div className="contact-method">
                   <h3>Visit Us</h3>
-                  <p>123 Repair Street</p>
-                  <p>Fix City, FC 12345</p>
+                  <p>42/A, Raj Nagar, Sector 9</p>
+                  <p>New Delhi, 110085</p>
                 </div>
                 
                 <div className="contact-method">
                   <h3>Call Us</h3>
-                  <p>Phone: +1 234 567 8901</p>
-                  <p>Toll-free: 1-800-REPAIR-AI</p>
+                  <p>Phone: +91 98765 43210</p>
+                  <p>Toll-free: 1800-REPAIR-AI</p>
                 </div>
                 
                 <div className="contact-method">
@@ -39,17 +39,24 @@ const ContactPage = () => {
                 
                 <div className="contact-method">
                   <h3>Business Hours</h3>
-                  <p>Monday - Friday: 9am - 6pm</p>
-                  <p>Saturday: 10am - 4pm</p>
+                  <p>Monday - Friday: 9am - 7pm</p>
+                  <p>Saturday: 10am - 6pm</p>
                   <p>Sunday: Closed</p>
                 </div>
               </div>
               
               <div className="contact-map">
                 <h3>Find Us</h3>
-                <div className="map-placeholder">
-                  <p>Map will be displayed here</p>
-                  {/* In a real implementation, you would include a Google Maps or other map component here */}
+                <div className="map-container">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d112364.25338715465!2d77.2019376!3d28.4089123!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390ce5a43173357b%3A0x37ffce30c87cc03f!2sFaridabad%2C%20Haryana!5e0!3m2!1sen!2sin!4v1689927456789!5m2!1sen!2sin"
+                    width="100%"
+                    height="300"
+                    style={{ border: 0 }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  ></iframe>
                 </div>
               </div>
             </div>
@@ -77,12 +84,12 @@ const ContactPage = () => {
             
             <div className="contact-faq">
               <h3>What areas do you service?</h3>
-              <p>We currently service the entire Fix City metropolitan area and surrounding suburbs within a 30-mile radius. For locations outside this area, please contact us to check availability.</p>
+              <p>We currently service Delhi NCR including Delhi, Noida, Gurgaon, Faridabad, and Ghaziabad. For locations outside this area, please contact us to check availability.</p>
             </div>
             
             <div className="contact-faq">
               <h3>How can I check the status of my repair?</h3>
-              <p>You can check the status of your repair by calling our customer service line and providing your repair ticket number. We also send email updates at key stages of the repair process.</p>
+              <p>You can check the status of your repair by calling our customer service line and providing your repair ticket number. We also send WhatsApp updates at key stages of the repair process.</p>
             </div>
           </div>
         </div>

@@ -10,7 +10,7 @@ const BookingPage = () => {
       <Hero 
         title="Book a Repair Service" 
         subtitle="Schedule a repair service with our expert technicians"
-        backgroundImage="/images/booking-bg.jpg"
+        backgroundImage="https://images.unsplash.com/photo-1581578731548-c64695cc6952?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
         ctaText="View Our Services"
         ctaLink="/services"
       />

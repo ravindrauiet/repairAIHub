@@ -7,7 +7,7 @@ const Footer = () => {
         <div className="footer-container">
           <div className="footer-column">
             <h4>RepairAIHub</h4>
-            <p>Your trusted partner for all repair services. We specialize in fixing TVs, mobile phones, AC units, refrigerators, and RO systems with quality and care.</p>
+            <p>Your trusted partner for all repair services in India. We specialize in fixing TVs, mobile phones, AC units, refrigerators, and RO systems with quality and care.</p>
             <div className="social-icons">
               <a href="https://facebook.com" className="social-icon" target="_blank" rel="noopener noreferrer">
                 f
@@ -58,6 +58,9 @@ const Footer = () => {
                 <Link to="/services">Services</Link>
               </li>
               <li>
+                <Link to="/technicians">Our Technicians</Link>
+              </li>
+              <li>
                 <Link to="/book-service">Book a Service</Link>
               </li>
               <li>
@@ -69,10 +72,11 @@ const Footer = () => {
           <div className="footer-column">
             <h4>Contact Info</h4>
             <ul>
-              <li>123 Repair Street, Fix City</li>
-              <li>Phone: +1 234 567 8901</li>
+              <li>42/A, Raj Nagar, Sector 9</li>
+              <li>New Delhi, 110085</li>
+              <li>Phone: +91 98765 43210</li>
               <li>Email: info@repairaihub.com</li>
-              <li>Hours: Monday-Saturday, 9am-6pm</li>
+              <li>Hours: Monday-Saturday, 9am-7pm</li>
             </ul>
           </div>
         </div>

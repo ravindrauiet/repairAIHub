@@ -4,7 +4,7 @@ const ServiceCard = ({ id, title, description, imageUrl }) => {
   return (
     <div className="service-card">
       <img 
-        src={imageUrl || `/images/services/${id}.jpg`} 
+        src={imageUrl} 
         alt={title} 
         className="service-card-img" 
       />

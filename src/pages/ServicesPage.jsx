@@ -10,7 +10,7 @@ const ServicesPage = () => {
       <Hero 
         title="Our Repair Services" 
         subtitle="Expert repair solutions for all your electronics and appliances"
-        backgroundImage="/images/services-bg.jpg" 
+        backgroundImage="https://images.unsplash.com/photo-1581092921461-39b9d08ed889?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
       />
       
       <section className="section">
