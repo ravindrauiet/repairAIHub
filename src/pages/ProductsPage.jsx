@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Hero from '../components/common/Hero';
+import { Link } from 'react-router-dom';
 
 const ProductsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -18,7 +19,16 @@ const ProductsPage = () => {
       partName: 'Display Screen',
       price: 12999,
       imageUrl: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      description: 'Original Samsung Galaxy S21 AMOLED display screen replacement part.'
+      description: 'Original Samsung Galaxy S21 AMOLED display screen replacement part.',
+      specifications: {
+        type: 'AMOLED',
+        resolution: '1080 x 2400 pixels',
+        size: '6.2 inches',
+        compatibility: 'Galaxy S21 only',
+        warranty: '6 months manufacturer warranty'
+      },
+      compatibility: ['Galaxy S21', 'Galaxy S21 5G'],
+      inStock: true
     },
     {
       id: 2,
@@ -28,7 +38,16 @@ const ProductsPage = () => {
       partName: 'Battery',
       price: 3999,
       imageUrl: 'https://images.unsplash.com/photo-1601972599720-36938d4ecd31?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      description: 'Genuine Apple iPhone 13 battery replacement with installation tools.'
+      description: 'Genuine Apple iPhone 13 battery replacement with installation tools.',
+      specifications: {
+        capacity: '3240 mAh',
+        type: 'Li-Ion',
+        voltage: '3.83 V',
+        includes: 'Installation tools and adhesive',
+        warranty: '6 months manufacturer warranty'
+      },
+      compatibility: ['iPhone 13', 'iPhone 13 Pro'],
+      inStock: true
     },
     {
       id: 3,
@@ -38,9 +57,55 @@ const ProductsPage = () => {
       partName: 'Compressor',
       price: 15999,
       imageUrl: 'https://images.unsplash.com/photo-1621619856624-42fd193a0661?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      description: 'Original Daikin compressor unit with 1-year warranty.'
+      description: 'Original Daikin compressor unit with 1-year warranty.',
+      specifications: {
+        type: 'Rotary',
+        capacity: '1.5 Ton',
+        refrigerant: 'R32',
+        energyEfficiency: '5 Star Rating',
+        warranty: '1 year manufacturer warranty'
+      },
+      compatibility: ['Daikin FTKF35', 'Daikin FTKF35XV'],
+      inStock: true
     },
-    // Add more products as needed
+    {
+      id: 4,
+      category: 'refrigerator',
+      brand: 'Samsung',
+      model: 'RT42M5538BS',
+      partName: 'Cooling Fan',
+      price: 4999,
+      imageUrl: 'https://images.unsplash.com/photo-1536353284924-9220c464e262?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      description: 'Genuine Samsung cooling fan for double-door refrigerators.',
+      specifications: {
+        type: 'Axial Fan',
+        diameter: '120mm',
+        voltage: '12V DC',
+        airflow: '52 CFM',
+        warranty: '6 months manufacturer warranty'
+      },
+      compatibility: ['Samsung RT42M5538BS', 'Samsung RT42M5538BS/HL'],
+      inStock: true
+    },
+    {
+      id: 5,
+      category: 'tv',
+      brand: 'LG',
+      model: 'OLED55C1',
+      partName: 'Power Supply Board',
+      price: 8999,
+      imageUrl: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
+      description: 'Original LG power supply board for OLED TVs.',
+      specifications: {
+        partNumber: 'EAY64948701',
+        inputVoltage: '100-240V',
+        outputVoltage: 'Multi-output',
+        compatible: 'LG 2019-2021 OLED models',
+        warranty: '6 months manufacturer warranty'
+      },
+      compatibility: ['LG OLED55C1', 'LG OLED65C1'],
+      inStock: false
+    }
   ];
 
   const categories = [
@@ -50,6 +115,11 @@ const ProductsPage = () => {
     { value: 'ro', label: 'RO Systems' },
     { value: 'tv', label: 'Televisions' }
   ];
+
+  // Store products in localStorage when component mounts
+  useEffect(() => {
+    localStorage.setItem('products', JSON.stringify(products));
+  }, []);
 
   // Filter products based on selected filters and search query
   useEffect(() => {
@@ -163,9 +233,10 @@ const ProductsPage = () => {
 
           <div className="products-grid">
             {filteredProducts.map(product => (
-              <div key={product.id} className="product-card">
+              <Link to={`/products/${product.id}`} key={product.id} className="product-card">
                 <div className="product-image">
                   <img src={product.imageUrl} alt={product.partName} />
+                  {!product.inStock && <span className="out-of-stock">Out of Stock</span>}
                 </div>
                 <div className="product-details">
                   <h3>{product.partName}</h3>
@@ -174,9 +245,9 @@ const ProductsPage = () => {
                   </p>
                   <p className="product-description">{product.description}</p>
                   <div className="product-price">₹{product.price.toLocaleString()}</div>
-                  <button className="product-btn">Enquire Now</button>
+                  <button className="product-btn">View Details</button>
                 </div>
-              </div>
+              </Link>
             ))}
             
             {filteredProducts.length === 0 && (

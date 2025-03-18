@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import ClickableContact from '../common/ClickableContact';
 
 const Footer = () => {
   return (
@@ -74,8 +75,8 @@ const Footer = () => {
             <ul>
               <li>42/A, Raj Nagar, Sector 9</li>
               <li>New Delhi, 110085</li>
-              <li>Phone: +91 98765 43210</li>
-              <li>Email: info@repairaihub.com</li>
+              <li>Phone: <ClickableContact type="phone" value="+91 98765 43210" /></li>
+              <li>Email: <ClickableContact type="email" value="info@repairaihub.com" /></li>
               <li>Hours: Monday-Saturday, 9am-7pm</li>
             </ul>
           </div>

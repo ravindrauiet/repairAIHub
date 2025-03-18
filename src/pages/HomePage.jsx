@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import Hero from '../components/common/Hero';
-import ServiceCard from '../components/services/ServiceCard';
+import ServicesSection from '../components/home/ServicesSection';
 import { getAllServices } from '../data/services';
+import './HomePage.css';
 
 const HomePage = () => {
   const services = getAllServices();
@@ -20,25 +21,7 @@ const HomePage = () => {
       <Hero {...heroProps} />
       
       {/* Services Section */}
-      <section className="section services-section">
-        <div className="container">
-          <h2 className="section-title">Our Repair Services</h2>
-          <div className="service-cards">
-            {services.map(service => (
-              <ServiceCard
-                key={service.id}
-                id={service.id}
-                title={service.title}
-                description={service.shortDescription}
-                imageUrl={service.imageUrl}
-              />
-            ))}
-          </div>
-          <div className="text-center mt-4">
-            <Link to="/services" className="btn btn-primary">View All Services</Link>
-          </div>
-        </div>
-      </section>
+      <ServicesSection />
 
       {/* AI Technology Section */}
       <section className="section bg-light">
@@ -95,22 +78,22 @@ const HomePage = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="section bg-primary text-white">
+      <section className="section stats-section bg-light">
         <div className="container">
           <div className="stats-grid">
-            <div className="stat-item">
+            <div className="stat-item primary">
               <div className="stat-number">10,000+</div>
               <div className="stat-label">Repairs Completed</div>
             </div>
-            <div className="stat-item">
+            <div className="stat-item accent">
               <div className="stat-number">98%</div>
               <div className="stat-label">Customer Satisfaction</div>
             </div>
-            <div className="stat-item">
+            <div className="stat-item secondary">
               <div className="stat-number">50+</div>
               <div className="stat-label">Expert Technicians</div>
             </div>
-            <div className="stat-item">
+            <div className="stat-item dark">
               <div className="stat-number">24/7</div>
               <div className="stat-label">Emergency Support</div>
             </div>
@@ -124,22 +107,22 @@ const HomePage = () => {
           <h2 className="section-title">Our Repair Process</h2>
           <div className="process-steps">
             <div className="process-step">
-              <div className="step-icon">📱</div>
+              <span className="step-number">1</span>
               <h3>Book Service</h3>
               <p>Schedule a repair service through our website or phone</p>
             </div>
             <div className="process-step">
-              <div className="step-icon">🔍</div>
+              <span className="step-number">2</span>
               <h3>AI Diagnosis</h3>
               <p>Our AI system analyzes the issue for accurate diagnosis</p>
             </div>
             <div className="process-step">
-              <div className="step-icon">🛠️</div>
+              <span className="step-number">3</span>
               <h3>Expert Repair</h3>
               <p>Skilled technicians fix your device with quality parts</p>
             </div>
             <div className="process-step">
-              <div className="step-icon">✅</div>
+              <span className="step-number">4</span>
               <h3>Quality Check</h3>
               <p>Thorough testing ensures perfect working condition</p>
             </div>
@@ -184,12 +167,12 @@ const HomePage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="section cta-section bg-primary">
+      <section className="section cta-section">
         <div className="container text-center">
           <h2>Ready to Fix Your Device?</h2>
           <p>Book a repair service today and get your device working like new again.</p>
           <div className="cta-buttons">
-            <Link to="/book-service" className="btn btn-light">Book a Service</Link>
+            <Link to="/book-service" className="btn btn-primary">Book a Service</Link>
             <Link to="/contact" className="btn btn-outline">Contact Us</Link>
           </div>
         </div>

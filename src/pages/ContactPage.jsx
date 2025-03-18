@@ -1,95 +1,307 @@
+import { useState } from 'react';
 import Hero from '../components/common/Hero';
-import ContactForm from '../components/common/ContactForm';
+import ClickableContact from '../components/common/ClickableContact';
 
 const ContactPage = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: ''
+  });
+  
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+  
+  // Validate form fields
+  const validateForm = () => {
+    const newErrors = {};
+    
+    // Required fields
+    const requiredFields = ['name', 'email', 'message'];
+    
+    requiredFields.forEach(field => {
+      if (!formData[field].trim()) {
+        newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1)} is required`;
+      }
+    });
+    
+    // Email validation
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    // Phone validation (optional field)
+    if (formData.phone && !/^\d{10}$/.test(formData.phone.replace(/[- ]/g, ''))) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (validateForm()) {
+      setIsSubmitting(true);
+      
+      // Simulate API call
+      setTimeout(() => {
+        console.log('Form submitted:', formData);
+        setIsSubmitting(false);
+        setShowSuccess(true);
+        
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        });
+        
+        // Hide success message after 5 seconds
+        setTimeout(() => {
+          setShowSuccess(false);
+        }, 5000);
+      }, 1000);
+    }
+  };
+  
   return (
     <div className="contact-page">
       <Hero 
         title="Contact Us" 
-        subtitle="Get in touch with our team for any inquiries or support"
-        backgroundImage="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-        ctaText="Book a Service"
-        ctaLink="/book-service"
+        subtitle="Get in touch with our team for inquiries, support, or feedback"
+        backgroundImage="https://images.unsplash.com/photo-1557426272-fc759fdf7a8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
       />
       
-      <section className="section">
+      <section className="contact-section">
         <div className="container">
-          <div className="contact-container">
+          <div className="contact-grid">
             <div className="contact-info">
-              <h2 className="section-title">Our Contact Information</h2>
+              <h2>Get In Touch</h2>
+              <p>Have questions about our services? Need to schedule a repair? Reach out to us using the contact information below or fill out the form, and our team will get back to you as soon as possible.</p>
               
-              <div className="contact-methods">
-                <div className="contact-method">
-                  <h3>Visit Us</h3>
-                  <p>42/A, Raj Nagar, Sector 9</p>
-                  <p>New Delhi, 110085</p>
+              <div className="contact-card">
+                <div className="contact-icon">
+                  <i className="fas fa-map-marker-alt"></i>
                 </div>
-                
-                <div className="contact-method">
-                  <h3>Call Us</h3>
-                  <p>Phone: +91 98765 43210</p>
-                  <p>Toll-free: 1800-REPAIR-AI</p>
-                </div>
-                
-                <div className="contact-method">
-                  <h3>Email Us</h3>
-                  <p>info@repairaihub.com</p>
-                  <p>support@repairaihub.com</p>
-                </div>
-                
-                <div className="contact-method">
-                  <h3>Business Hours</h3>
-                  <p>Monday - Friday: 9am - 7pm</p>
-                  <p>Saturday: 10am - 6pm</p>
-                  <p>Sunday: Closed</p>
+                <div className="contact-details">
+                  <h3>Our Location</h3>
+                  <p>123 Repair Street, Tech Hub</p>
+                  <p>Mumbai, Maharashtra 400001</p>
                 </div>
               </div>
               
-              <div className="contact-map">
-                <h3>Find Us</h3>
-                <div className="map-container">
-                  <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d112364.25338715465!2d77.2019376!3d28.4089123!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390ce5a43173357b%3A0x37ffce30c87cc03f!2sFaridabad%2C%20Haryana!5e0!3m2!1sen!2sin!4v1689927456789!5m2!1sen!2sin"
-                    width="100%"
-                    height="300"
-                    style={{ border: 0 }}
-                    allowFullScreen=""
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  ></iframe>
+              <div className="contact-card">
+                <div className="contact-icon">
+                  <i className="fas fa-phone-alt"></i>
+                </div>
+                <div className="contact-details">
+                  <h3>Call Us</h3>
+                  <p><ClickableContact type="phone" value="+91 98765 43210" /></p>
+                  <p><ClickableContact type="phone" value="+91 87654 32109" /></p>
+                </div>
+              </div>
+              
+              <div className="contact-card">
+                <div className="contact-icon">
+                  <i className="fas fa-envelope"></i>
+                </div>
+                <div className="contact-details">
+                  <h3>Email Us</h3>
+                  <p><ClickableContact type="email" value="info@repairaihub.com" /></p>
+                  <p><ClickableContact type="email" value="support@repairaihub.com" /></p>
+                </div>
+              </div>
+              
+              <div className="contact-card">
+                <div className="contact-icon">
+                  <i className="fas fa-clock"></i>
+                </div>
+                <div className="contact-details">
+                  <h3>Business Hours</h3>
+                  <p>Monday - Saturday: 9:00 AM - 8:00 PM</p>
+                  <p>Sunday: 10:00 AM - 5:00 PM</p>
+                </div>
+              </div>
+              
+              <div className="social-contact">
+                <h3>Connect With Us</h3>
+                <div className="social-icons">
+                  <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="social-icon">
+                    <i className="fab fa-facebook-f"></i>
+                  </a>
+                  <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="social-icon">
+                    <i className="fab fa-twitter"></i>
+                  </a>
+                  <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="social-icon">
+                    <i className="fab fa-instagram"></i>
+                  </a>
+                  <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="social-icon">
+                    <i className="fab fa-linkedin-in"></i>
+                  </a>
                 </div>
               </div>
             </div>
             
             <div className="contact-form-container">
-              <ContactForm />
+              <h2>Send us a Message</h2>
+              
+              {showSuccess ? (
+                <div className="success-message">
+                  <div className="success-icon">✓</div>
+                  <h3>Message Sent Successfully!</h3>
+                  <p>Thank you for reaching out to us. We'll get back to you as soon as possible.</p>
+                </div>
+              ) : (
+                <form className="contact-form" onSubmit={handleSubmit}>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="name">Name <span className="required">*</span></label>
+                      <input 
+                        type="text" 
+                        id="name" 
+                        name="name" 
+                        value={formData.name}
+                        onChange={handleChange}
+                        placeholder="Your name"
+                        className={errors.name ? 'error' : ''}
+                      />
+                      {errors.name && <div className="error-message">{errors.name}</div>}
+                    </div>
+                    
+                    <div className="form-group">
+                      <label htmlFor="email">Email <span className="required">*</span></label>
+                      <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        value={formData.email}
+                        onChange={handleChange}
+                        placeholder="Your email address"
+                        className={errors.email ? 'error' : ''}
+                      />
+                      {errors.email && <div className="error-message">{errors.email}</div>}
+                    </div>
+                  </div>
+                  
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="phone">Phone Number</label>
+                      <input 
+                        type="text" 
+                        id="phone" 
+                        name="phone" 
+                        value={formData.phone}
+                        onChange={handleChange}
+                        placeholder="Your phone number (optional)"
+                        className={errors.phone ? 'error' : ''}
+                      />
+                      {errors.phone && <div className="error-message">{errors.phone}</div>}
+                    </div>
+                    
+                    <div className="form-group">
+                      <label htmlFor="subject">Subject</label>
+                      <input 
+                        type="text" 
+                        id="subject" 
+                        name="subject" 
+                        value={formData.subject}
+                        onChange={handleChange}
+                        placeholder="Message subject (optional)"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="message">Message <span className="required">*</span></label>
+                    <textarea 
+                      id="message" 
+                      name="message" 
+                      rows="6"
+                      value={formData.message}
+                      onChange={handleChange}
+                      placeholder="Tell us about your repair needs or questions..."
+                      className={errors.message ? 'error' : ''}
+                    ></textarea>
+                    {errors.message && <div className="error-message">{errors.message}</div>}
+                  </div>
+                  
+                  <button 
+                    type="submit" 
+                    className="btn-primary" 
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Sending...' : 'Send Message'}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>
       </section>
       
-      <section className="section bg-light">
+      <section className="map-section">
+        <div className="map-container">
+          <iframe 
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d241317.1160984621!2d72.7409432077263!3d19.08205353332518!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7c6306644edc1%3A0x5da4ed8f8d648c69!2sMumbai%2C%20Maharashtra!5e0!3m2!1sen!2sin!4v1632901417727!5m2!1sen!2sin" 
+            width="100%" 
+            height="500" 
+            style={{ border: 0 }} 
+            allowFullScreen="" 
+            loading="lazy"
+            title="Office location map"
+          ></iframe>
+        </div>
+      </section>
+      
+      <section className="faq-section">
         <div className="container">
           <h2 className="section-title">Frequently Asked Questions</h2>
-          <div className="contact-faqs">
-            <div className="contact-faq">
-              <h3>How do I schedule a repair service?</h3>
-              <p>You can schedule a repair service by filling out our online booking form, calling our customer service line, or visiting our location in person. We'll arrange for a convenient time for our technicians to assist you.</p>
+          <p className="section-subtitle">Find quick answers to common questions about our services</p>
+          
+          <div className="faq-grid">
+            <div className="faq-item">
+              <h3>How can I book a repair service?</h3>
+              <p>You can book a repair service through our website by filling out the booking form, calling our customer service number, or visiting our service center directly.</p>
             </div>
             
-            <div className="contact-faq">
+            <div className="faq-item">
               <h3>Do you offer emergency repair services?</h3>
-              <p>Yes, we offer emergency repair services for certain devices and situations. Please call our emergency line for immediate assistance, and we'll do our best to help you as quickly as possible.</p>
+              <p>Yes, we offer emergency repair services for critical appliances. Additional charges may apply for urgent service requests.</p>
             </div>
             
-            <div className="contact-faq">
+            <div className="faq-item">
               <h3>What areas do you service?</h3>
-              <p>We currently service Delhi NCR including Delhi, Noida, Gurgaon, Faridabad, and Ghaziabad. For locations outside this area, please contact us to check availability.</p>
+              <p>We currently provide repair services in Mumbai and surrounding areas within a 50km radius. Contact us to confirm if we service your specific location.</p>
             </div>
             
-            <div className="contact-faq">
-              <h3>How can I check the status of my repair?</h3>
-              <p>You can check the status of your repair by calling our customer service line and providing your repair ticket number. We also send WhatsApp updates at key stages of the repair process.</p>
+            <div className="faq-item">
+              <h3>How long does a typical repair take?</h3>
+              <p>Repair times vary depending on the device and issue. Simple repairs may be completed in 1-2 hours, while complex repairs might take 1-3 days, especially if parts need to be ordered.</p>
             </div>
           </div>
         </div>

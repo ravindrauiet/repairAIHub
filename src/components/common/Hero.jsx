@@ -1,17 +1,11 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 
-const Hero = ({ 
-  title = "Expert Repair Services for All Your Needs", 
-  subtitle = "We fix your TVs, mobile phones, AC units, refrigerators, and RO systems with quality and care.", 
-  ctaText = "Book a Service Now",
-  ctaLink = "/book-service",
-  backgroundImage = "/images/hero-bg.jpg"
-}) => {
-  
+const Hero = ({ title, subtitle, backgroundImage, ctaText, ctaLink }) => {
   const heroStyle = {
-    background: `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${backgroundImage})`,
+    backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.65)), url(${backgroundImage})`,
     backgroundSize: 'cover',
-    backgroundPosition: 'center'
+    backgroundPosition: 'center',
   };
   
   return (
@@ -19,10 +13,13 @@ const Hero = ({
       <div className="container">
         <div className="hero-content">
           <h1 className="hero-title">{title}</h1>
-          <p className="hero-subtitle">{subtitle}</p>
-          <Link to={ctaLink} className="hero-cta">
-            {ctaText}
-          </Link>
+          {subtitle && <p className="hero-subtitle">{subtitle}</p>}
+          
+          {ctaText && ctaLink && (
+            <Link to={ctaLink} className="hero-cta">
+              {ctaText}
+            </Link>
+          )}
         </div>
       </div>
     </div>

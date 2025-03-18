@@ -1,286 +1,259 @@
 const services = [
   {
     id: "tv-repair",
-    title: "TV Repair Services",
-    shortDescription: "Professional TV repair services for all brands and models. We fix display issues, sound problems, power failures and more.",
-    fullDescription: `
-      At RepairAIHub, we offer comprehensive TV repair services for all brands and models. 
-      Our team of certified technicians have years of experience diagnosing and fixing a wide range of TV issues.
-      
-      Whether you're dealing with a blank screen, distorted image, sound problems, or your TV won't turn on at all,
-      our experts can identify the issue and provide a cost-effective solution to get your television working perfectly again.
-    `,
-    benefits: [
-      "Expert repair for all major TV brands including Samsung, LG, Sony, and more",
-      "Fix for common issues like display problems, sound issues, connectivity problems",
-      "Fast, reliable service with genuine parts",
-      "Competitive pricing with no hidden fees",
-      "In-home service available for most repairs"
+    title: "TV/LED Repair",
+    category: "Electronics",
+    icon: "tv",
+    shortDescription: "Professional repair services for all types of televisions including LED, LCD, OLED, and Plasma TVs.",
+    priceRange: "₹500 - ₹8,000",
+    image: "/images/services/tv-repair.jpg",
+    features: [
+      "Screen replacement",
+      "Power supply repair",
+      "Backlight replacement",
+      "Board-level repairs",
+      "Software updates"
     ],
-    process: [
-      "Initial diagnosis to identify the exact issue",
-      "Transparent quote provided before any work begins",
-      "Professional repair using high-quality replacement parts when needed",
-      "Thorough testing to ensure everything works perfectly",
-      "Follow-up support to make sure you're satisfied with the repair"
-    ],
-    pricing: [
-      { service: "Diagnostic Fee", price: "₹499 (waived if repair completed)" },
-      { service: "Screen Replacement", price: "Starts at ₹4,999" },
-      { service: "Power Supply Repair", price: "Starts at ₹1,499" },
-      { service: "Backlight Repair", price: "Starts at ₹2,499" },
-      { service: "Motherboard Repair", price: "Starts at ₹3,499" }
-    ],
+    longDescription: "Our TV repair service covers all brands and models, from traditional CRT televisions to the latest OLED and QLED displays. Our technicians are trained to diagnose and fix a wide range of issues including display problems, audio issues, power supply failures, and smart TV software errors. We use genuine replacement parts to ensure the longevity of your repaired television.",
     faqs: [
       {
         question: "How long does a typical TV repair take?",
-        answer: "Most TV repairs can be completed in 1-3 days, depending on the issue and availability of parts. Simple repairs may be completed on the same day."
+        answer: "Most TV repairs are completed within 24-48 hours. However, complex issues or repairs requiring special parts may take 3-5 business days. We'll provide you with an estimated timeline when you book the service."
       },
       {
-        question: "Do you provide in-home TV repair services?",
-        answer: "Yes, we offer in-home repair services for most TV issues. Our technicians will come to your location, diagnose the problem, and often fix it right there."
+        question: "Do you offer on-site TV repair services?",
+        answer: "Yes, we offer on-site repair for most issues. Our technicians come equipped with common replacement parts and tools. For more complex repairs, we may need to take your TV to our service center."
       },
       {
-        question: "What brands of TVs do you repair?",
-        answer: "We repair all major TV brands including Samsung, LG, Sony, Vizio, TCL, Hisense, Panasonic, Sharp, Philips, and many others."
+        question: "What are the most common TV problems you repair?",
+        answer: "The most common issues we address include: no picture but sound works, power-related problems, screen flickering or lines, HDMI port failures, backlight issues, and smart TV software problems."
       },
       {
-        question: "Is there a warranty on your TV repairs?",
-        answer: "Yes, all of our TV repairs come with a 90-day warranty on both parts and labor. If you experience the same issue within this period, we'll fix it at no additional cost."
+        question: "How much does TV repair typically cost?",
+        answer: "TV repair costs depend on the issue and model. Simple repairs may cost as little as ₹500-1,500, while screen replacements can range from ₹8,000-60,000 depending on the TV model and screen size. We provide a free diagnosis and quote before proceeding with repairs."
       },
       {
-        question: "My TV screen is cracked. Can it be repaired?",
-        answer: "Yes, we can replace cracked or damaged screens. The cost varies depending on your TV model and screen size."
+        question: "Do you repair all TV brands?",
+        answer: "Yes, our technicians are trained to repair all major brands including Samsung, LG, Sony, OnePlus, MI, Vu, Panasonic, and others."
+      },
+      {
+        question: "Is it worth repairing my old TV?",
+        answer: "It depends on your TV's age, model, and the repair cost. As a general rule, if the repair cost exceeds 50% of a new TV's price, replacement might be more economical. Our technicians can help you make an informed decision."
+      },
+      {
+        question: "What warranty do you provide on TV repairs?",
+        answer: "All our TV repairs come with a 90-day warranty covering both parts and labor. For premium services, we offer extended warranty options up to 12 months."
+      },
+      {
+        question: "How can I prevent common TV problems?",
+        answer: "To extend your TV's life: ensure proper ventilation, avoid extreme temperatures, use surge protectors, clean regularly (when powered off), update software regularly, and avoid leaving static images on screen for extended periods."
       }
-    ],
-    imageUrl: "https://images.unsplash.com/photo-1593784991095-a205069470b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+    ]
   },
   {
     id: "mobile-repair",
     title: "Mobile Phone Repair",
-    shortDescription: "Fast and reliable repair services for all smartphones. We fix screen damage, battery issues, charging problems and more.",
-    fullDescription: `
-      RepairAIHub provides comprehensive smartphone repair services for all major brands including iPhone, Samsung, Google Pixel, and more.
-      Our certified technicians are experts at diagnosing and fixing a wide variety of smartphone issues quickly and affordably.
-      
-      From cracked screens and battery replacements to water damage recovery and software issues, we have the tools
-      and expertise to get your device working like new again. We use only high-quality replacement parts and offer a warranty on all repairs.
-    `,
-    benefits: [
-      "Expert repair for all major smartphone brands",
-      "Quick turnaround times - many repairs completed same day",
-      "High-quality replacement parts",
-      "Data preservation during repairs",
-      "Competitive pricing with transparent quotes"
+    category: "Electronics",
+    icon: "mobile-alt",
+    shortDescription: "Fast and reliable repairs for all smartphone brands",
+    imageUrl: "https://images.unsplash.com/photo-1580795479207-9e71b48c2a53?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
+    priceRange: "₹299 - ₹15,000",
+    features: [
+      "Screen replacement",
+      "Battery replacement",
+      "Charging port repair",
+      "Water damage recovery",
+      "Camera repair"
     ],
-    process: [
-      "Free diagnostic assessment of your device",
-      "Detailed explanation of the issue and repair options",
-      "Quick and professional repair using quality parts",
-      "Thorough testing to ensure all functions work properly",
-      "Final quality check before returning your device"
-    ],
-    pricing: [
-      { service: "Screen Replacement", price: "Starts at ₹1,499" },
-      { service: "Battery Replacement", price: "Starts at ₹999" },
-      { service: "Charging Port Repair", price: "Starts at ₹899" },
-      { service: "Water Damage Treatment", price: "Starts at ₹1,999" },
-      { service: "Camera Replacement", price: "Starts at ₹1,299" }
-    ],
-    faqs: [
-      {
-        question: "How long does it take to repair a phone screen?",
-        answer: "Most screen replacements can be completed within 1-2 hours, depending on the model and our current workload."
-      },
-      {
-        question: "Will I lose my data during the repair?",
-        answer: "No, most repairs including screen and battery replacements do not affect your data. However, we always recommend backing up your device before any repair as a precaution."
-      },
-      {
-        question: "Do you use original manufacturer parts?",
-        answer: "We offer both original manufacturer parts and high-quality aftermarket parts. Original parts cost more but provide the same experience as a new device. We'll discuss options with you before the repair."
-      },
-      {
-        question: "Can you fix a phone that won't turn on?",
-        answer: "Yes, we can diagnose and fix phones that won't power on. This could be due to battery issues, charging port problems, water damage, or motherboard faults."
-      },
-      {
-        question: "Is there a warranty on phone repairs?",
-        answer: "Yes, all our mobile repairs come with a 90-day warranty covering both parts and labor for the specific repair performed."
-      }
-    ],
-    imageUrl: "https://images.unsplash.com/photo-1580910051074-3eb694886505?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2065&q=80"
+    longDescription: "Our mobile repair experts can fix screens, batteries, charging ports and more for all major smartphone brands. We use only genuine parts and offer warranty on all repairs."
   },
   {
     id: "ac-repair",
     title: "AC Repair Services",
-    shortDescription: "Complete air conditioning repair and maintenance services. We handle cooling issues, strange noises, leaks, and regular servicing.",
-    fullDescription: `
-      RepairAIHub offers comprehensive air conditioning repair and maintenance services for residential and light commercial units.
-      Our HVAC technicians are fully licensed and experienced in working with all major AC brands and models.
-      
-      Whether your AC isn't cooling properly, is making unusual noises, leaking, or simply needs a tune-up,
-      our team provides fast, reliable service to keep your indoor environment comfortable and your energy bills reasonable.
-      We specialize in diagnostics, repairs, preventative maintenance, and replacement of air conditioning systems.
-    `,
-    benefits: [
-      "Licensed and certified AC repair technicians",
-      "Service for all major air conditioner brands and models",
-      "24/7 emergency AC repair service available",
-      "Transparent pricing with detailed quotes",
-      "Regular maintenance plans to prevent future issues"
+    category: "Home Appliances",
+    icon: "wind",
+    shortDescription: "Complete air conditioner repair, maintenance and installation services.",
+    imageUrl: "https://images.unsplash.com/photo-1614181680133-e9a8fcb50c05?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    priceRange: "₹800 - ₹5,000",
+    features: [
+      "Cooling efficiency restoration",
+      "Gas refilling",
+      "Filter cleaning/replacement",
+      "Compressor repair",
+      "Annual maintenance"
     ],
-    process: [
-      "Comprehensive diagnostic assessment of your AC system",
-      "Detailed explanation of issues found and repair options",
-      "Professional repair service using quality parts",
-      "System testing and optimization after repair",
-      "Maintenance recommendations to prevent future problems"
-    ],
-    pricing: [
-      { service: "Diagnostic Service", price: "₹799" },
-      { service: "Basic AC Tune-up", price: "₹1,499" },
-      { service: "Refrigerant Recharge", price: "Starts at ₹2,499" },
-      { service: "Compressor Replacement", price: "Starts at ₹7,999" },
-      { service: "Annual Maintenance Plan", price: "₹3,999/year" }
-    ],
-    faqs: [
-      {
-        question: "How often should I service my AC unit?",
-        answer: "For optimal performance and longevity, we recommend servicing your AC unit at least once a year, preferably before the summer season begins."
-      },
-      {
-        question: "What are signs that my AC needs repair?",
-        answer: "Common signs include: insufficient cooling, unusual noises, water leaks, bad odors, high energy bills, and frequent cycling on and off."
-      },
-      {
-        question: "How long does an AC repair typically take?",
-        answer: "Most standard AC repairs can be completed within 1-3 hours. More complex issues like compressor replacements may take 4-6 hours or require multiple visits."
-      },
-      {
-        question: "Do you offer emergency AC repair services?",
-        answer: "Yes, we offer 24/7 emergency AC repair services for situations where you need immediate assistance, especially during extreme weather conditions."
-      },
-      {
-        question: "What brands of air conditioners do you service?",
-        answer: "We service all major brands including Voltas, Blue Star, Daikin, LG, Samsung, Carrier, Hitachi, Mitsubishi, O General, and many others."
-      }
-    ],
-    imageUrl: "https://img.freepik.com/free-photo/checking-conditioner_1098-17787.jpg?t=st=1741893895~exp=1741897495~hmac=3c16309b9a2850b8641149593c8ed2ce6ca16aa9206a5ea197f5060cf406daac&w=1380"
+    longDescription: "Our comprehensive AC repair service covers everything from routine maintenance to major repairs. We service all types of air conditioners including split, window, and central AC systems. Our certified technicians can diagnose and fix issues like inadequate cooling, strange noises, water leakage, and electrical problems."
   },
   {
     id: "refrigerator-repair",
     title: "Refrigerator Repair",
-    shortDescription: "Expert refrigerator repair services for all brands. We fix cooling problems, ice maker issues, water leaks, and unusual noises.",
-    fullDescription: `
-      RepairAIHub provides professional refrigerator repair services for all types and brands of refrigerators, including side-by-side, French door, bottom freezer, and top freezer models.
-      Our certified technicians have extensive experience diagnosing and fixing a wide range of refrigerator problems.
-      
-      Whether your refrigerator isn't cooling properly, the ice maker is malfunctioning, you're experiencing water leaks, or hearing unusual noises,
-      our team can quickly identify the issue and provide an effective, long-lasting solution. We understand how critical your refrigerator is to your daily life,
-      which is why we prioritize fast service and quality repairs.
-    `,
-    benefits: [
-      "Experienced technicians specialized in refrigerator repair",
-      "Service for all refrigerator types and major brands",
-      "Same-day service often available for urgent issues",
-      "Genuine replacement parts for lasting repairs",
-      "Affordable service with no hidden costs"
+    category: "Home Appliances",
+    icon: "snowflake",
+    shortDescription: "Reliable repair solutions for all refrigerator models",
+    imageUrl: "https://images.unsplash.com/photo-1659607423251-3e46c9d0ca7a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    priceRange: "₹700 - ₹4,500",
+    features: [
+      "Cooling system repairs",
+      "Compressor replacement",
+      "Thermostat calibration",
+      "Ice maker repair",
+      "Door seal replacement"
     ],
-    process: [
-      "Detailed diagnostic assessment of your refrigerator",
-      "Clear explanation of the problem and repair options",
-      "Efficient repair using quality replacement parts when needed",
-      "Thorough testing to ensure proper operation",
-      "Tips for maintaining your refrigerator and preventing future issues"
-    ],
-    pricing: [
-      { service: "Diagnostic Fee", price: "₹799 (waived with repair)" },
-      { service: "Thermostat Replacement", price: "Starts at ₹1,999" },
-      { service: "Compressor Repair/Replace", price: "Starts at ₹4,999" },
-      { service: "Ice Maker Repair", price: "Starts at ₹2,499" },
-      { service: "Door Seal Replacement", price: "Starts at ₹1,499" }
-    ],
-    faqs: [
-      {
-        question: "How long does a refrigerator repair usually take?",
-        answer: "Most refrigerator repairs can be completed in a single visit lasting 1-2 hours. More complex issues might take longer or require ordering special parts."
-      },
-      {
-        question: "What are common signs that my refrigerator needs repair?",
-        answer: "Common signs include: insufficient cooling, excessive frost buildup, water leaking on the floor, unusual noises, refrigerator cycling too frequently, or food spoiling prematurely."
-      },
-      {
-        question: "Do I need to empty my refrigerator before your repair visit?",
-        answer: "It's not always necessary to empty your refrigerator completely, but we recommend removing items from areas that might need to be accessed during the repair. We'll advise you on this when you schedule your appointment."
-      },
-      {
-        question: "How can I maintain my refrigerator to avoid repairs?",
-        answer: "Regular maintenance includes: cleaning the condenser coils, checking door seals, keeping the refrigerator at the proper temperature (2-4°C), not overloading it, and ensuring proper ventilation around the unit."
-      },
-      {
-        question: "Is it worth repairing an old refrigerator?",
-        answer: "Generally, if your refrigerator is less than 8 years old and the repair cost is less than half the price of a new unit, repair is often worth it. We can help you evaluate the most cost-effective option for your situation."
-      }
-    ],
-    imageUrl: "https://watermark.lovepik.com/photo/20211127/large/lovepik-workers-come-to-repair-refrigerators-picture_501157481.jpg"
+    longDescription: "We offer comprehensive refrigerator repair services for all types including side-by-side, double-door, single-door, and bottom freezer models. Our technicians can fix cooling issues, ice maker problems, water dispensers, and more."
   },
   {
     id: "ro-repair",
     title: "RO System Repair",
-    shortDescription: "Comprehensive repair and maintenance for all types of RO water purification systems. We fix leaks, low water output, quality issues, and more.",
-    fullDescription: `
-      RepairAIHub offers specialized repair and maintenance services for all types of Reverse Osmosis (RO) water purification systems.
-      Our technicians are trained and certified to work on domestic and commercial RO units from all major manufacturers.
-      
-      From addressing water quality issues and slow filtration rates to fixing leaks and replacing membranes and filters,
-      we provide comprehensive solutions to keep your water purification system operating at peak efficiency.
-      We understand the importance of clean, safe drinking water and prioritize quality workmanship and prompt service.
-    `,
-    benefits: [
-      "Specialized technicians for RO system repairs",
-      "Service for all major RO brands and models",
-      "High-quality replacement filters and membranes",
-      "Comprehensive system evaluation",
-      "Maintenance plans to ensure continuous clean water"
+    category: "Home Appliances",
+    icon: "tint",
+    shortDescription: "Complete water purifier repair and maintenance services",
+    imageUrl: "https://images.unsplash.com/photo-1607465227100-276c3dd6bf08?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    priceRange: "₹350 - ₹2,500",
+    features: [
+      "Complete RO system servicing",
+      "Filter replacement and cleaning",
+      "UV lamp replacement",
+      "Motor and pump repairs",
+      "TDS controller adjustment",
+      "Leakage and low pressure fixes"
     ],
-    process: [
-      "Complete diagnostic assessment of your RO system",
-      "Water quality testing to identify potential issues",
-      "Professional repair and part replacement as needed",
-      "System sanitization and flushing",
-      "Post-repair testing to ensure optimal performance"
+    longDescription: "Our RO repair services ensure your water purifier functions optimally. We service all brands including Kent, Aquaguard, Pureit, and more to provide safe and clean drinking water for your family."
+  },
+  {
+    id: "washing-machine-repair",
+    title: "Washing Machine Repair",
+    category: "Home Appliances",
+    icon: "washing-machine",
+    shortDescription: "Expert washing machine repair for all major brands and common issues.",
+    imageUrl: "https://images.unsplash.com/photo-1626806787461-102c1a6f2864?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
+    priceRange: "₹500 - ₹4,000",
+    features: [
+      "Motor replacement",
+      "Drum repairs",
+      "Control board fixes",
+      "Water inlet/drain issues",
+      "Noise problem solutions"
     ],
-    pricing: [
-      { service: "System Diagnostic", price: "₹599" },
-      { service: "Filter Replacement (Set)", price: "Starts at ₹1,499" },
-      { service: "Membrane Replacement", price: "Starts at ₹1,999" },
-      { service: "Leak Repair", price: "Starts at ₹899" },
-      { service: "Annual Maintenance", price: "₹2,499/year" }
+    longDescription: "Our washing machine repair service covers all major brands including Samsung, LG, Whirlpool, and Bosch. We can diagnose and fix most common issues from water leaks to strange noises and spin cycle problems. All our repairs come with a service guarantee."
+  },
+  {
+    id: "geyser-repair",
+    title: "Geyser Repair Services",
+    category: "Home Appliances",
+    icon: "hot-tub",
+    shortDescription: "Fast and reliable geyser and water heater repair services.",
+    imageUrl: "https://images.unsplash.com/photo-1585670209793-8b9eecf3fa12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    priceRange: "₹400 - ₹3,000",
+    features: [
+      "Heating element replacement",
+      "Thermostat repair",
+      "Leak fixing",
+      "Pressure valve replacement",
+      "Complete installation"
     ],
-    faqs: [
-      {
-        question: "How often should I service my RO system?",
-        answer: "For optimal performance and water quality, we recommend servicing your RO system annually, with filter replacements typically needed every 6-12 months depending on usage and water quality."
-      },
-      {
-        question: "What are signs that my RO system needs repair?",
-        answer: "Common signs include: reduced water flow, unusual taste or odor in the water, cloudy appearance, leaks around the system, unusual noises from the system, or the system constantly running."
-      },
-      {
-        question: "How long does it take to repair an RO system?",
-        answer: "Most RO system repairs can be completed within 1-2 hours. Routine maintenance like filter changes may take as little as 30 minutes."
-      },
-      {
-        question: "Will I need to replace my entire RO system if it's malfunctioning?",
-        answer: "In most cases, no. RO systems are designed with replaceable components, so typically only the specific malfunctioning part needs to be replaced, such as a filter, membrane, or pump."
-      },
-      {
-        question: "Can you install water quality monitoring systems?",
-        answer: "Yes, we can install TDS (Total Dissolved Solids) monitors and other water quality monitoring systems to help you track your water quality and know exactly when maintenance is needed."
-      }
+    longDescription: "Keep your hot water running with our professional geyser and water heater repair services. Our certified technicians can diagnose and fix all types of water heater problems, from no hot water to leaks and strange noises. We work with all brands and models of electric, gas, and solar water heaters."
+  },
+  {
+    id: "laptop-repair",
+    title: "Laptop Repair",
+    category: "Electronics",
+    icon: "laptop",
+    shortDescription: "Expert laptop repair and upgrade services for all brands.",
+    imageUrl: "/images/services/laptop-repair.jpg",
+    priceRange: "₹500 - ₹12,000",
+    features: [
+      "Screen replacement",
+      "Keyboard replacement",
+      "Battery replacement",
+      "Hardware upgrades",
+      "Data recovery"
     ],
-    imageUrl: "https://media.istockphoto.com/id/1499501309/photo/reverse-osmosis-water-filter-system.jpg?s=612x612&w=0&k=20&c=3I3sknhP_Q4Rf8GXsP2mkrC8yAiXrCZh8ywvus_zMkc="
+    longDescription: "Our laptop repair services cover all major brands including Dell, HP, Lenovo, Apple, Asus, and more. We can diagnose and fix issues like screen problems, keyboard failures, battery issues, overheating, and software problems. We also provide hardware upgrades to improve performance."
+  },
+  {
+    id: "microwave-repair",
+    title: "Microwave Repair",
+    category: "Home Appliances",
+    icon: "radiation",
+    shortDescription: "Fast and reliable microwave oven repair services.",
+    imageUrl: "/images/services/microwave-repair.jpg",
+    priceRange: "₹350 - ₹2,500",
+    features: [
+      "Heating element repair",
+      "Door switch replacement",
+      "Turntable motor fixing",
+      "Control panel repair",
+      "Magnetron replacement"
+    ],
+    longDescription: "Our microwave repair services cover both countertop and built-in models of all brands. Our technicians can fix common issues like heating problems, turntable malfunctions, unusual noises, and display errors. We provide quick service with quality replacement parts."
+  },
+  {
+    id: "computer-repair",
+    title: "Desktop Computer Repair",
+    category: "Electronics",
+    icon: "desktop",
+    shortDescription: "Complete desktop computer repair, upgrade and maintenance services.",
+    imageUrl: "/images/services/computer-repair.jpg",
+    priceRange: "₹500 - ₹10,000",
+    features: [
+      "Hardware troubleshooting",
+      "Component upgrades",
+      "Virus removal",
+      "Operating system reinstallation",
+      "Custom PC building"
+    ],
+    longDescription: "Our desktop computer repair services include hardware diagnostics, component replacement, performance upgrades, virus removal, and data recovery. We service all brands and configurations. Whether you need a simple RAM upgrade or a complete system overhaul, our technicians can help get your computer running at its best."
+  },
+  {
+    id: "printer-repair",
+    title: "Printer Repair",
+    category: "Electronics",
+    icon: "print",
+    shortDescription: "Professional printer repair for inkjet, laser, and all-in-one models.",
+    imageUrl: "/images/services/printer-repair.jpg",
+    priceRange: "₹400 - ₹3,500",
+    features: [
+      "Paper jam resolution",
+      "Print quality improvement",
+      "Cartridge system repair",
+      "Connectivity issues",
+      "Printhead cleaning"
+    ],
+    longDescription: "Our printer repair services cover all major brands including HP, Canon, Epson, and Brother. We can fix common issues like paper jams, poor print quality, connectivity problems, and error messages. Our technicians are experienced with both inkjet and laser printer technologies."
+  },
+  {
+    id: "camera-repair",
+    title: "Camera Repair",
+    category: "Electronics",
+    icon: "camera",
+    shortDescription: "Professional repair services for DSLR, mirrorless and digital cameras.",
+    imageUrl: "/images/services/camera-repair.jpg",
+    priceRange: "₹600 - ₹15,000",
+    features: [
+      "Lens repair",
+      "Sensor cleaning",
+      "Shutter mechanism fixes",
+      "Button/dial replacement",
+      "Water damage recovery"
+    ],
+    longDescription: "Our camera repair specialists can fix issues with DSLR, mirrorless, and compact digital cameras from brands like Canon, Nikon, Sony, and Fujifilm. We provide services for lens problems, sensor issues, shutter failures, and electronic malfunctions. All repairs are performed by experienced technicians using proper tools and quality parts."
+  },
+  {
+    id: "gaming-console-repair",
+    title: "Gaming Console Repair",
+    category: "Electronics",
+    icon: "gamepad",
+    shortDescription: "Expert repair services for PlayStation, Xbox, Nintendo and other gaming consoles.",
+    imageUrl: "/images/services/console-repair.jpg",
+    priceRange: "₹500 - ₹8,000",
+    features: [
+      "HDMI port repair",
+      "Disc drive replacement",
+      "Overheating solutions",
+      "Controller repair",
+      "System error fixing"
+    ],
+    longDescription: "We provide professional repair services for all gaming consoles including PlayStation, Xbox, and Nintendo systems. Our technicians can fix common issues like HDMI port failures, disc reading problems, overheating, controller malfunctions, and various error codes. Get your gaming system back in action with our fast and reliable service."
   }
 ];
 
@@ -292,4 +265,13 @@ export const getServiceById = (id) => {
 
 export const getAllServices = () => {
   return services;
+};
+
+export const getServicesByCategory = (category) => {
+  return services.filter(service => service.category === category);
+};
+
+export const getAllServiceCategories = () => {
+  const categories = services.map(service => service.category);
+  return [...new Set(categories)];
 }; 

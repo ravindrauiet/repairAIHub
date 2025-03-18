@@ -1,0 +1,82 @@
+:root {
+  /* Colors - using a more subtle approach */
+  --primary-color: #0056B3;  /* Blue */
+  --primary-light: rgba(0, 86, 179, 0.1);
+  --primary-dark: #004494;
+  
+  --accent-color: #E5322D;  /* Red */
+  --accent-light: rgba(229, 50, 45, 0.1);
+  --accent-dark: #C41C17;
+  
+  --secondary-color: #28A745;  /* Green */
+  --secondary-light: rgba(40, 167, 69, 0.1);
+  --secondary-dark: #1E7E34;
+  
+  --black: #222222;
+  --black-light: rgba(34, 34, 34, 0.1);
+  
+  /* Text colors */
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --text-light: #CCCCCC;
+  --text-dark: var(--black);
+  
+  /* Background colors */
+  --bg-light: #F8F9FA;
+  --bg-dark: var(--black);
+  --bg-white: #FFFFFF;
+  --bg-primary-light: rgba(0, 86, 179, 0.05);
+  --bg-accent-light: rgba(229, 50, 45, 0.05);
+  --bg-secondary-light: rgba(40, 167, 69, 0.05);
+  
+  --border-color: #E1E1E1;
+  
+  /* Status colors */
+  --error-color: #DC3545;
+  --success-color: var(--secondary-color);
+  --warning-color: #FFC107;
+  --info-color: var(--primary-color);
+  
+  /* Spacing */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 3rem;
+  --spacing-xxl: 5rem;
+  
+  /* Border Radius */
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --border-radius-xl: 1rem;
+  
+  /* Box Shadow */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.18);
+  
+  /* Transitions */
+  --transition-fast: 0.2s all ease;
+  --transition-normal: 0.3s all ease;
+  --transition-slow: 0.5s all ease;
+  
+  /* Font Size */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-xxl: 2rem;
+  --font-size-xxxl: 2.5rem;
+  
+  /* Container Width */
+  --container-width: 1200px;
+  
+  /* Gradient */
+  --gradient-primary: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  --gradient-accent: linear-gradient(135deg, var(--accent-color), var(--accent-dark));
+  --gradient-secondary: linear-gradient(135deg, var(--secondary-color), var(--secondary-dark));
+} 

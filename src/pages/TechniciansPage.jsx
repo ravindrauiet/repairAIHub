@@ -1,112 +1,149 @@
+import React from 'react';
 import Hero from '../components/common/Hero';
-
-const techniciansData = [
-  {
-    id: 1,
-    name: "Rajesh Kumar",
-    role: "Senior TV & Electronics Repair Specialist",
-    experience: "12+ years",
-    expertise: ["Smart TVs", "Home Theater Systems", "Gaming Consoles"],
-    certifications: ["LG Certified Technician", "Samsung Electronics Specialist"],
-    imageUrl: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
-    bio: "Rajesh has been repairing electronics for over 12 years and specializes in modern smart TVs and home entertainment systems. His detailed knowledge of circuitry and diagnostic skills make him our go-to expert for complex TV repairs."
-  },
-  {
-    id: 2,
-    name: "Priya Sharma",
-    role: "Mobile Device Repair Expert",
-    experience: "8+ years",
-    expertise: ["Smartphones", "Tablets", "Data Recovery"],
-    certifications: ["Apple Certified Technician", "Samsung Mobile Repair Specialist"],
-    imageUrl: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
-    bio: "Priya is our mobile repair expert with specialized training in iPhone and Samsung Galaxy repairs. She excels at microsoldering, screen replacements, and data recovery from damaged devices."
-  },
-  {
-    id: 3,
-    name: "Vikram Singh",
-    role: "HVAC & AC Systems Specialist",
-    experience: "15+ years",
-    expertise: ["Split AC Systems", "Inverter ACs", "Commercial Cooling"],
-    certifications: ["Daikin Certified Technician", "Blue Star Service Expert"],
-    imageUrl: "https://images.unsplash.com/photo-1618151313441-bc79b11e5090?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1976&q=80",
-    bio: "Vikram brings 15 years of HVAC experience and specializes in diagnosing and repairing all major AC brands. His expertise in refrigerant handling and electrical systems ensures reliable repairs even for the most complicated AC issues."
-  },
-  {
-    id: 4,
-    name: "Ananya Patel",
-    role: "Customer Relations Manager",
-    experience: "6+ years",
-    expertise: ["Service Coordination", "Customer Support", "Quality Assurance"],
-    certifications: ["Customer Experience Management", "Service Excellence Certification"],
-    imageUrl: "https://images.unsplash.com/photo-1614644147798-f8c0fc9da7f6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1964&q=80",
-    bio: "Ananya ensures that our customers receive exceptional service from start to finish. She coordinates our technician schedules, handles customer inquiries, and follows up on all service calls to ensure complete satisfaction."
-  },
-  {
-    id: 5,
-    name: "Arjun Mehta",
-    role: "Refrigeration Systems Expert",
-    experience: "10+ years",
-    expertise: ["Side-by-Side Refrigerators", "Inverter Technology", "Commercial Units"],
-    certifications: ["Whirlpool Master Technician", "LG Refrigeration Specialist"],
-    imageUrl: "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1780&q=80",
-    bio: "Arjun specializes in refrigeration systems with deep knowledge of both residential and commercial refrigerators. His extensive experience with modern inverter technology refrigerators makes him invaluable for complex cooling issues."
-  },
-  {
-    id: 6,
-    name: "Deepak Verma",
-    role: "Water Purification Specialist",
-    experience: "9+ years",
-    expertise: ["RO Systems", "UV Purifiers", "Water Softeners"],
-    certifications: ["Kent RO Certified Technician", "Aquaguard Specialist"],
-    imageUrl: "https://images.unsplash.com/photo-1635975229704-dba4c66c33b3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80",
-    bio: "Deepak is our water purification expert with specialized training in all major RO system brands. He's known for his meticulous attention to detail and commitment to ensuring clean, safe drinking water for all our customers."
-  }
-];
+import { Link } from 'react-router-dom';
 
 const TechniciansPage = () => {
+  // Sample technicians data - In a real app, this would come from an API or database
+  const technicians = [
+    {
+      id: 1,
+      name: "Ajay Sharma",
+      role: "Senior Mobile Repair Technician",
+      experience: 8,
+      specialization: "Smartphone Screen & Battery Replacements",
+      certification: "Apple Certified Technician, Samsung Authorized Service",
+      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80",
+      bio: "Ajay has over 8 years of experience in mobile phone repairs. He specializes in complex screen replacements and logic board repairs for all major smartphone brands."
+    },
+    {
+      id: 2,
+      name: "Priya Patel",
+      role: "TV & Display Specialist",
+      experience: 6,
+      specialization: "LED/LCD TV Repairs, Display Calibration",
+      certification: "LG Certified Technician, Sony Professional Service",
+      image: "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80",
+      bio: "Priya is our display expert with a deep understanding of TV panel technologies. She handles everything from simple settings adjustments to complex board-level repairs for all major TV brands."
+    },
+    {
+      id: 3,
+      name: "Rajesh Kumar",
+      role: "AC & Refrigeration Expert",
+      experience: 10,
+      specialization: "HVAC Systems, Refrigerant Handling",
+      certification: "HVAC Certified, Daikin Authorized Technician",
+      image: "https://images.unsplash.com/photo-1564564321837-a57b7070ac4f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=876&q=80",
+      bio: "With a decade of experience in AC and refrigeration systems, Rajesh can diagnose and fix cooling issues efficiently. He's certified in refrigerant handling and specializes in energy efficiency optimization."
+    },
+    {
+      id: 4,
+      name: "Sunita Verma",
+      role: "Home Appliances Technician",
+      experience: 7,
+      specialization: "Washing Machines, Dishwashers, Microwaves",
+      certification: "Whirlpool Certified, Bosch Service Partner",
+      image: "https://images.unsplash.com/photo-1629425733761-caae3b5f2e50?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80",
+      bio: "Sunita is our home appliance expert who specializes in washing machines and kitchen appliances. Her attention to detail and problem-solving skills make her excellent at diagnosing complex appliance issues."
+    },
+    {
+      id: 5,
+      name: "Mohan Singh",
+      role: "Water Purifier Specialist",
+      experience: 5,
+      specialization: "RO Systems, UV Purifiers",
+      certification: "Aquaguard Certified Technician, Kent Service Expert",
+      image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80",
+      bio: "Mohan specializes in water purification systems including RO, UV, and UF technologies. He's known for his meticulous maintenance work and ability to optimize water quality through proper calibration."
+    },
+    {
+      id: 6,
+      name: "Anjali Desai",
+      role: "Computer & Laptop Technician",
+      experience: 6,
+      specialization: "Hardware Troubleshooting, Data Recovery",
+      certification: "CompTIA A+, Microsoft Certified",
+      image: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=774&q=80",
+      bio: "Anjali has expertise in computer hardware and software repairs. She excels at data recovery operations and motherboard-level repairs for laptops and desktops of all major brands."
+    }
+  ];
+
   return (
     <div className="technicians-page">
       <Hero 
         title="Our Expert Technicians" 
-        subtitle="Meet our team of certified professionals dedicated to providing exceptional repair services"
-        backgroundImage="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2068&q=80"
+        subtitle="Meet the skilled professionals who'll repair your devices"
+        backgroundImage="https://images.unsplash.com/photo-1581092160562-40aa08e78837?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
       />
       
       <section className="section">
         <div className="container">
-          <div className="technicians-intro">
-            <h2 className="section-title">The RepairAIHub Team</h2>
-            <p className="technicians-description">
-              Our team consists of highly trained and certified technicians with expertise across various appliances and electronics. 
-              Each specialist brings years of hands-on experience, ongoing training, and a commitment to excellence. 
-              When you choose RepairAIHub, you're working with professionals who take pride in their craft and are dedicated to 
-              providing lasting solutions to your repair needs.
-            </p>
+          <div className="section-header">
+            <h2 className="section-title">Why Our Technicians Stand Out</h2>
+            <p className="section-subtitle">We take pride in our team of certified and experienced repair specialists</p>
+          </div>
+          
+          <div className="tech-benefits">
+            <div className="tech-benefit">
+              <div className="benefit-icon">
+                <i className="fas fa-certificate"></i>
+              </div>
+              <h3>Certified Experts</h3>
+              <p>All our technicians hold professional certifications from leading manufacturers and industry organizations.</p>
+            </div>
+            
+            <div className="tech-benefit">
+              <div className="benefit-icon">
+                <i className="fas fa-tools"></i>
+              </div>
+              <h3>Continuous Training</h3>
+              <p>Regular training on the latest technologies and repair techniques ensures our team stays ahead of the curve.</p>
+            </div>
+            
+            <div className="tech-benefit">
+              <div className="benefit-icon">
+                <i className="fas fa-history"></i>
+              </div>
+              <h3>Experienced Professionals</h3>
+              <p>With an average of 7+ years of experience, our technicians have seen and solved thousands of repair challenges.</p>
+            </div>
+            
+            <div className="tech-benefit">
+              <div className="benefit-icon">
+                <i className="fas fa-shield-alt"></i>
+              </div>
+              <h3>Quality Guaranteed</h3>
+              <p>We stand behind our work with comprehensive warranties and a commitment to customer satisfaction.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section className="section technicians-section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Meet Our Repair Specialists</h2>
+            <p className="section-subtitle">The skilled professionals who make your repairs quick and reliable</p>
           </div>
           
           <div className="technicians-grid">
-            {techniciansData.map(technician => (
-              <div key={technician.id} className="technician-card">
+            {technicians.map(tech => (
+              <div className="technician-card" key={tech.id}>
                 <div className="technician-image">
-                  <img src={technician.imageUrl} alt={technician.name} />
+                  <img src={tech.image} alt={tech.name} />
                 </div>
-                <div className="technician-details">
-                  <h3 className="technician-name">{technician.name}</h3>
-                  <p className="technician-role">{technician.role}</p>
-                  <p className="technician-experience">Experience: {technician.experience}</p>
-                  <div className="technician-expertise">
-                    <h4>Specializations:</h4>
-                    <ul>
-                      {technician.expertise.map((item, index) => (
-                        <li key={index}>{item}</li>
-                      ))}
-                    </ul>
+                <div className="technician-info">
+                  <h3>{tech.name}</h3>
+                  <div className="technician-role">{tech.role}</div>
+                  <div className="technician-exp">
+                    <i className="fas fa-briefcase"></i> {tech.experience} years experience
                   </div>
-                  <p className="technician-bio">{technician.bio}</p>
-                  <div className="technician-certifications">
-                    {technician.certifications.map((cert, index) => (
-                      <span key={index} className="certification-badge">{cert}</span>
-                    ))}
+                  <div className="technician-cert">
+                    <i className="fas fa-award"></i> {tech.certification.split(',')[0]}
+                  </div>
+                  <p className="technician-bio">{tech.bio}</p>
+                  <div className="technician-specialization">
+                    <h4>Specializes in:</h4>
+                    <p>{tech.specialization}</p>
                   </div>
                 </div>
               </div>
@@ -115,26 +152,27 @@ const TechniciansPage = () => {
         </div>
       </section>
       
-      <section className="section bg-light">
+      <section className="section join-team-section">
         <div className="container">
-          <h2 className="section-title">Why Our Technicians Stand Out</h2>
-          <div className="technician-features">
-            <div className="technician-feature">
-              <h3>Certified & Trained</h3>
-              <p>All our technicians undergo rigorous training and certification programs to stay updated with the latest repair techniques and technologies.</p>
+          <div className="join-team-content">
+            <div className="join-team-text">
+              <h2>Join Our Team of Technicians</h2>
+              <p>Are you a skilled repair technician? We're always looking for talented professionals to join our growing team. Enjoy competitive pay, flexible hours, and continuous training opportunities.</p>
+              <Link to="/careers" className="btn-secondary">View Careers</Link>
             </div>
-            <div className="technician-feature">
-              <h3>Experienced Specialists</h3>
-              <p>With an average of 10+ years of hands-on experience, our team has encountered and successfully resolved virtually every repair scenario.</p>
+            <div className="join-team-image">
+              <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" alt="Join our team" />
             </div>
-            <div className="technician-feature">
-              <h3>Background Verified</h3>
-              <p>For your peace of mind, all our technicians undergo thorough background checks and are fully vetted before joining our team.</p>
-            </div>
-            <div className="technician-feature">
-              <h3>Customer-Focused</h3>
-              <p>Beyond technical skills, our technicians are selected for their communication skills and customer-first approach to service.</p>
-            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section className="section cta-section">
+        <div className="container">
+          <div className="cta-content">
+            <h2>Need Expert Repair Services?</h2>
+            <p>Our technicians are ready to solve your device problems with professional expertise</p>
+            <Link to="/book-service" className="btn-primary">Book a Service</Link>
           </div>
         </div>
       </section>

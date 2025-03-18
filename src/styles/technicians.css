@@ -1,204 +1,354 @@
 /* Technicians Page Styles */
 .technicians-page {
-  padding-bottom: var(--spacing-xxl);
+  min-height: 100vh;
+  background-color: #f9fafb;
 }
 
-.technicians-intro {
-  max-width: 900px;
-  margin: 0 auto var(--spacing-xl);
-}
-
-.technicians-description {
-  font-size: 1.1rem;
-  line-height: 1.7;
-  color: var(--text-secondary);
+.section-header {
   text-align: center;
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  color: var(--primary-color);
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+  position: relative;
+  display: inline-block;
+}
+
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Tech Benefits Section */
+.tech-benefits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.tech-benefit {
+  background-color: white;
+  padding: 2rem;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.tech-benefit:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.benefit-icon {
+  width: 70px;
+  height: 70px;
+  background: linear-gradient(275deg, #fdfeff, #ffdcdb);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  color: white;
+  font-size: 1.8rem;
+}
+
+.tech-benefit h3 {
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.tech-benefit p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Technicians Grid Section */
+.technicians-section {
+  background-color: white;
+  padding: 5rem 0;
 }
 
 .technicians-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-lg);
-  margin-top: var(--spacing-xl);
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 2.5rem;
+  margin-top: 1rem;
 }
 
 .technician-card {
-  display: flex;
-  flex-direction: column;
-  background-color: var(--white);
+  background-color: #fff;
   border-radius: var(--border-radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-md);
-  transition: var(--transition-normal);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.07);
+  transition: all 0.3s ease;
   height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .technician-card:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
 }
 
 .technician-image {
-  position: relative;
+  width: 100%;
+  height: 280px;
   overflow: hidden;
-  height: 220px;
 }
 
 .technician-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: all 0.5s ease;
 }
 
 .technician-card:hover .technician-image img {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
-.technician-details {
-  padding: var(--spacing-md);
+.technician-info {
+  padding: 1.8rem;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  flex: 1;
 }
 
-.technician-name {
-  font-size: 1.25rem;
-  color: var(--primary-color);
-  margin-bottom: var(--spacing-xs);
+.technician-info h3 {
+  font-size: 1.4rem;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem;
 }
 
 .technician-role {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-sm);
-  font-weight: 500;
-}
-
-.technician-experience {
-  font-size: 0.9rem;
-  margin-bottom: var(--spacing-md);
-  color: var(--text-primary);
-}
-
-.technician-expertise {
-  margin-bottom: var(--spacing-md);
-}
-
-.technician-expertise h4 {
-  font-size: 0.95rem;
-  margin-bottom: var(--spacing-xs);
-  color: var(--text-primary);
-}
-
-.technician-expertise ul {
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
-}
-
-.technician-expertise li {
-  font-size: 0.85rem;
-  background-color: rgba(0, 86, 179, 0.1);
   color: var(--primary-color);
-  padding: 3px 8px;
-  border-radius: 50px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.technician-exp, .technician-cert {
+  display: flex;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 0.8rem;
+}
+
+.technician-exp i, .technician-cert i {
+  color: var(--accent-color);
+  margin-right: 0.5rem;
+  font-size: 0.95rem;
 }
 
 .technician-bio {
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin-bottom: var(--spacing-md);
   color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 1rem 0;
+  flex: 1;
 }
 
-.technician-certifications {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
+.technician-specialization {
+  background-color: #f0f8ff;
+  padding: 1rem 1.2rem;
+  border-radius: var(--border-radius-md);
   margin-top: auto;
 }
 
-.certification-badge {
-  display: inline-block;
-  background-color: var(--light-bg);
+.technician-specialization h4 {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
   color: var(--text-primary);
-  font-size: 0.75rem;
-  padding: 3px 8px;
-  border-radius: var(--border-radius-sm);
-  border: 1px solid var(--border-color);
 }
 
-/* Technician Features */
-.technician-features {
+.technician-specialization p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Join Team Section */
+.join-team-section {
+  padding: 5rem 0;
+  background-color: #f0f8ff;
+}
+
+.join-team-content {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-lg);
-  margin-top: var(--spacing-lg);
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: center;
 }
 
-.technician-feature {
-  background-color: var(--white);
-  padding: var(--spacing-lg);
+.join-team-text h2 {
+  font-size: 2rem;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+}
+
+.join-team-text p {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.join-team-image {
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+}
+
+.join-team-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* CTA Section */
+.cta-section {
+  background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+  padding: 4rem 0;
+  color: white;
+  text-align: center;
+}
+
+.cta-content h2 {
+  font-size: 2.2rem;
+  margin-bottom: 1rem;
+}
+
+.cta-content p {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  opacity: 0.9;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.btn-primary {
+  display: inline-block;
+  padding: 0.8rem 2rem;
   border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-sm);
+  background-color: white;
+  color: var(--primary-color);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 1.05rem;
+  border: 2px solid white;
 }
 
-.technician-feature h3 {
-  font-size: 1.2rem;
-  margin-bottom: var(--spacing-sm);
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+  background-color: transparent;
+  color: white;
+}
+
+.btn-secondary {
+  display: inline-block;
+  padding: 0.8rem 2rem;
+  border-radius: var(--border-radius-md);
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 1.05rem;
+  border: 2px solid var(--primary-color);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+  background-color: transparent;
   color: var(--primary-color);
 }
 
-.technician-feature p {
-  color: var(--text-secondary);
-  line-height: 1.6;
-  font-size: 0.95rem;
-}
-
-/* Responsive */
-@media (max-width: 1200px) {
+/* Responsive Styles */
+@media (max-width: 992px) {
   .technicians-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .join-team-content {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  
+  .join-team-text {
+    order: 2;
+  }
+  
+  .join-team-image {
+    order: 1;
   }
 }
 
 @media (max-width: 768px) {
+  .section-title {
+    font-size: 1.8rem;
+  }
+  
+  .tech-benefits {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .technician-card {
+    max-width: 450px;
+    margin: 0 auto;
+  }
+  
   .technicians-grid {
     grid-template-columns: 1fr;
   }
   
-  .technician-card {
-    flex-direction: row;
-  }
-  
-  .technician-image {
-    width: 40%;
-    height: auto;
-    min-height: 180px;
-  }
-  
-  .technician-details {
-    width: 60%;
-  }
-  
-  .technician-features {
-    grid-template-columns: 1fr;
+  .cta-content h2 {
+    font-size: 1.8rem;
   }
 }
 
 @media (max-width: 576px) {
-  .technician-card {
-    flex-direction: column;
+  .section {
+    padding: 3rem 0;
+  }
+  
+  .section-title {
+    font-size: 1.6rem;
+  }
+  
+  .section-subtitle {
+    font-size: 1rem;
   }
   
   .technician-image {
-    width: 100%;
-    height: 180px;
+    height: 220px;
   }
   
-  .technician-details {
-    width: 100%;
+  .technician-info {
+    padding: 1.2rem;
+  }
+  
+  .technician-info h3 {
+    font-size: 1.2rem;
+  }
+  
+  .join-team-text h2 {
+    font-size: 1.6rem;
   }
 } 
