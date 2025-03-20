@@ -6,7 +6,7 @@ const services = [
     icon: "tv",
     shortDescription: "Professional repair services for all types of televisions including LED, LCD, OLED, and Plasma TVs.",
     priceRange: "₹500 - ₹8,000",
-    image: "/images/services/tv-repair.jpg",
+    imageUrl: "https://media.croma.com/image/upload/v1724856479/Croma%20Assets/Entertainment/Television/Images/305665_0_rbegt1.png",
     features: [
       "Screen replacement",
       "Power supply repair",
@@ -56,7 +56,7 @@ const services = [
     category: "Electronics",
     icon: "mobile-alt",
     shortDescription: "Fast and reliable repairs for all smartphone brands",
-    imageUrl: "https://images.unsplash.com/photo-1580795479207-9e71b48c2a53?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
+    imageUrl: "https://m.media-amazon.com/images/I/713SsA7gftL._AC_UF1000,1000_QL80_.jpg",
     priceRange: "₹299 - ₹15,000",
     features: [
       "Screen replacement",
@@ -73,7 +73,7 @@ const services = [
     category: "Home Appliances",
     icon: "wind",
     shortDescription: "Complete air conditioner repair, maintenance and installation services.",
-    imageUrl: "https://images.unsplash.com/photo-1614181680133-e9a8fcb50c05?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    imageUrl: "https://consumer.bluestarindia.com/cdn/shop/files/2.T-Series-IDU-Angle-01.png?v=1741186876&width=5760",
     priceRange: "₹800 - ₹5,000",
     features: [
       "Cooling efficiency restoration",
@@ -90,7 +90,7 @@ const services = [
     category: "Home Appliances",
     icon: "snowflake",
     shortDescription: "Reliable repair solutions for all refrigerator models",
-    imageUrl: "https://images.unsplash.com/photo-1659607423251-3e46c9d0ca7a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    imageUrl: "https://images.samsung.com/is/image/samsung/p6pim/in/rt45dg6a2bslhl/gallery/in-top-mount-freezer-twin-cooling-plus-519111-rt45dg6a2bslhl-542990435?$684_547_PNG$",
     priceRange: "₹700 - ₹4,500",
     features: [
       "Cooling system repairs",
@@ -107,7 +107,7 @@ const services = [
     category: "Home Appliances",
     icon: "tint",
     shortDescription: "Complete water purifier repair and maintenance services",
-    imageUrl: "https://images.unsplash.com/photo-1607465227100-276c3dd6bf08?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    imageUrl: "https://m.media-amazon.com/images/I/71BdKaErbGL.jpg",
     priceRange: "₹350 - ₹2,500",
     features: [
       "Complete RO system servicing",
@@ -125,7 +125,7 @@ const services = [
     category: "Home Appliances",
     icon: "washing-machine",
     shortDescription: "Expert washing machine repair for all major brands and common issues.",
-    imageUrl: "https://images.unsplash.com/photo-1626806787461-102c1a6f2864?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80",
+    imageUrl: "https://media.croma.com/image/upload/v1655370905/Croma%20Assets/Large%20Appliances/Washers%20and%20Dryers/Images/253429_jx9ma4.png",
     priceRange: "₹500 - ₹4,000",
     features: [
       "Motor replacement",
@@ -142,7 +142,7 @@ const services = [
     category: "Home Appliances",
     icon: "hot-tub",
     shortDescription: "Fast and reliable geyser and water heater repair services.",
-    imageUrl: "https://images.unsplash.com/photo-1585670209793-8b9eecf3fa12?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80",
+    imageUrl: "https://www.jaquar.com/images/thumbs/0043433_versa-vertical-manual-50-ltr_960.jpeg",
     priceRange: "₹400 - ₹3,000",
     features: [
       "Heating element replacement",
@@ -159,7 +159,7 @@ const services = [
     category: "Electronics",
     icon: "laptop",
     shortDescription: "Expert laptop repair and upgrade services for all brands.",
-    imageUrl: "/images/services/laptop-repair.jpg",
+    imageUrl: "https://m.media-amazon.com/images/I/510uTHyDqGL.jpg",
     priceRange: "₹500 - ₹12,000",
     features: [
       "Screen replacement",
@@ -176,7 +176,7 @@ const services = [
     category: "Home Appliances",
     icon: "radiation",
     shortDescription: "Fast and reliable microwave oven repair services.",
-    imageUrl: "/images/services/microwave-repair.jpg",
+    imageUrl: "https://morphyrichardsindia.com/cdn/shop/files/MicrowaveOven27CGF_1.jpg?v=1733396657",
     priceRange: "₹350 - ₹2,500",
     features: [
       "Heating element repair",
@@ -193,7 +193,7 @@ const services = [
     category: "Electronics",
     icon: "desktop",
     shortDescription: "Complete desktop computer repair, upgrade and maintenance services.",
-    imageUrl: "/images/services/computer-repair.jpg",
+    imageUrl: "https://i.dell.com/is/image/DellContent/content/dam/ss2/product-images/esupport/esupport-pages/desktop-connected-to-monitor.png",
     priceRange: "₹500 - ₹10,000",
     features: [
       "Hardware troubleshooting",
@@ -210,7 +210,7 @@ const services = [
     category: "Electronics",
     icon: "print",
     shortDescription: "Professional printer repair for inkjet, laser, and all-in-one models.",
-    imageUrl: "/images/services/printer-repair.jpg",
+    imageUrl: "https://media-ik.croma.com/prod/https://media.croma.com/image/upload/v1697020678/Croma%20Assets/Computers%20Peripherals/Printers%20and%20Scanners/Images/197501_0_wioza6.png",
     priceRange: "₹400 - ₹3,500",
     features: [
       "Paper jam resolution",
@@ -227,7 +227,7 @@ const services = [
     category: "Electronics",
     icon: "camera",
     shortDescription: "Professional repair services for DSLR, mirrorless and digital cameras.",
-    imageUrl: "/images/services/camera-repair.jpg",
+    imageUrl: "https://trueview.co.in/wp-content/uploads/2024/06/4G-Wi-Fi-Dome-01.webp",
     priceRange: "₹600 - ₹15,000",
     features: [
       "Lens repair",
@@ -244,7 +244,7 @@ const services = [
     category: "Electronics",
     icon: "gamepad",
     shortDescription: "Expert repair services for PlayStation, Xbox, Nintendo and other gaming consoles.",
-    imageUrl: "/images/services/console-repair.jpg",
+    imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRYFRrbQ9WDJ6hiIreMaoOfVVLfR6gzKlr5bw&s",
     priceRange: "₹500 - ₹8,000",
     features: [
       "HDMI port repair",

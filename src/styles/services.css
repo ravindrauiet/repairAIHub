@@ -120,7 +120,7 @@
 .service-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: transform 0.5s ease;
 }
 
@@ -200,7 +200,7 @@
   justify-content: center;
   font-size: 1.5rem;
   font-weight: 600;
-  margin: 0 auto 1.5rem;
+  margin: 0 0;
 }
 
 .process-step h3 {

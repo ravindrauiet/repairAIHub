@@ -89,7 +89,7 @@ const Header = () => {
       <div className="container header-container">
         <Link to="/" className="logo">
           <img src="/logo.png" alt="RepairAIHub Logo" />
-          RepairAIHub
+          RepAIrHub
         </Link>
 
         <button className="mobile-menu-toggle" onClick={toggleMobileMenu} aria-label="Toggle menu">
