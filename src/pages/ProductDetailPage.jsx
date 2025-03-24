@@ -1,35 +1,48 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { getProductById, getProductsByCategory, productCategories, brands } from '../data/products.jsx';
+import { useCart } from '../context/CartContext';
 import '../styles/productDetail.css';
 
 const ProductDetailPage = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [relatedProducts, setRelatedProducts] = useState([]);
-  const [message, setMessage] = useState('');
-  const [showMessage, setShowMessage] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState('');
+  const [currentPrice, setCurrentPrice] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [showNotification, setShowNotification] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
   
   useEffect(() => {
     // Scroll to top when component mounts
     window.scrollTo(0, 0);
     
-    // Fetch product data from localStorage
-    const fetchProduct = () => {
+    const loadProduct = async () => {
       setLoading(true);
       try {
-        const storedProducts = JSON.parse(localStorage.getItem('products')) || [];
-        const foundProduct = storedProducts.find(p => p.id === parseInt(productId));
+        const productData = getProductById(productId);
         
-        if (foundProduct) {
-          setProduct(foundProduct);
+        if (productData) {
+          setProduct(productData);
           
-          // Find related products (same category)
-          const related = storedProducts
-            .filter(p => p.category === foundProduct.category && p.id !== foundProduct.id)
+          // Set default selected variant and price
+          if (productData.price) {
+            const variants = Object.keys(productData.price);
+            if (variants.length > 0) {
+              setSelectedVariant(variants[0]);
+              setCurrentPrice(productData.price[variants[0]]);
+            }
+          }
+          
+          // Get related products (same category)
+          const categoryProducts = getProductsByCategory(productData.category);
+          const related = categoryProducts
+            .filter(p => p.id !== productId)
             .slice(0, 4);
           setRelatedProducts(related);
         } else {
@@ -37,60 +50,81 @@ const ProductDetailPage = () => {
           navigate('/products');
         }
       } catch (error) {
-        console.error('Error fetching product:', error);
+        console.error('Error loading product details:', error);
       } finally {
         setLoading(false);
       }
     };
     
-    fetchProduct();
+    loadProduct();
   }, [productId, navigate]);
   
-  const handleQuantityChange = (amount) => {
-    const newQty = quantity + amount;
+  const handleVariantChange = (variant) => {
+    setSelectedVariant(variant);
+    setCurrentPrice(product.price[variant]);
+  };
+  
+  const handleQuantityChange = (value) => {
+    const newQty = quantity + value;
     if (newQty >= 1 && newQty <= 10) {
       setQuantity(newQty);
     }
   };
   
   const handleAddToCart = () => {
-    // Display success message
-    setMessage(`${product.partName} added to cart.`);
-    setShowMessage(true);
+    // Extract the numeric price from the formatted string
+    let priceValue = 0;
+    if (typeof currentPrice === 'string') {
+      // Remove currency symbol and commas, then parse
+      priceValue = parseFloat(currentPrice.replace(/[₹,]/g, ''));
+    } else {
+      priceValue = currentPrice;
+    }
     
-    // Hide message after 3 seconds
-    setTimeout(() => {
-      setShowMessage(false);
-    }, 3000);
-    
-    // In a real app, this would add the product to a cart in localStorage or send it to an API
-    console.log('Added to cart:', {
-      product: product,
+    const cartProduct = {
+      id: product.id,
+      name: product.title,
+      price: priceValue,
+      image: product.image || '/images/product-placeholder.jpg',
+      selectedVariant: selectedVariant,
       quantity: quantity
-    });
+    };
+    
+    addToCart(cartProduct, quantity);
+    showNotificationWithMessage(`${product.title} added to cart.`);
   };
   
-  const handleInquiry = () => {
-    // Display success message
-    setMessage(`Inquiry sent for ${product.partName}.`);
-    setShowMessage(true);
+  const handleAddToWishlist = () => {
+    showNotificationWithMessage(`${product.title} added to wishlist.`);
+    // In a real app, would add to wishlist in context/state management
+  };
+  
+  const showNotificationWithMessage = (message) => {
+    setNotificationMessage(message);
+    setShowNotification(true);
     
-    // Hide message after 3 seconds
+    // Hide notification after 3 seconds
     setTimeout(() => {
-      setShowMessage(false);
+      setShowNotification(false);
     }, 3000);
-    
-    // In a real app, this would send the inquiry to an API
-    console.log('Inquiry for:', {
-      product: product,
-      quantity: quantity
-    });
+  };
+  
+  const getCategoryName = (categoryId) => {
+    const category = productCategories.find(c => c.id === categoryId);
+    return category ? category.name : '';
+  };
+  
+  const getBrandNames = (brandIds) => {
+    return brandIds.map(brandId => {
+      const brand = brands.find(b => b.id === brandId);
+      return brand ? brand.name : '';
+    }).join(', ');
   };
   
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner"></div>
+        <div className="spinner"></div>
         <p>Loading product details...</p>
       </div>
     );
@@ -98,10 +132,12 @@ const ProductDetailPage = () => {
   
   if (!product) {
     return (
-      <div className="error-container">
-        <h2>Product Not Found</h2>
-        <p>Sorry, the product you're looking for doesn't exist.</p>
-        <Link to="/products" className="btn-primary">Back to Products</Link>
+      <div className="container">
+        <div className="error-container">
+          <h2>Product Not Found</h2>
+          <p>Sorry, the product you're looking for doesn't exist.</p>
+          <Link to="/products" className="btn-primary">Back to Products</Link>
+        </div>
       </div>
     );
   }
@@ -112,172 +148,232 @@ const ProductDetailPage = () => {
         <div className="breadcrumb">
           <Link to="/">Home</Link> / 
           <Link to="/products">Products</Link> / 
-          <span>{product.partName}</span>
+          <Link to={`/products?category=${product.category}`}>{getCategoryName(product.category)}</Link> / 
+          <span>{product.title}</span>
         </div>
         
-        {showMessage && (
-          <div className="notification success">
-            {message}
+        {showNotification && (
+          <div className="notification">
+            <i className="fas fa-check-circle"></i> {notificationMessage}
+            <div className="notification-actions">
+              <Link to="/cart" className="view-cart-link">View Cart</Link>
+            </div>
           </div>
         )}
         
         <div className="product-detail-container">
-          <div className="product-image-container">
-            <img src={product.imageUrl} alt={product.partName} className="product-image" />
-          </div>
-          
-          <div className="product-info">
-            <h1 className="product-title">{product.partName}</h1>
-            
-            <div className="product-meta">
-              <span className="product-brand">{product.brand}</span>
-              <span className="product-model">{product.model}</span>
-              <span className={`product-availability ${product.inStock ? 'in-stock' : 'out-of-stock'}`}>
-                {product.inStock ? 'In Stock' : 'Out of Stock'}
-              </span>
-            </div>
-            
-            <div className="product-price">
-              ₹{product.price.toLocaleString()}
-            </div>
-            
-            <div className="product-actions">
-              <div className="quantity-selector">
-                <button 
-                  className="quantity-btn" 
-                  onClick={() => handleQuantityChange(-1)}
-                  disabled={quantity <= 1}
-                >
-                  -
-                </button>
-                <input 
-                  type="text" 
-                  className="quantity-input" 
-                  value={quantity}
-                  readOnly 
-                />
-                <button 
-                  className="quantity-btn" 
-                  onClick={() => handleQuantityChange(1)}
-                  disabled={quantity >= 10}
-                >
-                  +
-                </button>
+          <div className="product-detail-grid">
+            <div className="product-gallery">
+              <div className="main-image">
+                <img src={product.image || '/images/product-placeholder.jpg'} alt={product.title} />
               </div>
-              
-              <button 
-                className="add-to-cart-btn" 
-                onClick={handleAddToCart}
-                disabled={!product.inStock}
-              >
-                {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-              </button>
-              
-              <button 
-                className="inquiry-btn" 
-                onClick={handleInquiry}
-              >
-                Send Inquiry
-              </button>
+              {/* Thumbnails would go here in a real implementation */}
             </div>
             
-            <div className="product-description-short">
-              {product.description}
-            </div>
-          </div>
-        </div>
-        
-        <div className="product-tabs">
-          <div className="tabs-header">
-            <button 
-              className={`tab-btn ${activeTab === 'description' ? 'active' : ''}`}
-              onClick={() => setActiveTab('description')}
-            >
-              Description
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'specifications' ? 'active' : ''}`}
-              onClick={() => setActiveTab('specifications')}
-            >
-              Specifications
-            </button>
-            <button 
-              className={`tab-btn ${activeTab === 'compatibility' ? 'active' : ''}`}
-              onClick={() => setActiveTab('compatibility')}
-            >
-              Compatibility
-            </button>
-          </div>
-          
-          <div className="tab-content">
-            {activeTab === 'description' && (
-              <div className="tab-pane">
-                <h3>Product Description</h3>
-                <p>{product.description}</p>
-                <p>This {product.partName} is designed specifically for {product.brand} {product.model} devices. It offers superior performance and reliability, ensuring your device functions optimally after repair.</p>
-                <p>All our parts undergo strict quality control checks to ensure they meet manufacturer specifications.</p>
-              </div>
-            )}
-            
-            {activeTab === 'specifications' && (
-              <div className="tab-pane">
-                <h3>Technical Specifications</h3>
-                <table className="specs-table">
-                  <tbody>
-                    {product.specifications && Object.entries(product.specifications).map(([key, value]) => (
-                      <tr key={key}>
-                        <th>{key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}</th>
-                        <td>{value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-            
-            {activeTab === 'compatibility' && (
-              <div className="tab-pane">
-                <h3>Compatible With</h3>
-                {product.compatibility ? (
-                  <ul className="compatibility-list">
-                    {product.compatibility.map((item, index) => (
-                      <li key={index}>{item}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>Compatible with {product.brand} {product.model} only.</p>
-                )}
-                <div className="compatibility-note">
-                  <h4>Important Note:</h4>
-                  <p>Please verify your device model before purchasing. If you're unsure about compatibility, please contact our support team.</p>
+            <div className="product-info">
+              <div className="product-header">
+                <h1>{product.title}</h1>
+                <div className="product-meta">
+                  <span className="product-category">{getCategoryName(product.category)}</span>
+                  <span className="product-rating">
+                    <i className="fas fa-star"></i> {product.rating} ({product.reviewCount} reviews)
+                  </span>
                 </div>
               </div>
-            )}
+              
+              <div className="product-price-detail">{currentPrice}</div>
+              
+              {product.compatibleBrands && product.compatibleBrands.length > 0 && (
+                <div className="product-compatible-brands">
+                  <span className="label">Compatible with:</span> {getBrandNames(product.compatibleBrands)}
+                </div>
+              )}
+              
+              {Object.keys(product.price).length > 1 && (
+                <div className="product-variants">
+                  <h3>Select Option</h3>
+                  <div className="variant-options">
+                    {Object.keys(product.price).map(variant => (
+                      <button 
+                        key={variant}
+                        className={`variant-option ${selectedVariant === variant ? 'active' : ''}`}
+                        onClick={() => handleVariantChange(variant)}
+                      >
+                        {variant.charAt(0).toUpperCase() + variant.slice(1).replace(/-/g, ' ')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div className={`product-availability ${product.inStock ? '' : 'out-of-stock'}`}>
+                <i className={`fas ${product.inStock ? 'fa-check-circle' : 'fa-times-circle'}`}></i>
+                {product.inStock ? 'In Stock' : 'Out of Stock'}
+              </div>
+              
+              <div className="product-description-detail">
+                {product.description}
+              </div>
+              
+              <div className="product-actions">
+                <div className="quantity-selector">
+                  <button 
+                    className="quantity-btn" 
+                    onClick={() => handleQuantityChange(-1)}
+                    disabled={quantity <= 1}
+                  >
+                    -
+                  </button>
+                  <span className="quantity-display">{quantity}</span>
+                  <button 
+                    className="quantity-btn" 
+                    onClick={() => handleQuantityChange(1)}
+                    disabled={quantity >= 10 || !product.inStock}
+                  >
+                    +
+                  </button>
+                </div>
+                
+                <button 
+                  className="add-to-cart-btn" 
+                  onClick={handleAddToCart}
+                  disabled={!product.inStock}
+                >
+                  <i className="fas fa-shopping-cart"></i>
+                  {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                </button>
+                
+                <button 
+                  className="wishlist-btn"
+                  onClick={handleAddToWishlist}
+                  title="Add to Wishlist"
+                >
+                  <i className="fas fa-heart"></i>
+                </button>
+              </div>
+              
+              <div className="product-meta-info">
+                <div className="meta-item">
+                  <span className="label">Warranty:</span> {product.warranty}
+                </div>
+                <div className="meta-item">
+                  <span className="label">Service Time:</span> {product.estimatedTime}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="product-details-tabs">
+            <div className="tabs-header">
+              <button 
+                className={`tab-button ${activeTab === 'description' ? 'active' : ''}`}
+                onClick={() => setActiveTab('description')}
+              >
+                Description
+              </button>
+              <button 
+                className={`tab-button ${activeTab === 'features' ? 'active' : ''}`}
+                onClick={() => setActiveTab('features')}
+              >
+                Features
+              </button>
+              <button 
+                className={`tab-button ${activeTab === 'brands' ? 'active' : ''}`}
+                onClick={() => setActiveTab('brands')}
+              >
+                Compatible Brands
+              </button>
+            </div>
+            
+            <div className="tab-content">
+              {activeTab === 'description' && (
+                <div>
+                  <h3>Product Description</h3>
+                  <p>{product.description}</p>
+                  <p>
+                    Our technicians are experts in {getCategoryName(product.category)} repairs and 
+                    use only high-quality parts to ensure your device functions properly after repair.
+                  </p>
+                </div>
+              )}
+              
+              {activeTab === 'features' && (
+                <div>
+                  <h3>Key Features</h3>
+                  <ul className="features-list">
+                    {product.features.map((feature, index) => (
+                      <li key={index}>
+                        <i className="fas fa-check"></i> {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {activeTab === 'brands' && (
+                <div>
+                  <h3>Compatible Brands</h3>
+                  <div className="compatible-brands">
+                    {product.compatibleBrands.map(brandId => {
+                      const brand = brands.find(b => b.id === brandId);
+                      return brand ? (
+                        <div key={brandId} className="brand-item">
+                          <span>{brand.name}</span>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         
         {relatedProducts.length > 0 && (
           <div className="related-products">
-            <h2>Related Products</h2>
+            <h2 className="section-title">Related Products</h2>
             <div className="related-products-grid">
               {relatedProducts.map(relatedProduct => (
                 <Link 
                   to={`/products/${relatedProduct.id}`} 
                   key={relatedProduct.id} 
-                  className="related-product-card"
+                  className="product-card"
                 >
-                  <div className="related-product-image">
-                    <img src={relatedProduct.imageUrl} alt={relatedProduct.partName} />
+                  <div className="product-image">
+                    <img 
+                      src={relatedProduct.image || '/images/product-placeholder.jpg'} 
+                      alt={relatedProduct.title} 
+                    />
+                    {!relatedProduct.inStock && <span className="out-of-stock">Out of Stock</span>}
                   </div>
-                  <div className="related-product-info">
-                    <h3>{relatedProduct.partName}</h3>
-                    <p className="related-product-price">₹{relatedProduct.price.toLocaleString()}</p>
+                  <div className="product-details">
+                    <h3>{relatedProduct.title}</h3>
+                    <div className="product-meta">
+                      <span className="product-category">
+                        {getCategoryName(relatedProduct.category)}
+                      </span>
+                    </div>
+                    <div className="product-price">
+                      {Object.values(relatedProduct.price)[0]}
+                    </div>
+                    <button className="product-btn">View Details</button>
                   </div>
                 </Link>
               ))}
             </div>
           </div>
         )}
+        
+        <div className="service-cta">
+          <div className="cta-content">
+            <h2>Need help with {product.title}?</h2>
+            <p>Our expert technicians can assist you with installation and repairs.</p>
+            <div className="cta-buttons">
+              <Link to="/book-service" className="btn-primary">Book a Service</Link>
+              <Link to="/contact" className="btn-secondary">Contact Us</Link>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

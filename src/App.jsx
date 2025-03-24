@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect } from 'react';
+import { CartProvider } from './context/CartContext';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
@@ -7,11 +8,14 @@ import ServicesPage from './pages/ServicesPage';
 import ServiceDetailPage from './pages/ServiceDetailPage';
 import ContactPage from './pages/ContactPage';
 import BookServicePage from './pages/BookServicePage';
-import ProductPage from './pages/ProductPage';
+import ProductsPage from './pages/ProductsPage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import CartPage from './pages/CartPage';
 import TechniciansPage from './pages/TechniciansPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import ProfilePage from './pages/ProfilePage';
+import CareersPage from './pages/CareersPage';
 
 import './styles/variables.css';
 import './styles/global.css';
@@ -21,9 +25,12 @@ import './styles/services.css';
 import './styles/contact.css';
 import './styles/booking.css';
 import './styles/products.css';
+import './styles/productDetail.css';
+import './styles/cart.css';
 import './styles/technicians.css';
 import './styles/auth.css';
 import './styles/profile.css';
+import './styles/careers.css';
 
 // Import JavaScript
 import './scripts/navigation.js';
@@ -45,26 +52,31 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <div className="app">
-        <Header />
-        <main>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/services" element={<ServicesPage />} />
-            <Route path="/services/:serviceId" element={<ServiceDetailPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/book-service" element={<BookServicePage />} />
-            <Route path="/products" element={<ProductPage />} />
-            <Route path="/technicians" element={<TechniciansPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/signup" element={<SignupPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <CartProvider>
+      <Router>
+        <div className="app">
+          <Header />
+          <main>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/services" element={<ServicesPage />} />
+              <Route path="/services/:serviceId" element={<ServiceDetailPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/book-service" element={<BookServicePage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/products/:productId" element={<ProductDetailPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/technicians" element={<TechniciansPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/careers" element={<CareersPage />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </Router>
+    </CartProvider>
   );
 }
 

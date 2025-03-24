@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { getAllServices } from '../../data/services';
+import { useCart } from '../../context/CartContext';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -9,6 +10,7 @@ const Header = () => {
   const services = getAllServices();
   const location = useLocation();
   const dropdownRef = useRef(null);
+  const { cartCount } = useCart();
 
   // Group services by category
   const serviceCategories = services.reduce((acc, service) => {
@@ -170,6 +172,13 @@ const Header = () => {
             
             <li className="nav-item">
               <NavLink to="/contact" className="nav-link">Contact</NavLink>
+            </li>
+            
+            <li className="nav-item cart-item">
+              <NavLink to="/cart" className="nav-link cart-link">
+                <i className="fas fa-shopping-cart"></i>
+                {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
+              </NavLink>
             </li>
             
             {user ? (

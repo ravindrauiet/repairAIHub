@@ -111,6 +111,42 @@ a[href^="mailto:"].clickable-contact::before {
   width: 100%;
 }
 
+/* Cart Icon Styles */
+.cart-item {
+  margin-left: auto;
+}
+
+.cart-link {
+  position: relative;
+  font-size: 1.1rem;
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background-color: var(--accent-color);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 50%;
+  animation: cartBounce 0.5s ease;
+}
+
+@keyframes cartBounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
 /* Dropdown Styles */
 .dropdown {
   position: relative;

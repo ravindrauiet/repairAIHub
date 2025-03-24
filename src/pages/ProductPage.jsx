@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllProducts, getAllProductCategories, getProductsByCategory } from '../data/products';
+import { getAllProducts, getAllProductCategories, getProductsByCategory } from '../data/products.jsx';
 import '../styles/products.css';
 
 const ProductPage = () => {

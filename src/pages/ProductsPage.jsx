@@ -1,162 +1,97 @@
 import { useState, useEffect } from 'react';
-import Hero from '../components/common/Hero';
 import { Link } from 'react-router-dom';
+import Hero from '../components/common/Hero';
+import { 
+  getAllProducts, 
+  getProductsByCategory, 
+  getProductsByBrand,
+  productCategories, 
+  brands 
+} from '../data/products.jsx';
 
 const ProductsPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedBrand, setSelectedBrand] = useState('');
-  const [selectedModel, setSelectedModel] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [visibleBrands, setVisibleBrands] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Sample product data - In a real app, this would come from an API or database
-  const products = [
-    {
-      id: 1,
-      category: 'mobile',
-      brand: 'Samsung',
-      model: 'Galaxy S21',
-      partName: 'Display Screen',
-      price: 12999,
-      imageUrl: 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      description: 'Original Samsung Galaxy S21 AMOLED display screen replacement part.',
-      specifications: {
-        type: 'AMOLED',
-        resolution: '1080 x 2400 pixels',
-        size: '6.2 inches',
-        compatibility: 'Galaxy S21 only',
-        warranty: '6 months manufacturer warranty'
-      },
-      compatibility: ['Galaxy S21', 'Galaxy S21 5G'],
-      inStock: true
-    },
-    {
-      id: 2,
-      category: 'mobile',
-      brand: 'Apple',
-      model: 'iPhone 13',
-      partName: 'Battery',
-      price: 3999,
-      imageUrl: 'https://images.unsplash.com/photo-1601972599720-36938d4ecd31?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      description: 'Genuine Apple iPhone 13 battery replacement with installation tools.',
-      specifications: {
-        capacity: '3240 mAh',
-        type: 'Li-Ion',
-        voltage: '3.83 V',
-        includes: 'Installation tools and adhesive',
-        warranty: '6 months manufacturer warranty'
-      },
-      compatibility: ['iPhone 13', 'iPhone 13 Pro'],
-      inStock: true
-    },
-    {
-      id: 3,
-      category: 'ac',
-      brand: 'Daikin',
-      model: 'FTKF35',
-      partName: 'Compressor',
-      price: 15999,
-      imageUrl: 'https://images.unsplash.com/photo-1621619856624-42fd193a0661?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      description: 'Original Daikin compressor unit with 1-year warranty.',
-      specifications: {
-        type: 'Rotary',
-        capacity: '1.5 Ton',
-        refrigerant: 'R32',
-        energyEfficiency: '5 Star Rating',
-        warranty: '1 year manufacturer warranty'
-      },
-      compatibility: ['Daikin FTKF35', 'Daikin FTKF35XV'],
-      inStock: true
-    },
-    {
-      id: 4,
-      category: 'refrigerator',
-      brand: 'Samsung',
-      model: 'RT42M5538BS',
-      partName: 'Cooling Fan',
-      price: 4999,
-      imageUrl: 'https://images.unsplash.com/photo-1536353284924-9220c464e262?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      description: 'Genuine Samsung cooling fan for double-door refrigerators.',
-      specifications: {
-        type: 'Axial Fan',
-        diameter: '120mm',
-        voltage: '12V DC',
-        airflow: '52 CFM',
-        warranty: '6 months manufacturer warranty'
-      },
-      compatibility: ['Samsung RT42M5538BS', 'Samsung RT42M5538BS/HL'],
-      inStock: true
-    },
-    {
-      id: 5,
-      category: 'tv',
-      brand: 'LG',
-      model: 'OLED55C1',
-      partName: 'Power Supply Board',
-      price: 8999,
-      imageUrl: 'https://images.unsplash.com/photo-1593784991095-a205069470b6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80',
-      description: 'Original LG power supply board for OLED TVs.',
-      specifications: {
-        partNumber: 'EAY64948701',
-        inputVoltage: '100-240V',
-        outputVoltage: 'Multi-output',
-        compatible: 'LG 2019-2021 OLED models',
-        warranty: '6 months manufacturer warranty'
-      },
-      compatibility: ['LG OLED55C1', 'LG OLED65C1'],
-      inStock: false
-    }
-  ];
-
-  const categories = [
-    { value: 'mobile', label: 'Mobile Phones' },
-    { value: 'ac', label: 'Air Conditioners' },
-    { value: 'refrigerator', label: 'Refrigerators' },
-    { value: 'ro', label: 'RO Systems' },
-    { value: 'tv', label: 'Televisions' }
-  ];
-
-  // Store products in localStorage when component mounts
+  // Initialize products
   useEffect(() => {
-    localStorage.setItem('products', JSON.stringify(products));
+    setLoading(true);
+    try {
+      const allProducts = getAllProducts();
+      setFilteredProducts(allProducts);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Update visible brands when category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      const categoryBrands = brands.filter(brand => 
+        brand.categories.includes(selectedCategory)
+      );
+      setVisibleBrands(categoryBrands);
+    } else {
+      setVisibleBrands(brands);
+    }
+    
+    // Reset selected brand if changing categories
+    setSelectedBrand('');
+  }, [selectedCategory]);
 
   // Filter products based on selected filters and search query
   useEffect(() => {
-    let filtered = [...products];
+    setLoading(true);
+    let results = getAllProducts();
 
     if (selectedCategory) {
-      filtered = filtered.filter(product => product.category === selectedCategory);
+      results = getProductsByCategory(selectedCategory);
     }
 
     if (selectedBrand) {
-      filtered = filtered.filter(product => product.brand === selectedBrand);
-    }
-
-    if (selectedModel) {
-      filtered = filtered.filter(product => product.model === selectedModel);
-    }
-
-    if (searchQuery) {
-      filtered = filtered.filter(product => 
-        product.partName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+      results = results.filter(product => 
+        product.compatibleBrands.includes(selectedBrand)
       );
     }
 
-    setFilteredProducts(filtered);
-  }, [selectedCategory, selectedBrand, selectedModel, searchQuery]);
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      results = results.filter(product => 
+        product.title.toLowerCase().includes(query) || 
+        product.description.toLowerCase().includes(query) ||
+        product.id.toLowerCase().includes(query)
+      );
+    }
 
-  // Get unique brands based on selected category
-  const getBrands = () => {
-    const categoryProducts = products.filter(p => !selectedCategory || p.category === selectedCategory);
-    return [...new Set(categoryProducts.map(p => p.brand))];
+    setFilteredProducts(results);
+    setLoading(false);
+  }, [selectedCategory, selectedBrand, searchQuery]);
+
+  // Handle category change
+  const handleCategoryChange = (categoryId) => {
+    setSelectedCategory(categoryId);
   };
 
-  // Get unique models based on selected brand
-  const getModels = () => {
-    const brandProducts = products.filter(p => !selectedBrand || p.brand === selectedBrand);
-    return [...new Set(brandProducts.map(p => p.model))];
+  // Handle brand change
+  const handleBrandChange = (brandId) => {
+    setSelectedBrand(brandId);
+  };
+
+  // Helper to get price range display
+  const getPriceDisplay = (product) => {
+    if (!product.price) return "Price on request";
+    
+    const prices = Object.values(product.price);
+    if (prices.length === 1) return prices[0];
+    
+    // If multiple price options, show from lowest to highest
+    return prices[0];
   };
 
   return (
@@ -173,7 +108,7 @@ const ProductsPage = () => {
             <div className="search-bar">
               <input
                 type="text"
-                placeholder="Search for parts..."
+                placeholder="Search for parts or services..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input"
@@ -181,80 +116,118 @@ const ProductsPage = () => {
             </div>
 
             <div className="filter-group">
-              <select
-                value={selectedCategory}
-                onChange={(e) => {
-                  setSelectedCategory(e.target.value);
-                  setSelectedBrand('');
-                  setSelectedModel('');
-                }}
-                className="filter-select"
-              >
-                <option value="">Select Device Type</option>
-                {categories.map(category => (
-                  <option key={category.value} value={category.value}>
-                    {category.label}
-                  </option>
+              <div className="category-filters">
+                <button 
+                  className={`filter-button ${selectedCategory === '' ? 'active' : ''}`}
+                  onClick={() => handleCategoryChange('')}
+                >
+                  All Categories
+                </button>
+                
+                {productCategories.map(category => (
+                  <button 
+                    key={category.id}
+                    className={`filter-button ${selectedCategory === category.id ? 'active' : ''}`}
+                    onClick={() => handleCategoryChange(category.id)}
+                  >
+                    <i className={`fas ${category.icon}`}></i> {category.name}
+                  </button>
                 ))}
-              </select>
+              </div>
 
-              <select
-                value={selectedBrand}
-                onChange={(e) => {
-                  setSelectedBrand(e.target.value);
-                  setSelectedModel('');
-                }}
-                className="filter-select"
-                disabled={!selectedCategory}
-              >
-                <option value="">Select Brand</option>
-                {getBrands().map(brand => (
-                  <option key={brand} value={brand}>
-                    {brand}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="filter-select"
-                disabled={!selectedBrand}
-              >
-                <option value="">Select Model</option>
-                {getModels().map(model => (
-                  <option key={model} value={model}>
-                    {model}
-                  </option>
-                ))}
-              </select>
+              {visibleBrands.length > 0 && (
+                <div className="brand-filters">
+                  <h4>Brands</h4>
+                  <div className="brand-list">
+                    <button 
+                      className={`brand-button ${selectedBrand === '' ? 'active' : ''}`}
+                      onClick={() => handleBrandChange('')}
+                    >
+                      All Brands
+                    </button>
+                    
+                    {visibleBrands.map(brand => (
+                      <button 
+                        key={brand.id}
+                        className={`brand-button ${selectedBrand === brand.id ? 'active' : ''}`}
+                        onClick={() => handleBrandChange(brand.id)}
+                      >
+                        {brand.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="products-grid">
-            {filteredProducts.map(product => (
-              <Link to={`/products/${product.id}`} key={product.id} className="product-card">
-                <div className="product-image">
-                  <img src={product.imageUrl} alt={product.partName} />
-                  {!product.inStock && <span className="out-of-stock">Out of Stock</span>}
-                </div>
-                <div className="product-details">
-                  <h3>{product.partName}</h3>
-                  <p className="product-info">
-                    {product.brand} {product.model}
-                  </p>
-                  <p className="product-description">{product.description}</p>
-                  <div className="product-price">₹{product.price.toLocaleString()}</div>
-                  <button className="product-btn">View Details</button>
-                </div>
-              </Link>
-            ))}
-            
-            {filteredProducts.length === 0 && (
-              <div className="no-products">
-                <p>No products found matching your criteria. Please try different filters.</p>
+          {loading ? (
+            <div className="loading-container">
+              <div className="spinner"></div>
+              <p>Loading products...</p>
+            </div>
+          ) : (
+            <>
+              <div className="results-count">
+                <p>Showing {filteredProducts.length} products</p>
               </div>
-            )}
+
+              <div className="products-grid">
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map(product => (
+                    <Link to={`/products/${product.id}`} key={product.id} className="product-card">
+                      <div className="product-image">
+                        <img src={product.image || '/images/product-placeholder.jpg'} alt={product.title} />
+                        {!product.inStock && <span className="out-of-stock">Out of Stock</span>}
+                      </div>
+                      <div className="product-details">
+                        <h3>{product.title}</h3>
+                        <div className="product-meta">
+                          <span className="product-category">
+                            {productCategories.find(cat => cat.id === product.category)?.name}
+                          </span>
+                          <span className="product-rating">
+                            <i className="fas fa-star"></i> {product.rating} ({product.reviewCount})
+                          </span>
+                        </div>
+                        <p className="product-description">{product.description.substring(0, 100)}...</p>
+                        <div className="product-price">{getPriceDisplay(product)}</div>
+                        <div className="product-features">
+                          <ul>
+                            {product.features.slice(0, 2).map((feature, idx) => (
+                              <li key={idx}><i className="fas fa-check"></i> {feature}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <button className="product-btn">View Details</button>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="no-results">
+                    <i className="fas fa-search"></i>
+                    <h3>No products found</h3>
+                    <p>Try different search criteria or browse all categories</p>
+                    <button className="reset-btn" onClick={() => {
+                      setSelectedCategory('');
+                      setSelectedBrand('');
+                      setSearchQuery('');
+                    }}>Reset Filters</button>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          <div className="service-cta">
+            <div className="cta-content">
+              <h2>Need professional repair service?</h2>
+              <p>Our trained technicians can fix your device at your home or office.</p>
+              <div className="cta-buttons">
+                <Link to="/book-service" className="btn-primary">Book a Repair</Link>
+                <Link to="/services" className="btn-secondary">View Services</Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>

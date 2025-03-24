@@ -1,63 +1,95 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 import '../styles/profile.css';
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [bookings, setBookings] = useState([]);
-  const [addressList, setAddressList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filteredBookings, setFilteredBookings] = useState([]);
+  const [activeBookingFilter, setActiveBookingFilter] = useState('all');
+  const [wishlistItems, setWishlistItems] = useState([]);
+  const [purchaseHistory, setPurchaseHistory] = useState([]);
+  const { cartItems } = useCart();
   
   const navigate = useNavigate();
   
   useEffect(() => {
-    // Check if user is logged in
-    const loggedInUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (!loggedInUser || !loggedInUser.isLoggedIn) {
-      navigate('/login');
-      return;
-    }
+    const checkLogin = () => {
+      const loggedInUser = JSON.parse(localStorage.getItem('currentUser'));
+      
+      if (!loggedInUser) {
+        // Redirect to login if not logged in
+        navigate('/login', { state: { from: '/profile' } });
+        return;
+      }
+      
+      setUser(loggedInUser);
+      
+      // Load mock bookings data
+      const storedBookings = JSON.parse(localStorage.getItem('bookings')) || [];
+      const userBookings = storedBookings.filter(booking => booking.userId === loggedInUser.id);
+      setBookings(userBookings);
+      setFilteredBookings(userBookings);
+
+      // Load wishlist from localStorage
+      const storedWishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+      const userWishlist = storedWishlist.filter(item => item.userId === loggedInUser.id);
+      setWishlistItems(userWishlist);
+
+      // Load purchase history from localStorage
+      const storedPurchases = JSON.parse(localStorage.getItem('purchases')) || [];
+      const userPurchases = storedPurchases.filter(purchase => purchase.userId === loggedInUser.id);
+      setPurchaseHistory(userPurchases);
+      
+      setLoading(false);
+    };
     
-    setUser(loggedInUser);
-    
-    // Get user's bookings from localStorage
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const currentUser = users.find(u => u.id === loggedInUser.id);
-    
-    if (currentUser) {
-      setBookings(currentUser.bookings || []);
-      setAddressList(currentUser.addresses || []);
-    }
+    checkLogin();
   }, [navigate]);
   
   const handleLogout = () => {
+    // Clear user from localStorage and redirect to login
     localStorage.removeItem('currentUser');
     navigate('/login');
   };
   
-  const getStatusBadgeClass = (status) => {
-    switch (status) {
-      case 'pending':
-        return 'badge-warning';
-      case 'confirmed':
-        return 'badge-primary';
-      case 'in-progress':
-        return 'badge-info';
-      case 'completed':
-        return 'badge-success';
-      case 'cancelled':
-        return 'badge-danger';
-      default:
-        return 'badge-secondary';
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+  };
+  
+  const filterBookings = (status) => {
+    setActiveBookingFilter(status);
+    
+    if (status === 'all') {
+      setFilteredBookings(bookings);
+    } else {
+      setFilteredBookings(bookings.filter(booking => booking.status === status));
     }
   };
   
-  if (!user) {
+  const countBookingsByStatus = (status) => {
+    if (status === 'all') return bookings.length;
+    return bookings.filter(booking => booking.status === status).length;
+  };
+  
+  const removeFromWishlist = (id) => {
+    const updated = wishlistItems.filter(item => item.id !== id);
+    setWishlistItems(updated);
+    
+    // Update localStorage
+    const allWishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+    const filteredWishlist = allWishlist.filter(item => !(item.id === id && item.userId === user.id));
+    localStorage.setItem('wishlist', JSON.stringify(filteredWishlist));
+  };
+  
+  if (loading) {
     return (
-      <div className="profile-page">
-        <div className="container">
-          <div className="loading-spinner">Loading...</div>
-        </div>
+      <div className="loading-container">
+        <div className="spinner"></div>
+        <p>Loading profile data...</p>
       </div>
     );
   }
@@ -66,336 +98,494 @@ const ProfilePage = () => {
     <div className="profile-page">
       <div className="container">
         <div className="profile-header">
-          <div className="profile-info">
+          <div className="profile-header-content">
             <div className="profile-avatar">
-              {user.name.charAt(0).toUpperCase()}
+              <span>{user.name.charAt(0).toUpperCase()}</span>
             </div>
-            <div className="profile-details">
-              <h2>{user.name}</h2>
+            <div className="profile-info">
+              <h1>{user.name}</h1>
               <p>{user.email}</p>
-              <p className="member-since">Member since {new Date().toLocaleDateString()}</p>
+              <p>Member since {new Date(user.createdAt).toLocaleDateString()}</p>
             </div>
           </div>
-          <div className="profile-actions">
-            <button className="profile-edit-btn">Edit Profile</button>
-            <button className="profile-logout-btn" onClick={handleLogout}>Logout</button>
-          </div>
+          <button onClick={handleLogout} className="logout-btn">
+            <i className="fas fa-sign-out-alt"></i> Logout
+          </button>
         </div>
         
         <div className="profile-content">
           <div className="profile-sidebar">
-            <nav className="profile-nav">
-              <button 
-                className={`profile-nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
-                onClick={() => setActiveTab('dashboard')}
-              >
-                Dashboard
-              </button>
-              <button 
-                className={`profile-nav-item ${activeTab === 'bookings' ? 'active' : ''}`}
-                onClick={() => setActiveTab('bookings')}
-              >
-                My Bookings
-              </button>
-              <button 
-                className={`profile-nav-item ${activeTab === 'addresses' ? 'active' : ''}`}
-                onClick={() => setActiveTab('addresses')}
-              >
-                My Addresses
-              </button>
-              <button 
-                className={`profile-nav-item ${activeTab === 'settings' ? 'active' : ''}`}
-                onClick={() => setActiveTab('settings')}
-              >
-                Account Settings
-              </button>
-            </nav>
+            <ul className="profile-tabs">
+              <li className={activeTab === 'dashboard' ? 'active' : ''}>
+                <button onClick={() => handleTabChange('dashboard')}>
+                  <i className="fas fa-tachometer-alt"></i> Dashboard
+                </button>
+              </li>
+              <li className={activeTab === 'bookings' ? 'active' : ''}>
+                <button onClick={() => handleTabChange('bookings')}>
+                  <i className="fas fa-calendar-check"></i> Bookings
+                  <span className="badge">{bookings.length}</span>
+                </button>
+              </li>
+              <li className={activeTab === 'wishlist' ? 'active' : ''}>
+                <button onClick={() => handleTabChange('wishlist')}>
+                  <i className="fas fa-heart"></i> Wishlist
+                  <span className="badge">{wishlistItems.length}</span>
+                </button>
+              </li>
+              <li className={activeTab === 'purchases' ? 'active' : ''}>
+                <button onClick={() => handleTabChange('purchases')}>
+                  <i className="fas fa-shopping-bag"></i> Purchase History
+                  <span className="badge">{purchaseHistory.length}</span>
+                </button>
+              </li>
+              <li className={activeTab === 'addresses' ? 'active' : ''}>
+                <button onClick={() => handleTabChange('addresses')}>
+                  <i className="fas fa-map-marker-alt"></i> Addresses
+                </button>
+              </li>
+              <li className={activeTab === 'settings' ? 'active' : ''}>
+                <button onClick={() => handleTabChange('settings')}>
+                  <i className="fas fa-cog"></i> Settings
+                </button>
+              </li>
+            </ul>
           </div>
           
           <div className="profile-main">
             {activeTab === 'dashboard' && (
-              <div className="dashboard-tab">
-                <h3 className="tab-title">Dashboard</h3>
+              <div className="profile-dashboard">
+                <h2>Dashboard</h2>
                 
-                <div className="dashboard-stats">
-                  <div className="stat-card">
-                    <div className="stat-value">{bookings.length}</div>
-                    <div className="stat-label">Total Bookings</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-value">
-                      {bookings.filter(booking => booking.status === 'completed').length}
+                <div className="dashboard-summary">
+                  <div className="summary-card">
+                    <div className="card-content">
+                      <h4>Total Bookings</h4>
+                      <span className="card-value">{countBookingsByStatus('all')}</span>
                     </div>
-                    <div className="stat-label">Completed</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-value">
-                      {bookings.filter(booking => ['pending', 'confirmed', 'in-progress'].includes(booking.status)).length}
+                    <div className="card-icon bg-primary">
+                      <i className="fas fa-calendar-check"></i>
                     </div>
-                    <div className="stat-label">Active</div>
-                  </div>
-                </div>
-                
-                <div className="recent-bookings">
-                  <div className="section-header">
-                    <h4>Recent Bookings</h4>
-                    <button 
-                      className="view-all-btn"
-                      onClick={() => setActiveTab('bookings')}
-                    >
-                      View All
-                    </button>
                   </div>
                   
-                  {bookings.length > 0 ? (
-                    <div className="booking-list">
-                      {bookings.slice(0, 3).map(booking => (
-                        <div className="booking-item" key={booking.id}>
-                          <div className="booking-service">
-                            <h5>{booking.serviceName}</h5>
-                            <div className={`booking-status ${getStatusBadgeClass(booking.status)}`}>
-                              {booking.status}
-                            </div>
-                          </div>
-                          <div className="booking-details">
-                            <div>
-                              <strong>Date:</strong> {new Date(booking.date).toLocaleDateString()}
-                            </div>
-                            <div>
-                              <strong>Time:</strong> {booking.time}
-                            </div>
-                          </div>
-                          <div className="booking-actions">
-                            <button className="booking-details-btn">Details</button>
-                          </div>
-                        </div>
-                      ))}
+                  <div className="summary-card">
+                    <div className="card-content">
+                      <h4>Completed</h4>
+                      <span className="card-value">{countBookingsByStatus('completed')}</span>
                     </div>
-                  ) : (
-                    <div className="empty-state">
-                      <p>You haven't booked any services yet.</p>
-                      <Link to="/services" className="book-now-btn">Book a Service Now</Link>
+                    <div className="card-icon bg-success">
+                      <i className="fas fa-check-circle"></i>
                     </div>
-                  )}
+                  </div>
+                  
+                  <div className="summary-card">
+                    <div className="card-content">
+                      <h4>Active</h4>
+                      <span className="card-value">{countBookingsByStatus('active')}</span>
+                    </div>
+                    <div className="card-icon bg-warning">
+                      <i className="fas fa-clock"></i>
+                    </div>
+                  </div>
+
+                  <div className="summary-card">
+                    <div className="card-content">
+                      <h4>Wishlist</h4>
+                      <span className="card-value">{wishlistItems.length}</span>
+                    </div>
+                    <div className="card-icon bg-accent">
+                      <i className="fas fa-heart"></i>
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="quick-actions">
-                  <h4>Quick Actions</h4>
-                  <div className="action-buttons">
-                    <Link to="/book-service" className="action-btn">
-                      Book a Service
+                <div className="dashboard-recent">
+                  <div className="recent-bookings">
+                    <h3>Recent Bookings</h3>
+                    {bookings.length === 0 ? (
+                      <p>You have no bookings yet.</p>
+                    ) : (
+                      <div className="recent-list">
+                        {bookings.slice(0, 3).map(booking => (
+                          <div key={booking.id} className="recent-item">
+                            <div className="item-icon">
+                              <i className={`fas fa-${booking.service.icon || 'wrench'}`}></i>
+                            </div>
+                            <div className="item-details">
+                              <h4>{booking.service.title}</h4>
+                              <p>{new Date(booking.date).toLocaleDateString()} | {booking.time}</p>
+                              <span className={`status-badge ${booking.status}`}>
+                                {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <Link to="#" onClick={() => handleTabChange('bookings')} className="view-all">
+                      View All Bookings
                     </Link>
-                    <Link to="/products" className="action-btn">
-                      Browse Products
-                    </Link>
-                    <Link to="/contact" className="action-btn">
-                      Contact Support
-                    </Link>
+                  </div>
+                  
+                  <div className="quick-actions">
+                    <h3>Quick Actions</h3>
+                    <div className="action-buttons">
+                      <Link to="/book-service" className="action-btn">
+                        <i className="fas fa-calendar-plus"></i>
+                        Book a Service
+                      </Link>
+                      <Link to="/products" className="action-btn">
+                        <i className="fas fa-shopping-cart"></i>
+                        View Products
+                      </Link>
+                      <Link to="/contact" className="action-btn">
+                        <i className="fas fa-headset"></i>
+                        Contact Support
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
             )}
             
             {activeTab === 'bookings' && (
-              <div className="bookings-tab">
-                <h3 className="tab-title">My Bookings</h3>
+              <div className="profile-bookings">
+                <h2>My Bookings</h2>
                 
-                <div className="bookings-filter">
-                  <select className="filter-select">
-                    <option value="all">All Bookings</option>
-                    <option value="pending">Pending</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
+                <div className="booking-filters">
+                  <button 
+                    className={activeBookingFilter === 'all' ? 'active' : ''}
+                    onClick={() => filterBookings('all')}
+                  >
+                    All ({countBookingsByStatus('all')})
+                  </button>
+                  <button 
+                    className={activeBookingFilter === 'active' ? 'active' : ''}
+                    onClick={() => filterBookings('active')}
+                  >
+                    Active ({countBookingsByStatus('active')})
+                  </button>
+                  <button 
+                    className={activeBookingFilter === 'completed' ? 'active' : ''}
+                    onClick={() => filterBookings('completed')}
+                  >
+                    Completed ({countBookingsByStatus('completed')})
+                  </button>
+                  <button 
+                    className={activeBookingFilter === 'cancelled' ? 'active' : ''}
+                    onClick={() => filterBookings('cancelled')}
+                  >
+                    Cancelled ({countBookingsByStatus('cancelled')})
+                  </button>
                 </div>
                 
-                {bookings.length > 0 ? (
+                {filteredBookings.length === 0 ? (
+                  <div className="no-bookings">
+                    <i className="fas fa-calendar-times"></i>
+                    <p>No bookings found.</p>
+                    <Link to="/book-service" className="btn-primary">Book a Service</Link>
+                  </div>
+                ) : (
                   <div className="bookings-list">
-                    {bookings.map(booking => (
-                      <div className="booking-card" key={booking.id}>
+                    {filteredBookings.map(booking => (
+                      <div key={booking.id} className="booking-card">
                         <div className="booking-header">
-                          <div className="booking-service-name">{booking.serviceName}</div>
-                          <div className={`booking-status-badge ${getStatusBadgeClass(booking.status)}`}>
-                            {booking.status}
+                          <div className="booking-title">
+                            <h3>{booking.service.title}</h3>
+                            <span className={`status-badge ${booking.status}`}>
+                              {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                            </span>
+                          </div>
+                          <div className="booking-id">
+                            Booking ID: <span>#{booking.id}</span>
                           </div>
                         </div>
                         
-                        <div className="booking-body">
-                          <div className="booking-info">
-                            <div className="booking-info-item">
-                              <span className="info-label">Booking ID:</span>
-                              <span className="info-value">{booking.id}</span>
-                            </div>
-                            <div className="booking-info-item">
-                              <span className="info-label">Date:</span>
-                              <span className="info-value">{new Date(booking.date).toLocaleDateString()}</span>
-                            </div>
-                            <div className="booking-info-item">
-                              <span className="info-label">Time:</span>
-                              <span className="info-value">{booking.time}</span>
-                            </div>
-                            <div className="booking-info-item">
-                              <span className="info-label">Address:</span>
-                              <span className="info-value">{booking.address}</span>
-                            </div>
-                            <div className="booking-info-item">
-                              <span className="info-label">Total:</span>
-                              <span className="info-value price">₹{booking.totalAmount}</span>
+                        <div className="booking-details">
+                          <div className="booking-detail">
+                            <i className="fas fa-calendar"></i>
+                            <div>
+                              <span className="label">Date</span>
+                              <span className="value">{new Date(booking.date).toLocaleDateString()}</span>
                             </div>
                           </div>
                           
-                          {booking.status === 'in-progress' && (
-                            <div className="booking-progress">
-                              <h5>Service Progress</h5>
-                              <div className="progress-bar">
-                                <div 
-                                  className="progress-bar-fill" 
-                                  style={{ width: `${booking.progress || 30}%` }}
-                                ></div>
-                              </div>
-                              <div className="progress-labels">
-                                <span>Started</span>
-                                <span>In Progress</span>
-                                <span>Completed</span>
-                              </div>
+                          <div className="booking-detail">
+                            <i className="fas fa-clock"></i>
+                            <div>
+                              <span className="label">Time</span>
+                              <span className="value">{booking.time}</span>
                             </div>
-                          )}
+                          </div>
+                          
+                          <div className="booking-detail">
+                            <i className="fas fa-map-marker-alt"></i>
+                            <div>
+                              <span className="label">Address</span>
+                              <span className="value">{booking.address}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="booking-detail">
+                            <i className="fas fa-rupee-sign"></i>
+                            <div>
+                              <span className="label">Total</span>
+                              <span className="value">₹{booking.total.toLocaleString('en-IN')}</span>
+                            </div>
+                          </div>
                         </div>
                         
-                        <div className="booking-footer">
-                          <button className="booking-action-btn">View Details</button>
-                          {booking.status === 'pending' && (
-                            <button className="booking-action-btn cancel">Cancel Booking</button>
+                        <div className="booking-actions">
+                          <Link to={`/services/${booking.service.id}`} className="btn-outline">
+                            View Service
+                          </Link>
+                          {booking.status === 'active' && (
+                            <button className="btn-outline btn-danger">
+                              Cancel Booking
+                            </button>
                           )}
                           {booking.status === 'completed' && (
-                            <button className="booking-action-btn feedback">Leave Feedback</button>
+                            <button className="btn-outline">
+                              Leave Review
+                            </button>
                           )}
                         </div>
                       </div>
                     ))}
                   </div>
-                ) : (
+                )}
+              </div>
+            )}
+
+            {activeTab === 'wishlist' && (
+              <div className="profile-wishlist">
+                <h2>My Wishlist</h2>
+                
+                {wishlistItems.length === 0 ? (
                   <div className="empty-state">
-                    <p>You haven't booked any services yet.</p>
-                    <Link to="/services" className="book-now-btn">Book a Service Now</Link>
+                    <i className="fas fa-heart-broken"></i>
+                    <h3>Your wishlist is empty</h3>
+                    <p>Save items you like by clicking the heart icon on product pages.</p>
+                    <Link to="/products" className="btn-primary">
+                      Browse Products
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="wishlist-grid">
+                    {wishlistItems.map(item => (
+                      <div key={item.id} className="wishlist-item">
+                        <div className="wishlist-item-image">
+                          <img src={item.image} alt={item.name} />
+                          <button 
+                            className="remove-wishlist" 
+                            onClick={() => removeFromWishlist(item.id)}
+                            title="Remove from wishlist"
+                          >
+                            <i className="fas fa-times"></i>
+                          </button>
+                        </div>
+                        <div className="wishlist-item-info">
+                          <h3>
+                            <Link to={`/products/${item.id}`}>{item.name}</Link>
+                          </h3>
+                          <div className="wishlist-item-price">{item.price}</div>
+                          <div className="wishlist-item-actions">
+                            <Link to={`/products/${item.id}`} className="btn-outline">
+                              View Details
+                            </Link>
+                            <button className="btn-primary">
+                              <i className="fas fa-shopping-cart"></i> Add to Cart
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'purchases' && (
+              <div className="profile-purchases">
+                <h2>Purchase History</h2>
+                
+                {purchaseHistory.length === 0 ? (
+                  <div className="empty-state">
+                    <i className="fas fa-shopping-bag"></i>
+                    <h3>No purchase history</h3>
+                    <p>You haven't made any purchases yet.</p>
+                    <Link to="/products" className="btn-primary">
+                      Shop Now
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="purchase-history">
+                    {purchaseHistory.map(purchase => (
+                      <div key={purchase.id} className="purchase-card">
+                        <div className="purchase-header">
+                          <div>
+                            <span className="purchase-date">
+                              {new Date(purchase.date).toLocaleDateString()}
+                            </span>
+                            <span className="purchase-id">Order #{purchase.id}</span>
+                          </div>
+                          <span className={`purchase-status ${purchase.status}`}>
+                            {purchase.status}
+                          </span>
+                        </div>
+                        
+                        <div className="purchase-items">
+                          {purchase.items.map(item => (
+                            <div key={`${purchase.id}-${item.id}`} className="purchase-item">
+                              <div className="purchase-item-image">
+                                <img src={item.image} alt={item.name} />
+                              </div>
+                              <div className="purchase-item-details">
+                                <h4>{item.name}</h4>
+                                {item.variant && <p className="variant">Variant: {item.variant}</p>}
+                                <div className="purchase-item-meta">
+                                  <span className="item-price">{item.price}</span>
+                                  <span className="item-quantity">x{item.quantity}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="purchase-footer">
+                          <div className="purchase-total">
+                            Total: <strong>₹{purchase.total.toLocaleString('en-IN')}</strong>
+                          </div>
+                          <div className="purchase-actions">
+                            <button className="btn-outline">
+                              View Details
+                            </button>
+                            <button className="btn-outline">
+                              Download Invoice
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
             )}
             
             {activeTab === 'addresses' && (
-              <div className="addresses-tab">
-                <h3 className="tab-title">My Addresses</h3>
+              <div className="profile-addresses">
+                <h2>Saved Addresses</h2>
                 
-                <div className="addresses-container">
-                  <button className="add-address-btn">
-                    + Add New Address
-                  </button>
+                <div className="addresses-grid">
+                  <div className="address-card">
+                    <div className="address-default-badge">Default</div>
+                    <h3>Home</h3>
+                    <p>123 Main Street, Apartment 4B</p>
+                    <p>Mumbai, Maharashtra 400001</p>
+                    <p>Phone: +91 9876543210</p>
+                    <div className="address-actions">
+                      <button className="btn-outline">Edit</button>
+                      <button className="btn-outline btn-danger">Delete</button>
+                    </div>
+                  </div>
                   
-                  {addressList.length > 0 ? (
-                    <div className="address-list">
-                      {addressList.map((address, index) => (
-                        <div className="address-card" key={index}>
-                          <div className="address-info">
-                            <h4 className="address-name">{address.type || 'Address'} {index + 1}</h4>
-                            <p className="address-text">{address.text}</p>
-                            <p className="address-contact">
-                              <span>{address.name}</span> • <span>{address.phone}</span>
-                            </p>
-                          </div>
-                          <div className="address-actions">
-                            <button className="address-edit-btn">Edit</button>
-                            <button className="address-delete-btn">Delete</button>
-                          </div>
-                        </div>
-                      ))}
+                  <div className="address-card">
+                    <h3>Office</h3>
+                    <p>456 Business Park, Floor 3</p>
+                    <p>Mumbai, Maharashtra 400051</p>
+                    <p>Phone: +91 9876543210</p>
+                    <div className="address-actions">
+                      <button className="btn-outline">Edit</button>
+                      <button className="btn-outline btn-danger">Delete</button>
                     </div>
-                  ) : (
-                    <div className="empty-state">
-                      <p>You haven't added any addresses yet.</p>
+                  </div>
+                  
+                  <div className="add-address-card">
+                    <div className="add-icon">
+                      <i className="fas fa-plus"></i>
                     </div>
-                  )}
+                    <h3>Add New Address</h3>
+                  </div>
                 </div>
               </div>
             )}
             
             {activeTab === 'settings' && (
-              <div className="settings-tab">
-                <h3 className="tab-title">Account Settings</h3>
+              <div className="profile-settings">
+                <h2>Account Settings</h2>
                 
-                <div className="settings-form">
-                  <div className="form-section">
-                    <h4 className="section-title">Personal Information</h4>
-                    
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label className="form-label">Name</label>
-                        <input type="text" className="form-input" value={user.name} readOnly />
-                      </div>
-                      
-                      <div className="form-group">
-                        <label className="form-label">Email Address</label>
-                        <input type="email" className="form-input" value={user.email} readOnly />
-                      </div>
-                    </div>
-                    
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label className="form-label">Phone Number</label>
-                        <input type="tel" className="form-input" placeholder="Add your phone number" />
-                      </div>
-                    </div>
-                    
-                    <button className="update-btn">Update Information</button>
-                  </div>
-                  
-                  <div className="form-section">
-                    <h4 className="section-title">Change Password</h4>
-                    
+                <div className="settings-section">
+                  <h3>Personal Information</h3>
+                  <form className="settings-form">
                     <div className="form-group">
-                      <label className="form-label">Current Password</label>
-                      <input type="password" className="form-input" placeholder="Enter current password" />
+                      <label>Full Name</label>
+                      <input type="text" defaultValue={user.name} />
                     </div>
                     
                     <div className="form-group">
-                      <label className="form-label">New Password</label>
-                      <input type="password" className="form-input" placeholder="Enter new password" />
+                      <label>Email Address</label>
+                      <input type="email" defaultValue={user.email} />
                     </div>
                     
                     <div className="form-group">
-                      <label className="form-label">Confirm New Password</label>
-                      <input type="password" className="form-input" placeholder="Confirm new password" />
+                      <label>Phone Number</label>
+                      <input type="tel" defaultValue="+91 9876543210" />
                     </div>
                     
-                    <button className="update-btn">Change Password</button>
-                  </div>
-                  
-                  <div className="form-section">
-                    <h4 className="section-title">Notification Preferences</h4>
-                    
-                    <div className="form-checkbox">
-                      <input type="checkbox" id="emailNotifications" checked />
-                      <label htmlFor="emailNotifications">Email Notifications</label>
+                    <button type="submit" className="btn-primary">Save Changes</button>
+                  </form>
+                </div>
+                
+                <div className="settings-section">
+                  <h3>Change Password</h3>
+                  <form className="settings-form">
+                    <div className="form-group">
+                      <label>Current Password</label>
+                      <input type="password" />
                     </div>
                     
-                    <div className="form-checkbox">
-                      <input type="checkbox" id="smsNotifications" />
-                      <label htmlFor="smsNotifications">SMS Notifications</label>
+                    <div className="form-group">
+                      <label>New Password</label>
+                      <input type="password" />
                     </div>
                     
-                    <div className="form-checkbox">
-                      <input type="checkbox" id="marketingEmails" checked />
-                      <label htmlFor="marketingEmails">Marketing Emails</label>
+                    <div className="form-group">
+                      <label>Confirm New Password</label>
+                      <input type="password" />
                     </div>
                     
-                    <button className="update-btn">Update Preferences</button>
-                  </div>
-                  
-                  <div className="form-section danger-zone">
-                    <h4 className="section-title">Danger Zone</h4>
-                    <button className="delete-account-btn">Delete Account</button>
+                    <button type="submit" className="btn-primary">Update Password</button>
+                  </form>
+                </div>
+                
+                <div className="settings-section">
+                  <h3>Notification Preferences</h3>
+                  <div className="settings-form">
+                    <div className="form-check">
+                      <input type="checkbox" id="email_notifications" defaultChecked />
+                      <label htmlFor="email_notifications">
+                        Email Notifications
+                        <span className="text-muted">Receive booking updates and special offers via email</span>
+                      </label>
+                    </div>
+                    
+                    <div className="form-check">
+                      <input type="checkbox" id="sms_notifications" defaultChecked />
+                      <label htmlFor="sms_notifications">
+                        SMS Notifications
+                        <span className="text-muted">Receive booking reminders via SMS</span>
+                      </label>
+                    </div>
+                    
+                    <div className="form-check">
+                      <input type="checkbox" id="marketing_emails" />
+                      <label htmlFor="marketing_emails">
+                        Marketing Emails
+                        <span className="text-muted">Receive news and promotional offers</span>
+                      </label>
+                    </div>
+                    
+                    <button className="btn-primary">Save Preferences</button>
                   </div>
                 </div>
               </div>
