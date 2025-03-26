@@ -17,29 +17,29 @@
 .breadcrumbs a {
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color 0.3s ease;
 }
 
 .breadcrumbs a:hover {
   color: white;
-  text-decoration: underline;
 }
 
 .breadcrumbs span {
   color: white;
+  font-weight: 600;
 }
 
 .model-title {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.5rem;
   margin-bottom: 1rem;
 }
 
 .brand-logo {
-  background-color: white;
   width: 60px;
   height: 60px;
+  background: white;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -54,97 +54,128 @@
 }
 
 .model-title h1 {
-  font-size: 2rem;
+  font-size: 2.2rem;
   margin: 0;
 }
 
 .model-description {
-  font-size: 1.125rem;
+  font-size: 1.1rem;
   opacity: 0.9;
   max-width: 800px;
 }
 
 .model-content {
-  display: grid;
-  gap: 2.5rem;
-}
-
-.model-services,
-.repair-guide,
-.video-tutorial {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.tab-button {
+  padding: 1.25rem 1.5rem;
+  background: none;
+  border: none;
+  color: #333;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  font-size: 1rem;
+}
+
+.tab-button:hover {
+  background-color: #f0f0f0;
+  color: var(--primary-color);
+}
+
+.tab-button.active {
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.tab-content {
   padding: 2rem;
 }
 
-.model-services h2,
-.repair-guide h2,
-.video-tutorial h2 {
-  margin-bottom: 1.5rem;
-  font-size: 1.75rem;
-  color: #333;
+/* Overview Tab */
+.overview-tab {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  gap: 2.5rem;
 }
 
-.services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+.model-image-container {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.model-image-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.model-details {
+  display: flex;
+  flex-direction: column;
   gap: 1.5rem;
 }
 
-.repair-guide {
-  color: #555;
-}
-
-.guide-content {
-  line-height: 1.7;
-}
-
-.guide-content h4 {
-  margin: 1.5rem 0 0.75rem;
-  color: #333;
-  font-size: 1.2rem;
-}
-
-.guide-content p {
-  margin-bottom: 1rem;
-}
-
-.guide-content ul,
-.guide-content ol {
-  padding-left: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.guide-content li {
+.model-details h2 {
+  font-size: 1.6rem;
   margin-bottom: 0.5rem;
 }
 
-.video-container {
-  position: relative;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio */
-  height: 0;
-  overflow: hidden;
-  margin-bottom: 1.5rem;
+.service-highlights {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background-color: #f8f9fa;
+  padding: 1rem;
   border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
-.video-container iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
+.highlight-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
 }
 
-.video-description {
-  color: #555;
-  line-height: 1.6;
+.highlight-item i {
+  font-size: 1.5rem;
+  color: var(--primary-color);
 }
 
-.video-description p {
-  margin-bottom: 1.5rem;
+.highlight-item h4 {
+  font-size: 1rem;
+  margin: 0 0 0.25rem 0;
+}
+
+.highlight-item p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
 }
 
 .cta-buttons {
@@ -153,51 +184,521 @@
   margin-top: 1.5rem;
 }
 
-.btn-primary, 
-.btn-secondary {
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
   padding: 0.75rem 1.5rem;
   border-radius: 4px;
   font-weight: 500;
   text-decoration: none;
+  display: inline-block;
   transition: all 0.3s ease;
-}
-
-.btn-primary {
-  background-color: var(--primary-color);
-  color: white;
+  text-align: center;
+  border: none;
+  cursor: pointer;
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-dark);
-  transform: translateY(-2px);
+  background-color: #0043b8;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .btn-secondary {
   background-color: #f0f0f0;
   color: #333;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
   border: 1px solid #ddd;
+  text-align: center;
+  cursor: pointer;
 }
 
 .btn-secondary:hover {
   background-color: #e0e0e0;
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Services Tab */
+.services-tab h2, 
+.repairs-tab h2, 
+.parts-tab h2 {
+  margin-bottom: 0.75rem;
+  font-size: 1.6rem;
+}
+
+.services-tab p, 
+.repairs-tab p, 
+.parts-tab p {
+  margin-bottom: 2rem;
+  color: #666;
+  font-size: 1.05rem;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.service-card {
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.service-image {
+  height: 180px;
+  overflow: hidden;
+}
+
+.service-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.service-card:hover .service-image img {
+  transform: scale(1.05);
+}
+
+.service-details {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.service-details h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+.model-badge {
+  display: inline-block;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 50px;
+  margin-bottom: 1rem;
+}
+
+.service-details p {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+
+.service-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.service-price {
+  font-weight: 600;
+  color: var(--primary-color);
+  font-size: 1.2rem;
+}
+
+.service-rating {
+  color: #666;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.service-rating i {
+  color: #ffd700;
+}
+
+.service-features {
+  margin-bottom: 1rem;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.feature i {
+  color: #28a745;
+  font-size: 0.85rem;
+}
+
+.service-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.view-details-btn, 
+.add-to-cart-btn {
+  flex: 1;
+  padding: 0.6rem 0;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.view-details-btn {
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.view-details-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.add-to-cart-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #0043b8;
+}
+
+/* DIY Repairs Tab */
+.video-tutorial {
+  margin-bottom: 3rem;
+}
+
+.video-tutorial h3 {
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.video-container {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.video-description {
+  color: #666;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.common-issues {
+  margin-bottom: 3rem;
+}
+
+.common-issues h3 {
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.issue-card {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.issue-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.issue-card h4 {
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+  color: #333;
+}
+
+.issue-card p {
+  margin-bottom: 1.25rem;
+}
+
+.issue-details {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.detail-item h5 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: #555;
+}
+
+.detail-item ul {
+  padding-left: 1.5rem;
+  margin-bottom: 0;
+}
+
+.detail-item li {
+  margin-bottom: 0.5rem;
+  color: #666;
+}
+
+.difficulty-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.difficulty-badge:contains("Low") {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.difficulty-badge:contains("Medium") {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.difficulty-badge:contains("High") {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.diy-guides {
+  margin-bottom: 3rem;
+}
+
+.diy-guides h3 {
+  font-size: 1.4rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.guide-item {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.guide-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.guide-item h4 {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.guide-item ol, 
+.guide-item ul {
+  padding-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.guide-item li {
+  margin-bottom: 1rem;
+  color: #333;
+  line-height: 1.6;
+}
+
+.guide-item p {
+  margin-bottom: 1rem;
+  color: #333;
+  line-height: 1.6;
+}
+
+.warning-box {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 6px;
+  margin: 1.5rem 0;
+  line-height: 1.6;
+}
+
+.repair-disclaimer {
+  background-color: #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.repair-disclaimer h4 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  color: #333;
+}
+
+.repair-disclaimer p {
+  margin-bottom: 1rem;
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* Parts Tab */
+.parts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.part-card {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.part-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.part-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  color: #333;
+}
+
+.part-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.part-code {
+  color: #666;
+}
+
+.part-price {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.part-card p {
+  color: #666;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.part-difficulty {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.parts-note {
+  background-color: #e9ecef;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.parts-note p {
+  margin-bottom: 1.25rem;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 992px) {
+  .overview-tab {
+    grid-template-columns: 1fr;
+  }
+
+  .model-image-container {
+    height: 250px;
+  }
+
+  .service-highlights {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .issue-details {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 @media (max-width: 768px) {
+  .model-header {
+    padding: 2rem 0;
+  }
+
   .model-title {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 1rem;
   }
-  
+
   .model-title h1 {
     font-size: 1.75rem;
   }
-  
-  .services-grid {
+
+  .service-highlights {
     grid-template-columns: 1fr;
   }
-  
+
+  .tab-button {
+    padding: 1rem;
+    font-size: 0.9rem;
+  }
+
+  .tab-content {
+    padding: 1.5rem;
+  }
+
+  .services-grid,
+  .parts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .service-actions {
+    flex-direction: column;
+  }
+
   .cta-buttons {
     flex-direction: column;
   }

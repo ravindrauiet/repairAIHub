@@ -212,4 +212,20 @@
   .model-image {
     height: 120px;
   }
+}
+
+.no-brands-message,
+.no-models-message {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.no-brands-message p,
+.no-models-message p {
+  color: #555;
+  font-size: 1rem;
+  line-height: 1.4;
 } 

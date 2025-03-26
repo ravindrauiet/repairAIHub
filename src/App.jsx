@@ -73,9 +73,9 @@ function App() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/services" element={<ServicesPage />} />
-              <Route path="/services/:serviceId" element={<ServiceDetailPage />} />
-              <Route path="/services/:category" element={<ServiceCategoryPage />} />
               <Route path="/services/:category/:brandId/:modelId" element={<ModelServicePage />} />
+              <Route path="/services/category/:category" element={<ServiceCategoryPage />} />
+              <Route path="/services/:serviceId" element={<ServiceDetailPage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/products/:productId" element={<ProductDetailPage />} />
               <Route path="/products/model/:modelId" element={<ModelProducts />} />

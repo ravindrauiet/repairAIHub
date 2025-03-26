@@ -40,6 +40,40 @@ const ServiceCategoryPage = () => {
     );
   }
 
+  // Service Promotion component - now generalized for any category
+  const ServicePromotion = () => (
+    <section className="service-promotion">
+      <div className="promotion-content">
+        <h2>Find {categoryInfo.name} Repair Services For Your Specific Model</h2>
+        <p>
+          {categoryInfo.name} repair needs vary greatly depending on the brand and model. We offer specialized repair 
+          services for all major {categoryInfo.name.toLowerCase()} brands including popular manufacturers in the market.
+        </p>
+        <div className="promotion-features">
+          <div className="promotion-feature">
+            <i className="fas fa-tools"></i>
+            <span>Model-specific repair guides</span>
+          </div>
+          <div className="promotion-feature">
+            <i className="fas fa-video"></i>
+            <span>DIY repair tutorials</span>
+          </div>
+          <div className="promotion-feature">
+            <i className="fas fa-tag"></i>
+            <span>Genuine replacement parts</span>
+          </div>
+          <div className="promotion-feature">
+            <i className="fas fa-shield-alt"></i>
+            <span>Extended warranty options</span>
+          </div>
+        </div>
+        <p className="promotion-cta-text">
+          Select your {categoryInfo.name.toLowerCase()} brand and model below to see repair options tailored specifically for your device.
+        </p>
+      </div>
+    </section>
+  );
+
   return (
     <div className="service-category-page">
       <div className="category-header">
@@ -54,6 +88,9 @@ const ServiceCategoryPage = () => {
 
       <div className="container">
         <div className="category-content">
+          {/* Show service promotion for all categories */}
+          <ServicePromotion />
+          
           <section className="brand-model-section">
             <h2>Select Your {categoryInfo.name} Model</h2>
             <p>Choose your brand and model to see specific repair options</p>

@@ -603,8 +603,28 @@ export const modelProducts = {
 // Helper functions
 export const getAllProducts = () => products;
 
-export const getProductsByCategory = (categoryId) => {
-  return products.filter(product => product.category === categoryId);
+// Function to get products by category
+export const getProductsByCategory = (category) => {
+  // First check if category is a service ID (like "tv-repair", "mobile-repair", etc.)
+  // If so, map it to a product category
+  let productCategory = category;
+  
+  // Map service IDs to product categories
+  const serviceToProductMap = {
+    'tv-repair': 'tv',
+    'mobile-repair': 'mobile',
+    'laptop-repair': 'laptop',
+    'ac-repair': 'ac',
+    'refrigerator-repair': 'refrigerator',
+    'washing-machine-repair': 'washing-machine',
+    'water-purifier-repair': 'water-purifier'
+  };
+  
+  if (serviceToProductMap[category]) {
+    productCategory = serviceToProductMap[category];
+  }
+  
+  return products.filter(product => product.category === productCategory);
 };
 
 export const getProductById = (productId) => {
