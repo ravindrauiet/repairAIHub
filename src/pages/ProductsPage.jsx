@@ -1,86 +1,70 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Hero from '../components/common/Hero';
 import { 
   getAllProducts, 
   getProductsByCategory, 
   getProductsByBrand,
   productCategories, 
-  brands 
+  brands,
+  getBrandsByCategory,
+  getModelsByBrand,
+  getProductsByModel
 } from '../data/products.jsx';
+import '../styles/products.css';
 
 const ProductsPage = () => {
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedBrand, setSelectedBrand] = useState('');
+  const navigate = useNavigate();
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedBrand, setSelectedBrand] = useState(null);
+  const [selectedModel, setSelectedModel] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [visibleBrands, setVisibleBrands] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Initialize products
-  useEffect(() => {
-    setLoading(true);
-    try {
-      const allProducts = getAllProducts();
-      setFilteredProducts(allProducts);
-    } catch (error) {
-      console.error('Error loading products:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Update visible brands when category changes
-  useEffect(() => {
-    if (selectedCategory) {
-      const categoryBrands = brands.filter(brand => 
-        brand.categories.includes(selectedCategory)
-      );
-      setVisibleBrands(categoryBrands);
-    } else {
-      setVisibleBrands(brands);
-    }
-    
-    // Reset selected brand if changing categories
-    setSelectedBrand('');
-  }, [selectedCategory]);
+  const filteredBrands = selectedCategory ? getBrandsByCategory(selectedCategory) : [];
+  const filteredModels = selectedBrand ? getModelsByBrand(selectedBrand, selectedCategory) : [];
 
   // Filter products based on selected filters and search query
   useEffect(() => {
     setLoading(true);
-    let results = getAllProducts();
+    let results = [];
 
-    if (selectedCategory) {
+    if (selectedModel) {
+      results = getProductsByModel(selectedModel);
+    } else if (selectedBrand) {
+      results = getProductsByBrand(selectedBrand);
+    } else if (selectedCategory) {
       results = getProductsByCategory(selectedCategory);
-    }
-
-    if (selectedBrand) {
-      results = results.filter(product => 
-        product.compatibleBrands.includes(selectedBrand)
-      );
+    } else {
+      results = getAllProducts();
     }
 
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
       results = results.filter(product => 
         product.title.toLowerCase().includes(query) || 
-        product.description.toLowerCase().includes(query) ||
-        product.id.toLowerCase().includes(query)
+        product.description.toLowerCase().includes(query)
       );
     }
 
     setFilteredProducts(results);
     setLoading(false);
-  }, [selectedCategory, selectedBrand, searchQuery]);
+  }, [selectedCategory, selectedBrand, selectedModel, searchQuery]);
 
-  // Handle category change
-  const handleCategoryChange = (categoryId) => {
-    setSelectedCategory(categoryId);
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setSelectedBrand(null);
+    setSelectedModel(null);
   };
 
-  // Handle brand change
-  const handleBrandChange = (brandId) => {
+  const handleBrandSelect = (brandId) => {
     setSelectedBrand(brandId);
+    setSelectedModel(null);
+  };
+
+  const handleModelSelect = (modelId) => {
+    setSelectedModel(modelId);
   };
 
   // Helper to get price range display
@@ -117,42 +101,66 @@ const ProductsPage = () => {
 
             <div className="filter-group">
               <div className="category-filters">
-                <button 
-                  className={`filter-button ${selectedCategory === '' ? 'active' : ''}`}
-                  onClick={() => handleCategoryChange('')}
-                >
-                  All Categories
-                </button>
-                
-                {productCategories.map(category => (
+                <h4>Categories</h4>
+                <div className="filter-buttons">
                   <button 
-                    key={category.id}
-                    className={`filter-button ${selectedCategory === category.id ? 'active' : ''}`}
-                    onClick={() => handleCategoryChange(category.id)}
+                    className={`filter-button ${selectedCategory === null ? 'active' : ''}`}
+                    onClick={() => handleCategorySelect(null)}
                   >
-                    <i className={`fas ${category.icon}`}></i> {category.name}
+                    All Categories
                   </button>
-                ))}
+                  {productCategories.map(category => (
+                    <button 
+                      key={category.id}
+                      className={`filter-button ${selectedCategory === category.id ? 'active' : ''}`}
+                      onClick={() => handleCategorySelect(category.id)}
+                    >
+                      <i className={`fas ${category.icon}`}></i> {category.name}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {visibleBrands.length > 0 && (
+              {selectedCategory && (
                 <div className="brand-filters">
                   <h4>Brands</h4>
-                  <div className="brand-list">
+                  <div className="filter-buttons">
                     <button 
-                      className={`brand-button ${selectedBrand === '' ? 'active' : ''}`}
-                      onClick={() => handleBrandChange('')}
+                      className={`filter-button ${selectedBrand === null ? 'active' : ''}`}
+                      onClick={() => handleBrandSelect(null)}
                     >
                       All Brands
                     </button>
-                    
-                    {visibleBrands.map(brand => (
+                    {filteredBrands.map(brand => (
                       <button 
                         key={brand.id}
-                        className={`brand-button ${selectedBrand === brand.id ? 'active' : ''}`}
-                        onClick={() => handleBrandChange(brand.id)}
+                        className={`filter-button ${selectedBrand === brand.id ? 'active' : ''}`}
+                        onClick={() => handleBrandSelect(brand.id)}
                       >
                         {brand.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedBrand && (
+                <div className="model-filters">
+                  <h4>Models</h4>
+                  <div className="filter-buttons">
+                    <button 
+                      className={`filter-button ${selectedModel === null ? 'active' : ''}`}
+                      onClick={() => handleModelSelect(null)}
+                    >
+                      All Models
+                    </button>
+                    {filteredModels.map(model => (
+                      <button 
+                        key={model.id}
+                        className={`filter-button ${selectedModel === model.id ? 'active' : ''}`}
+                        onClick={() => handleModelSelect(model.id)}
+                      >
+                        {model.name}
                       </button>
                     ))}
                   </div>
@@ -209,8 +217,9 @@ const ProductsPage = () => {
                     <h3>No products found</h3>
                     <p>Try different search criteria or browse all categories</p>
                     <button className="reset-btn" onClick={() => {
-                      setSelectedCategory('');
-                      setSelectedBrand('');
+                      setSelectedCategory(null);
+                      setSelectedBrand(null);
+                      setSelectedModel(null);
                       setSearchQuery('');
                     }}>Reset Filters</button>
                   </div>

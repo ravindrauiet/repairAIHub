@@ -13,6 +13,101 @@ export const productCategories = [
   { id: 'geyser', name: 'Geysers', icon: 'fa-hot-tub' }
 ];
 
+// Define device models for various brands
+export const deviceModels = {
+  // Mobile phone models
+  'mi': [
+    { id: 'redmi-a3', name: 'Redmi A3', category: 'mobile' },
+    { id: 'redmi-note-13-pro-plus', name: 'Redmi Note 13 Pro+', category: 'mobile' },
+    { id: 'redmi-note-13-pro', name: 'Redmi Note 13 Pro', category: 'mobile' },
+    { id: 'redmi-note-13-5g', name: 'Redmi Note 13 5G', category: 'mobile' },
+    { id: 'redmi-13c', name: 'Redmi 13C', category: 'mobile' },
+    { id: 'redmi-12', name: 'Redmi 12', category: 'mobile' },
+    { id: 'redmi-a2', name: 'Redmi A2', category: 'mobile' },
+    { id: 'redmi-12-5g', name: 'Redmi 12 5G', category: 'mobile' },
+    { id: 'redmi-13c-5g', name: 'Redmi 13C 5G', category: 'mobile' }
+  ],
+  'samsung': [
+    { id: 'galaxy-s24-ultra', name: 'Galaxy S24 Ultra', category: 'mobile' },
+    { id: 'galaxy-s24-plus', name: 'Galaxy S24+', category: 'mobile' },
+    { id: 'galaxy-s24', name: 'Galaxy S24', category: 'mobile' },
+    { id: 'galaxy-z-fold5', name: 'Galaxy Z Fold5', category: 'mobile' },
+    { id: 'galaxy-z-flip5', name: 'Galaxy Z Flip5', category: 'mobile' },
+    { id: 'galaxy-a55-5g', name: 'Galaxy A55 5G', category: 'mobile' },
+    { id: 'galaxy-a35-5g', name: 'Galaxy A35 5G', category: 'mobile' },
+    { id: 'galaxy-m15', name: 'Galaxy M15', category: 'mobile' }
+  ],
+  'apple': [
+    { id: 'iphone-15-pro-max', name: 'iPhone 15 Pro Max', category: 'mobile' },
+    { id: 'iphone-15-pro', name: 'iPhone 15 Pro', category: 'mobile' },
+    { id: 'iphone-15-plus', name: 'iPhone 15 Plus', category: 'mobile' },
+    { id: 'iphone-15', name: 'iPhone 15', category: 'mobile' },
+    { id: 'iphone-14-pro-max', name: 'iPhone 14 Pro Max', category: 'mobile' },
+    { id: 'iphone-14-pro', name: 'iPhone 14 Pro', category: 'mobile' },
+    { id: 'iphone-14-plus', name: 'iPhone 14 Plus', category: 'mobile' },
+    { id: 'iphone-14', name: 'iPhone 14', category: 'mobile' },
+    { id: 'iphone-13', name: 'iPhone 13', category: 'mobile' },
+    { id: 'iphone-12', name: 'iPhone 12', category: 'mobile' },
+    { id: 'iphone-11', name: 'iPhone 11', category: 'mobile' }
+  ],
+
+  // Laptop models
+  'acer': [
+    { id: 'acer-travellite-2025', name: 'TravelLite (2025)', category: 'laptop' },
+    { id: 'acer-predator-helios-neo-14', name: 'Predator Helios Neo 14', category: 'laptop' },
+    { id: 'acer-aspire-7-2024', name: 'Aspire 7 (2024)', category: 'laptop' },
+    { id: 'acer-nitro-v-16', name: 'Nitro V 16', category: 'laptop' },
+    { id: 'acer-chromebook-plus-15', name: 'Chromebook Plus 15', category: 'laptop' },
+    { id: 'acer-alg-gaming-laptop', name: 'ALG Gaming Laptop', category: 'laptop' }
+  ],
+  'hp': [
+    { id: 'hp-spectre-x360', name: 'Spectre x360', category: 'laptop' },
+    { id: 'hp-envy-x360', name: 'Envy x360', category: 'laptop' },
+    { id: 'hp-pavilion-15', name: 'Pavilion 15', category: 'laptop' },
+    { id: 'hp-omen-17', name: 'OMEN 17', category: 'laptop' },
+    { id: 'hp-victus-15', name: 'Victus 15', category: 'laptop' }
+  ],
+  'dell': [
+    { id: 'dell-xps-15', name: 'XPS 15', category: 'laptop' },
+    { id: 'dell-xps-13', name: 'XPS 13', category: 'laptop' },
+    { id: 'dell-inspiron-15', name: 'Inspiron 15', category: 'laptop' },
+    { id: 'dell-alienware-m16', name: 'Alienware m16', category: 'laptop' },
+    { id: 'dell-g15', name: 'G15 Gaming', category: 'laptop' }
+  ],
+
+  // AC models
+  'voltas': [
+    { id: 'voltas-split-inv-1.5t-5-star', name: 'Split Inverter AC 1.5T INV 5 STAR INV Vogue', category: 'ac' },
+    { id: 'voltas-split-inv-1.5t-marble', name: 'Split Inverter AC 1.5T SIC 18VTC3 WZQ MBW IOT Vogue Marble', category: 'ac' },
+    { id: 'voltas-split-inv-1.5t-vyq', name: 'Split Inverter AC 1.5T SIC 18DTC3 VYQ IOT', category: 'ac' },
+    { id: 'voltas-split-inv-1t', name: 'Split Inverter AC 1T INV 3 STAR', category: 'ac' }
+  ],
+  'daikin': [
+    { id: 'daikin-ftht-inv-1.5t', name: 'FTHT Series 1.5 Ton 5 Star Inverter Split AC', category: 'ac' },
+    { id: 'daikin-jtkm-inv-1.5t', name: 'JTKM Series 1.5 Ton 5 Star Inverter Split AC', category: 'ac' },
+    { id: 'daikin-ftkf-inv-1t', name: 'FTKF Series 1 Ton 3 Star Inverter Split AC', category: 'ac' }
+  ],
+  'lg': [
+    { id: 'lg-ks-q18ynza', name: 'KS-Q18YNZA 1.5 Ton 5 Star Inverter Split AC', category: 'ac' },
+    { id: 'lg-rs-q19ynze', name: 'RS-Q19YNZE 1.5 Ton 5 Star Inverter Split AC', category: 'ac' },
+    { id: 'lg-ps-q13ynze', name: 'PS-Q13YNZE 1 Ton 3 Star Inverter Split AC', category: 'ac' }
+  ],
+
+  // TV models
+  'samsung-tv': [
+    { id: 'samsung-neo-qled-8k', name: 'Neo QLED 8K Smart TV', category: 'tv' },
+    { id: 'samsung-neo-qled-4k', name: 'Neo QLED 4K Smart TV', category: 'tv' },
+    { id: 'samsung-crystal-uhd', name: 'Crystal UHD 4K Smart TV', category: 'tv' },
+    { id: 'samsung-the-frame', name: 'The Frame QLED 4K Smart TV', category: 'tv' }
+  ],
+  'lg-tv': [
+    { id: 'lg-oled-c3', name: 'OLED C3 4K Smart TV', category: 'tv' },
+    { id: 'lg-oled-g3', name: 'OLED G3 4K Smart TV', category: 'tv' },
+    { id: 'lg-qned-mini-led', name: 'QNED MiniLED 4K Smart TV', category: 'tv' },
+    { id: 'lg-nanocell', name: 'NanoCell 4K Smart TV', category: 'tv' }
+  ]
+};
+
 // Define brands for product filters
 export const brands = [
   // TV Brands
@@ -416,6 +511,95 @@ const products = [
   }
 ];
 
+// Define model-specific products
+export const modelProducts = {
+  // Mobile phone model products
+  'galaxy-s24-ultra': [
+    {
+      id: 's24-ultra-screen',
+      title: 'Galaxy S24 Ultra Screen Replacement',
+      description: 'Replace cracked or damaged screen of Samsung Galaxy S24 Ultra with original display.',
+      price: '₹25,000 - ₹35,000',
+      image: '/images/products/s24-ultra-screen.jpg',
+      rating: 4.8,
+      reviewCount: 45,
+      features: [
+        'Original Samsung display',
+        'OLED panel with 120Hz refresh rate',
+        'Touch functionality guaranteed',
+        '6-month warranty',
+        'Expert installation'
+      ],
+      warranty: '6 Months',
+      estimatedTime: '1 hour',
+      inStock: true
+    },
+    {
+      id: 's24-ultra-battery',
+      title: 'Galaxy S24 Ultra Battery Replacement',
+      description: 'Replace the battery of your Samsung Galaxy S24 Ultra for improved performance.',
+      price: '₹4,500 - ₹6,000',
+      image: '/images/products/s24-ultra-battery.jpg',
+      rating: 4.9,
+      reviewCount: 38,
+      features: [
+        'Original Samsung battery',
+        'Improved battery life',
+        'Fast charging support',
+        '6-month warranty',
+        'Quick installation'
+      ],
+      warranty: '6 Months',
+      estimatedTime: '45 minutes',
+      inStock: true
+    }
+  ],
+  'iphone-15-pro-max': [
+    {
+      id: 'iphone-15-pro-max-screen',
+      title: 'iPhone 15 Pro Max Screen Replacement',
+      description: 'Replace damaged screen of iPhone 15 Pro Max with original display.',
+      price: '₹35,000 - ₹45,000',
+      image: '/images/products/iphone-15-pro-max-screen.jpg',
+      rating: 4.7,
+      reviewCount: 52,
+      features: [
+        'Original Apple display',
+        'ProMotion technology',
+        'True Tone support',
+        '6-month warranty',
+        'Expert installation'
+      ],
+      warranty: '6 Months',
+      estimatedTime: '1 hour',
+      inStock: true
+    }
+  ],
+  // AC model products
+  'voltas-split-inv-1.5t-5-star': [
+    {
+      id: 'voltas-1.5t-pcb',
+      title: 'Voltas 1.5T Inverter AC PCB Repair',
+      description: 'Repair or replace the PCB of your Voltas 1.5T Inverter AC.',
+      price: '₹3,500 - ₹5,000',
+      image: '/images/products/voltas-pcb.jpg',
+      rating: 4.6,
+      reviewCount: 28,
+      features: [
+        'Original PCB replacement',
+        'Inverter technology support',
+        'Temperature control fix',
+        '6-month warranty',
+        'Expert installation'
+      ],
+      warranty: '6 Months',
+      estimatedTime: '1-2 hours',
+      inStock: true
+    }
+  ],
+  // Add more model-specific products here...
+};
+
 // Helper functions
 export const getAllProducts = () => products;
 
@@ -431,8 +615,37 @@ export const getProductsByBrand = (brandId) => {
   return products.filter(product => product.compatibleBrands.includes(brandId));
 };
 
-export const getBrandsByCategory = (categoryId) => {
-  return brands.filter(brand => brand.categories.includes(categoryId));
+export const getBrandsByCategory = (category) => {
+  return brands.filter(brand => brand.categories.includes(category));
+};
+
+export const getModelsByBrand = (brandId, category) => {
+  if (!deviceModels[brandId]) {
+    return [];
+  }
+  
+  return deviceModels[brandId].filter(model => {
+    if (!model) {
+      return false;
+    }
+    return model.category === category;
+  });
+};
+
+export const getProductsByModel = (modelId) => {
+  return modelProducts[modelId] || [];
+};
+
+export const getProductsByBrandAndCategory = (brandId, category) => {
+  const brandModels = getModelsByBrand(brandId, category);
+  const allProducts = [];
+  
+  brandModels.forEach(model => {
+    const modelProducts = getProductsByModel(model.id);
+    allProducts.push(...modelProducts);
+  });
+  
+  return allProducts;
 };
 
 export default products; 
