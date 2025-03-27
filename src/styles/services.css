@@ -129,7 +129,7 @@
 }
 
 .service-content {
-  padding: 2rem;
+  padding: 0rem;
 }
 
 .service-content h3 {
@@ -350,13 +350,13 @@
 .service-detail-container {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 3rem;
+  gap: 1rem;
 }
 
 .service-navigation {
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--border-color);
-  margin-bottom: 2rem;
+  margin-bottom: 0rem;
 }
 
 .breadcrumb {
@@ -415,7 +415,7 @@
 }
 
 .tab-btn.active {
-  color: var(--primary-color);
+  color: ffffff;
 }
 
 .tab-btn.active::after {

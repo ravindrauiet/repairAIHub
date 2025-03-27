@@ -376,7 +376,7 @@
   color: white;
   border: none;
   border-radius: var(--border-radius-md);
-  padding: 0 1.5rem;
+  padding:  1rem 0;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;

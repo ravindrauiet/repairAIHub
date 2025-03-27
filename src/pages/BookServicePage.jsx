@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import services from '../data/services';
+import BrandModelSelector from '../components/BrandModelSelector';
 
 const BookServicePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
+  const [selectedService, setSelectedService] = useState(null);
   const [formData, setFormData] = useState({
     serviceType: '',
     deviceBrand: '',
@@ -25,7 +28,7 @@ const BookServicePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   
-  // Check if user is logged in
+  // Check if user is logged in and get service from location state
   useEffect(() => {
     const loggedInUser = JSON.parse(localStorage.getItem('currentUser'));
     if (loggedInUser) {
@@ -37,7 +40,16 @@ const BookServicePage = () => {
         email: loggedInUser.email || ''
       }));
     }
-  }, []);
+
+    // Get service from location state if available
+    if (location.state?.service) {
+      setSelectedService(location.state.service);
+      setFormData(prev => ({
+        ...prev,
+        serviceType: location.state.service.id
+      }));
+    }
+  }, [location]);
   
   // Get time slots for booking
   const getTimeSlots = () => {
@@ -67,6 +79,15 @@ const BookServicePage = () => {
         [name]: ''
       }));
     }
+  };
+  
+  // Handle brand and model selection
+  const handleBrandModelSelect = ({ brand, model }) => {
+    setFormData(prev => ({
+      ...prev,
+      deviceBrand: brand.name,
+      deviceModel: model.name
+    }));
   };
   
   // Validate form fields
@@ -228,49 +249,37 @@ const BookServicePage = () => {
                   {errors.serviceType && <div className="error-message">{errors.serviceType}</div>}
                 </div>
               </div>
+
+              {formData.serviceType && (
+                <div className="brand-model-section">
+                  <h3>Select Your Device</h3>
+                  <BrandModelSelector 
+                    category={formData.serviceType} 
+                    onSelectionChange={handleBrandModelSelect}
+                  />
+                  {formData.deviceBrand && formData.deviceModel && (
+                    <div className="selected-device-info">
+                      <h4>Selected Device</h4>
+                      <p>Brand: {formData.deviceBrand}</p>
+                      <p>Model: {formData.deviceModel}</p>
+                    </div>
+                  )}
+                </div>
+              )}
               
               <div className="form-row">
                 <div className="form-group">
-                  <label htmlFor="deviceBrand">Device Brand <span className="required">*</span></label>
-                  <input 
-                    type="text" 
-                    id="deviceBrand" 
-                    name="deviceBrand" 
-                    value={formData.deviceBrand}
+                  <label htmlFor="issueDescription">Issue Description <span className="required">*</span></label>
+                  <textarea 
+                    id="issueDescription" 
+                    name="issueDescription" 
+                    value={formData.issueDescription}
                     onChange={handleChange}
-                    placeholder="e.g. Samsung, LG, Apple"
-                    className={errors.deviceBrand ? 'error' : ''}
+                    placeholder="Please describe the issue you're experiencing"
+                    className={errors.issueDescription ? 'error' : ''}
                   />
-                  {errors.deviceBrand && <div className="error-message">{errors.deviceBrand}</div>}
+                  {errors.issueDescription && <div className="error-message">{errors.issueDescription}</div>}
                 </div>
-                
-                <div className="form-group">
-                  <label htmlFor="deviceModel">Device Model <span className="required">*</span></label>
-                  <input 
-                    type="text" 
-                    id="deviceModel" 
-                    name="deviceModel" 
-                    value={formData.deviceModel}
-                    onChange={handleChange}
-                    placeholder="e.g. Galaxy S21, iPhone 13"
-                    className={errors.deviceModel ? 'error' : ''}
-                  />
-                  {errors.deviceModel && <div className="error-message">{errors.deviceModel}</div>}
-                </div>
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="issueDescription">Describe the Issue <span className="required">*</span></label>
-                <textarea 
-                  id="issueDescription" 
-                  name="issueDescription" 
-                  value={formData.issueDescription}
-                  onChange={handleChange}
-                  placeholder="Please describe the problem in detail..."
-                  rows="4"
-                  className={errors.issueDescription ? 'error' : ''}
-                ></textarea>
-                {errors.issueDescription && <div className="error-message">{errors.issueDescription}</div>}
               </div>
             </div>
             

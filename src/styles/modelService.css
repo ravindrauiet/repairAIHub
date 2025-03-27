@@ -142,7 +142,7 @@
 
 .service-highlights {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(1, 1fr);
   gap: 1rem;
   margin: 1.5rem 0;
 }

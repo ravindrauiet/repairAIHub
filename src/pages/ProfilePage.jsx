@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import '../styles/profile.css';
 
 const ProfilePage = () => {
@@ -10,9 +11,9 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [activeBookingFilter, setActiveBookingFilter] = useState('all');
-  const [wishlistItems, setWishlistItems] = useState([]);
   const [purchaseHistory, setPurchaseHistory] = useState([]);
   const { cartItems } = useCart();
+  const { wishlist, removeFromWishlist } = useWishlist();
   
   const navigate = useNavigate();
   
@@ -33,11 +34,6 @@ const ProfilePage = () => {
       const userBookings = storedBookings.filter(booking => booking.userId === loggedInUser.id);
       setBookings(userBookings);
       setFilteredBookings(userBookings);
-
-      // Load wishlist from localStorage
-      const storedWishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-      const userWishlist = storedWishlist.filter(item => item.userId === loggedInUser.id);
-      setWishlistItems(userWishlist);
 
       // Load purchase history from localStorage
       const storedPurchases = JSON.parse(localStorage.getItem('purchases')) || [];
@@ -75,15 +71,54 @@ const ProfilePage = () => {
     return bookings.filter(booking => booking.status === status).length;
   };
   
-  const removeFromWishlist = (id) => {
-    const updated = wishlistItems.filter(item => item.id !== id);
-    setWishlistItems(updated);
-    
-    // Update localStorage
-    const allWishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-    const filteredWishlist = allWishlist.filter(item => !(item.id === id && item.userId === user.id));
-    localStorage.setItem('wishlist', JSON.stringify(filteredWishlist));
-  };
+  const renderWishlistTab = () => (
+    <div className="wishlist-tab">
+      <h2>My Wishlist</h2>
+      {wishlist.length === 0 ? (
+        <div className="empty-wishlist">
+          <i className="fas fa-heart"></i>
+          <p>Your wishlist is empty</p>
+          <Link to="/products" className="btn-primary">Browse Products</Link>
+        </div>
+      ) : (
+        <div className="wishlist-grid">
+          {wishlist.map(item => (
+            <div key={item.id} className="wishlist-item">
+              <div className="item-image">
+                <img 
+                  src={item.image || '/images/service-placeholder.jpg'} 
+                  alt={item.title}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/images/service-placeholder.jpg';
+                  }}
+                />
+              </div>
+              <div className="item-details">
+                <h3>{item.title}</h3>
+                <p>{item.description?.substring(0, 100) || 'No description available'}...</p>
+                <div className="item-meta">
+                  <span className="price">{typeof item.price === 'object' ? Object.values(item.price)[0] : item.price}</span>
+                  <span className="rating">
+                    <i className="fas fa-star"></i> {item.rating || '4.5'}
+                  </span>
+                </div>
+                <div className="item-actions">
+                  <Link to={`/products/${item.id}`} className="btn-secondary">View Details</Link>
+                  <button 
+                    className="remove-wishlist-btn"
+                    onClick={() => removeFromWishlist(item.id)}
+                  >
+                    <i className="fas fa-trash"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
   
   if (loading) {
     return (
@@ -130,7 +165,7 @@ const ProfilePage = () => {
               <li className={activeTab === 'wishlist' ? 'active' : ''}>
                 <button onClick={() => handleTabChange('wishlist')}>
                   <i className="fas fa-heart"></i> Wishlist
-                  <span className="badge">{wishlistItems.length}</span>
+                  <span className="badge">{wishlist.length}</span>
                 </button>
               </li>
               <li className={activeTab === 'purchases' ? 'active' : ''}>
@@ -191,7 +226,7 @@ const ProfilePage = () => {
                   <div className="summary-card">
                     <div className="card-content">
                       <h4>Wishlist</h4>
-                      <span className="card-value">{wishlistItems.length}</span>
+                      <span className="card-value">{wishlist.length}</span>
                     </div>
                     <div className="card-icon bg-accent">
                       <i className="fas fa-heart"></i>
@@ -357,53 +392,7 @@ const ProfilePage = () => {
               </div>
             )}
 
-            {activeTab === 'wishlist' && (
-              <div className="profile-wishlist">
-                <h2>My Wishlist</h2>
-                
-                {wishlistItems.length === 0 ? (
-                  <div className="empty-state">
-                    <i className="fas fa-heart-broken"></i>
-                    <h3>Your wishlist is empty</h3>
-                    <p>Save items you like by clicking the heart icon on product pages.</p>
-                    <Link to="/products" className="btn-primary">
-                      Browse Products
-                    </Link>
-                  </div>
-                ) : (
-                  <div className="wishlist-grid">
-                    {wishlistItems.map(item => (
-                      <div key={item.id} className="wishlist-item">
-                        <div className="wishlist-item-image">
-                          <img src={item.image} alt={item.name} />
-                          <button 
-                            className="remove-wishlist" 
-                            onClick={() => removeFromWishlist(item.id)}
-                            title="Remove from wishlist"
-                          >
-                            <i className="fas fa-times"></i>
-                          </button>
-                        </div>
-                        <div className="wishlist-item-info">
-                          <h3>
-                            <Link to={`/products/${item.id}`}>{item.name}</Link>
-                          </h3>
-                          <div className="wishlist-item-price">{item.price}</div>
-                          <div className="wishlist-item-actions">
-                            <Link to={`/products/${item.id}`} className="btn-outline">
-                              View Details
-                            </Link>
-                            <button className="btn-primary">
-                              <i className="fas fa-shopping-cart"></i> Add to Cart
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+            {activeTab === 'wishlist' && renderWishlistTab()}
 
             {activeTab === 'purchases' && (
               <div className="profile-purchases">

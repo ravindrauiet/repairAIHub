@@ -4,10 +4,14 @@ import { getServiceById } from '../data/services';
 import FAQ from '../components/common/FAQ';
 import BrandModelSelector from '../components/BrandModelSelector';
 import { getProductsByCategory, productCategories } from '../data/products.jsx';
+import { useWishlist } from '../context/WishlistContext';
+import '../styles/serviceDetail.css';
+import '../styles/brandModelSelector.css';
 
 const ServiceDetailPage = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('description');
@@ -119,6 +123,51 @@ const ServiceDetailPage = () => {
     </section>
   );
   
+  const handleWishlistToggle = (product) => {
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
+  };
+
+  // Update the product card in the category services section
+  const renderProductCard = (product) => (
+    <div key={product.id} className="service-card">
+      <div className="service-image">
+        <img 
+          src={product.image || '/images/service-placeholder.jpg'} 
+          alt={product.title}
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = '/images/service-placeholder.jpg';
+          }}
+        />
+      </div>
+      <div className="service-details">
+        <h4>{product.title}</h4>
+        <p>{product.description?.substring(0, 100) || 'No description available'}...</p>
+        <div className="service-meta">
+          <div className="service-price">{typeof product.price === 'object' ? Object.values(product.price)[0] : product.price}</div>
+          <div className="service-rating">
+            <i className="fas fa-star"></i> {product.rating || '4.5'} ({product.reviewCount || '0'})
+          </div>
+        </div>
+        <div className="service-actions">
+          <Link to={`/products/${product.id}`} className="view-details-btn">
+            View Details
+          </Link>
+          <button 
+            className={`wishlist-btn ${isInWishlist(product.id) ? 'active' : ''}`}
+            onClick={() => handleWishlistToggle(product)}
+          >
+            <i className={`fas ${isInWishlist(product.id) ? 'fa-heart' : 'fa-heart'}`}></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="service-detail-page">
       <div className="service-hero" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${service.imageUrl})` }}>
@@ -194,41 +243,55 @@ const ServiceDetailPage = () => {
                   ) : (
                     <p>{service.longDescription || service.shortDescription}</p>
                   )}
-                  
-                  <div className="service-highlights">
-                    <h3>Why Choose Our {service.title} Service?</h3>
-                    <div className="highlights-grid">
-                      <div className="highlight-item">
-                        <div className="highlight-icon">
-                          <i className="fas fa-tools"></i>
-                        </div>
-                        <h4>Expert Technicians</h4>
-                        <p>Our certified professionals have years of experience with all brands and models.</p>
+                </div>
+
+                <div className="category-services">
+                  <h3>Our {service.title} Services</h3>
+                  <div className="services-grid">
+                    {products && products.length > 0 ? (
+                      products.map(renderProductCard)
+                    ) : (
+                      <div className="no-products-message">
+                        <p>No specific services found for this category. Please contact us for custom solutions.</p>
+                        <Link to="/contact" className="btn-secondary">Contact Us</Link>
                       </div>
-                      
-                      <div className="highlight-item">
-                        <div className="highlight-icon">
-                          <i className="fas fa-shield-alt"></i>
-                        </div>
-                        <h4>Quality Guarantee</h4>
-                        <p>All repairs come with a warranty and are completed using genuine parts.</p>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="service-highlights">
+                  <h3>Why Choose Our {service.title} Service?</h3>
+                  <div className="highlights-grid">
+                    <div className="highlight-item">
+                      <div className="highlight-icon">
+                        <i className="fas fa-tools"></i>
                       </div>
-                      
-                      <div className="highlight-item">
-                        <div className="highlight-icon">
-                          <i className="fas fa-clock"></i>
-                        </div>
-                        <h4>Fast Service</h4>
-                        <p>We value your time and offer quick turnaround for most repair needs.</p>
+                      <h4>Expert Technicians</h4>
+                      <p>Our certified professionals have years of experience with all brands and models.</p>
+                    </div>
+                    
+                    <div className="highlight-item">
+                      <div className="highlight-icon">
+                        <i className="fas fa-shield-alt"></i>
                       </div>
-                      
-                      <div className="highlight-item">
-                        <div className="highlight-icon">
-                          <i className="fas fa-hand-holding-usd"></i>
-                        </div>
-                        <h4>Transparent Pricing</h4>
-                        <p>No hidden fees with clear upfront pricing before any work begins.</p>
+                      <h4>Quality Guarantee</h4>
+                      <p>All repairs come with a warranty and are completed using genuine parts.</p>
+                    </div>
+                    
+                    <div className="highlight-item">
+                      <div className="highlight-icon">
+                        <i className="fas fa-clock"></i>
                       </div>
+                      <h4>Fast Service</h4>
+                      <p>We value your time and offer quick turnaround for most repair needs.</p>
+                    </div>
+                    
+                    <div className="highlight-item">
+                      <div className="highlight-icon">
+                        <i className="fas fa-hand-holding-usd"></i>
+                      </div>
+                      <h4>Transparent Pricing</h4>
+                      <p>No hidden fees with clear upfront pricing before any work begins.</p>
                     </div>
                   </div>
                 </div>
@@ -378,28 +441,101 @@ const ServiceDetailPage = () => {
                 <h2>Frequently Asked Questions</h2>
                 <div className="faqs-container">
                   {service.faqs && service.faqs.length > 0 ? (
-                    <FAQ faqs={service.faqs} />
+                    <div className="faq-list">
+                      {service.faqs.map((faq, index) => (
+                        <div key={index} className="faq-item">
+                          <div 
+                            className="faq-question" 
+                            onClick={() => {
+                              const faqItems = document.querySelectorAll('.faq-item');
+                              faqItems[index].classList.toggle('active');
+                            }}
+                          >
+                            <h3>{faq.question}</h3>
+                            <i className="fas fa-chevron-down"></i>
+                          </div>
+                          <div className="faq-answer">
+                            <p>{faq.answer}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   ) : (
                     <div className="default-faqs">
                       <div className="faq-item">
-                        <h3>How long does a typical repair take?</h3>
-                        <p>Most repairs are completed within 24-48 hours. However, complex issues or repairs requiring special parts may take 3-5 business days. We'll provide you with an estimated timeline when you book the service.</p>
+                        <div 
+                          className="faq-question"
+                          onClick={() => {
+                            const faqItems = document.querySelectorAll('.faq-item');
+                            faqItems[0].classList.toggle('active');
+                          }}
+                        >
+                          <h3>How long does a typical repair take?</h3>
+                          <i className="fas fa-chevron-down"></i>
+                        </div>
+                        <div className="faq-answer">
+                          <p>Most repairs are completed within 24-48 hours. However, complex issues or repairs requiring special parts may take 3-5 business days. We'll provide you with an estimated timeline when you book the service.</p>
+                        </div>
                       </div>
                       <div className="faq-item">
-                        <h3>Do you offer on-site repair services?</h3>
-                        <p>Yes, we offer on-site repair for most issues. Our technicians come equipped with common replacement parts and tools. For more complex repairs, we may need to take your device to our service center.</p>
+                        <div 
+                          className="faq-question"
+                          onClick={() => {
+                            const faqItems = document.querySelectorAll('.faq-item');
+                            faqItems[1].classList.toggle('active');
+                          }}
+                        >
+                          <h3>Do you offer on-site repair services?</h3>
+                          <i className="fas fa-chevron-down"></i>
+                        </div>
+                        <div className="faq-answer">
+                          <p>Yes, we offer on-site repair for most issues. Our technicians come equipped with common replacement parts and tools. For more complex repairs, we may need to take your device to our service center.</p>
+                        </div>
                       </div>
                       <div className="faq-item">
-                        <h3>What warranty do you provide on repairs?</h3>
-                        <p>All our repairs come with a minimum 90-day warranty covering both parts and labor. For premium services, we offer extended warranty options up to 12 months.</p>
+                        <div 
+                          className="faq-question"
+                          onClick={() => {
+                            const faqItems = document.querySelectorAll('.faq-item');
+                            faqItems[2].classList.toggle('active');
+                          }}
+                        >
+                          <h3>What warranty do you provide on repairs?</h3>
+                          <i className="fas fa-chevron-down"></i>
+                        </div>
+                        <div className="faq-answer">
+                          <p>All our repairs come with a minimum 90-day warranty covering both parts and labor. For premium services, we offer extended warranty options up to 12 months.</p>
+                        </div>
                       </div>
                       <div className="faq-item">
-                        <h3>How can I book a service?</h3>
-                        <p>You can book a service through our website, by calling our customer service line, or by visiting one of our service centers. We'll schedule a convenient time for the repair based on your availability.</p>
+                        <div 
+                          className="faq-question"
+                          onClick={() => {
+                            const faqItems = document.querySelectorAll('.faq-item');
+                            faqItems[3].classList.toggle('active');
+                          }}
+                        >
+                          <h3>How can I book a service?</h3>
+                          <i className="fas fa-chevron-down"></i>
+                        </div>
+                        <div className="faq-answer">
+                          <p>You can book a service through our website, by calling our customer service line, or by visiting one of our service centers. We'll schedule a convenient time for the repair based on your availability.</p>
+                        </div>
                       </div>
                       <div className="faq-item">
-                        <h3>What payment methods do you accept?</h3>
-                        <p>We accept all major credit and debit cards, UPI payments, net banking, and cash. Payment is typically collected after the service is completed to your satisfaction.</p>
+                        <div 
+                          className="faq-question"
+                          onClick={() => {
+                            const faqItems = document.querySelectorAll('.faq-item');
+                            faqItems[4].classList.toggle('active');
+                          }}
+                        >
+                          <h3>What payment methods do you accept?</h3>
+                          <i className="fas fa-chevron-down"></i>
+                        </div>
+                        <div className="faq-answer">
+                          <p>We accept all major credit and debit cards, UPI payments, net banking, and cash. Payment is typically collected after the service is completed to your satisfaction.</p>
+                        </div>
                       </div>
                     </div>
                   )}
