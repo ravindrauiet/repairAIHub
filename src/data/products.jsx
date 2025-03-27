@@ -668,4 +668,152 @@ export const getProductsByBrandAndCategory = (brandId, category) => {
   return allProducts;
 };
 
+// Add this new object for booking form devices
+export const bookingDevices = {
+  'tv-repair': {
+    brands: [
+      { id: 'samsung-tv', name: 'Samsung' },
+      { id: 'lg-tv', name: 'LG' },
+      { id: 'sony-tv', name: 'Sony' },
+      { id: 'tcl-tv', name: 'TCL' },
+      { id: 'vizio-tv', name: 'Vizio' }
+    ],
+    models: {
+      'samsung-tv': [
+        { id: 'samsung-tv-1', name: 'Samsung 4K Smart TV' },
+        { id: 'samsung-tv-2', name: 'Samsung QLED TV' },
+        { id: 'samsung-tv-3', name: 'Samsung Crystal UHD' }
+      ],
+      'lg-tv': [
+        { id: 'lg-tv-1', name: 'LG OLED TV' },
+        { id: 'lg-tv-2', name: 'LG NanoCell TV' },
+        { id: 'lg-tv-3', name: 'LG UHD TV' }
+      ],
+      'sony-tv': [
+        { id: 'sony-tv-1', name: 'Sony Bravia OLED' },
+        { id: 'sony-tv-2', name: 'Sony X90J' },
+        { id: 'sony-tv-3', name: 'Sony X80J' }
+      ],
+      'tcl-tv': [
+        { id: 'tcl-tv-1', name: 'TCL 4K Roku TV' },
+        { id: 'tcl-tv-2', name: 'TCL Android TV' },
+        { id: 'tcl-tv-3', name: 'TCL QLED TV' }
+      ],
+      'vizio-tv': [
+        { id: 'vizio-tv-1', name: 'Vizio V-Series' },
+        { id: 'vizio-tv-2', name: 'Vizio M-Series' },
+        { id: 'vizio-tv-3', name: 'Vizio P-Series' }
+      ]
+    }
+  },
+  'mobile-repair': {
+    brands: [
+      { id: 'samsung-mobile', name: 'Samsung' },
+      { id: 'apple-mobile', name: 'Apple' },
+      { id: 'xiaomi-mobile', name: 'Xiaomi' },
+      { id: 'oppo-mobile', name: 'OPPO' },
+      { id: 'vivo-mobile', name: 'Vivo' }
+    ],
+    models: {
+      'samsung-mobile': [
+        { id: 'samsung-mobile-1', name: 'Galaxy S21' },
+        { id: 'samsung-mobile-2', name: 'Galaxy S20' },
+        { id: 'samsung-mobile-3', name: 'Galaxy Note 20' }
+      ],
+      'apple-mobile': [
+        { id: 'apple-mobile-1', name: 'iPhone 13' },
+        { id: 'apple-mobile-2', name: 'iPhone 12' },
+        { id: 'apple-mobile-3', name: 'iPhone 11' }
+      ],
+      'xiaomi-mobile': [
+        { id: 'xiaomi-mobile-1', name: 'Mi 11' },
+        { id: 'xiaomi-mobile-2', name: 'Redmi Note 10' },
+        { id: 'xiaomi-mobile-3', name: 'POCO F3' }
+      ],
+      'oppo-mobile': [
+        { id: 'oppo-mobile-1', name: 'Find X3' },
+        { id: 'oppo-mobile-2', name: 'Reno 6' },
+        { id: 'oppo-mobile-3', name: 'A54' }
+      ],
+      'vivo-mobile': [
+        { id: 'vivo-mobile-1', name: 'X60' },
+        { id: 'vivo-mobile-2', name: 'V21' },
+        { id: 'vivo-mobile-3', name: 'Y72' }
+      ]
+    }
+  },
+  'laptop-repair': {
+    brands: [
+      { id: 'hp-laptop', name: 'HP' },
+      { id: 'dell-laptop', name: 'Dell' },
+      { id: 'lenovo-laptop', name: 'Lenovo' },
+      { id: 'asus-laptop', name: 'ASUS' },
+      { id: 'acer-laptop', name: 'Acer' }
+    ],
+    models: {
+      'hp-laptop': [
+        { id: 'hp-laptop-1', name: 'HP Pavilion' },
+        { id: 'hp-laptop-2', name: 'HP Envy' },
+        { id: 'hp-laptop-3', name: 'HP Spectre' }
+      ],
+      'dell-laptop': [
+        { id: 'dell-laptop-1', name: 'Dell XPS' },
+        { id: 'dell-laptop-2', name: 'Dell Inspiron' },
+        { id: 'dell-laptop-3', name: 'Dell Latitude' }
+      ],
+      'lenovo-laptop': [
+        { id: 'lenovo-laptop-1', name: 'ThinkPad' },
+        { id: 'lenovo-laptop-2', name: 'IdeaPad' },
+        { id: 'lenovo-laptop-3', name: 'Yoga' }
+      ],
+      'asus-laptop': [
+        { id: 'asus-laptop-1', name: 'ROG' },
+        { id: 'asus-laptop-2', name: 'ZenBook' },
+        { id: 'asus-laptop-3', name: 'VivoBook' }
+      ],
+      'acer-laptop': [
+        { id: 'acer-laptop-1', name: 'Aspire' },
+        { id: 'acer-laptop-2', name: 'Nitro' },
+        { id: 'acer-laptop-3', name: 'Swift' }
+      ]
+    }
+  },
+  'ac-repair': {
+    brands: [
+      { id: 'voltas-ac', name: 'Voltas' },
+      { id: 'lg-ac', name: 'LG' },
+      { id: 'samsung-ac', name: 'Samsung' },
+      { id: 'daikin-ac', name: 'Daikin' },
+      { id: 'blue-star-ac', name: 'Blue Star' }
+    ],
+    models: {
+      'voltas-ac': [
+        { id: 'voltas-ac-1', name: 'Voltas 1.5 Ton' },
+        { id: 'voltas-ac-2', name: 'Voltas 2 Ton' },
+        { id: 'voltas-ac-3', name: 'Voltas 1 Ton' }
+      ],
+      'lg-ac': [
+        { id: 'lg-ac-1', name: 'LG 1.5 Ton' },
+        { id: 'lg-ac-2', name: 'LG 2 Ton' },
+        { id: 'lg-ac-3', name: 'LG 1 Ton' }
+      ],
+      'samsung-ac': [
+        { id: 'samsung-ac-1', name: 'Samsung 1.5 Ton' },
+        { id: 'samsung-ac-2', name: 'Samsung 2 Ton' },
+        { id: 'samsung-ac-3', name: 'Samsung 1 Ton' }
+      ],
+      'daikin-ac': [
+        { id: 'daikin-ac-1', name: 'Daikin 1.5 Ton' },
+        { id: 'daikin-ac-2', name: 'Daikin 2 Ton' },
+        { id: 'daikin-ac-3', name: 'Daikin 1 Ton' }
+      ],
+      'blue-star-ac': [
+        { id: 'blue-star-ac-1', name: 'Blue Star 1.5 Ton' },
+        { id: 'blue-star-ac-2', name: 'Blue Star 2 Ton' },
+        { id: 'blue-star-ac-3', name: 'Blue Star 1 Ton' }
+      ]
+    }
+  }
+};
+
 export default products; 

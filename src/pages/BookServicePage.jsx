@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import services from '../data/services';
-import BrandModelSelector from '../components/BrandModelSelector';
+import BookingDeviceSelector from '../components/BookingDeviceSelector';
 
 const BookServicePage = () => {
   const navigate = useNavigate();
@@ -82,12 +82,19 @@ const BookServicePage = () => {
   };
   
   // Handle brand and model selection
-  const handleBrandModelSelect = ({ brand, model }) => {
-    setFormData(prev => ({
-      ...prev,
-      deviceBrand: brand.name,
-      deviceModel: model.name
-    }));
+  const handleDeviceSelect = ({ brand, model }) => {
+    if (brand) {
+      setFormData(prev => ({
+        ...prev,
+        deviceBrand: brand.name
+      }));
+    }
+    if (model) {
+      setFormData(prev => ({
+        ...prev,
+        deviceModel: model.name
+      }));
+    }
   };
   
   // Validate form fields
@@ -251,19 +258,12 @@ const BookServicePage = () => {
               </div>
 
               {formData.serviceType && (
-                <div className="brand-model-section">
+                <div className="device-selection-section">
                   <h3>Select Your Device</h3>
-                  <BrandModelSelector 
+                  <BookingDeviceSelector 
                     category={formData.serviceType} 
-                    onSelectionChange={handleBrandModelSelect}
+                    onSelectionChange={handleDeviceSelect}
                   />
-                  {formData.deviceBrand && formData.deviceModel && (
-                    <div className="selected-device-info">
-                      <h4>Selected Device</h4>
-                      <p>Brand: {formData.deviceBrand}</p>
-                      <p>Model: {formData.deviceModel}</p>
-                    </div>
-                  )}
                 </div>
               )}
               
