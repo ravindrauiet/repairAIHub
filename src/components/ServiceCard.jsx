@@ -1,52 +1,40 @@
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import '../styles/serviceCard.css';
 
-const ServiceCard = ({ service, brandModel }) => {
-  const { addToCart } = useCart();
-  
-  const handleAddToCart = () => {
-    addToCart({
-      id: service.id,
-      title: service.title,
-      price: Object.values(service.price)[0].split(' - ')[0],
-      image: service.image,
-      quantity: 1,
-      brandModel: brandModel || ''
-    });
-  };
-  
-  // Get the first price from the price object
-  const firstPrice = Object.values(service.price)[0];
-  
+const ServiceCard = ({ service }) => {
   return (
     <div className="service-card">
-      <div className="service-image">
-        <img 
-          src={service.image} 
-          alt={service.title}
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = '/images/service-placeholder.jpg';
-          }}
-        />
+      <div className="service-card-image">
+        <img src={service.image} alt={service.title} />
+        {service.discount && (
+          <div className="discount-badge">
+            {service.discount}% OFF
+          </div>
+        )}
       </div>
-      <div className="service-details">
+      <div className="service-card-content">
         <h3>{service.title}</h3>
-        {brandModel && <div className="model-badge">{brandModel}</div>}
-        <p>{service.description.substring(0, 100)}...</p>
+        <p className="service-description">{service.shortDescription}</p>
+        
         <div className="service-meta">
-          <div className="service-price">{firstPrice}</div>
+          <div className="service-price">
+            <span className="price-label">Starting at</span>
+            <span className="price-amount">₹{service.startingPrice}</span>
+          </div>
+          
           <div className="service-rating">
-            <i className="fas fa-star"></i> {service.rating} ({service.reviewCount})
+            <span className="rating-value">★ {service.rating}</span>
+            <span className="rating-count">({service.reviewCount})</span>
           </div>
         </div>
+        
         <div className="service-actions">
-          <Link to={`/products/${service.id}`} className="view-details-btn">
+          <Link to={`/services/${service.id}`} className="view-details-btn">
             View Details
           </Link>
-          <button className="add-to-cart-btn" onClick={handleAddToCart}>
-            Add to Cart
-          </button>
+          <Link to={`/book-service`} state={{ service }} className="book-now-btn">
+            Book Now
+          </Link>
         </div>
       </div>
     </div>

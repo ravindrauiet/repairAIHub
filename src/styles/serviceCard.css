@@ -1,0 +1,164 @@
+/* Service Card Styles */
+.service-card {
+  background-color: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+}
+
+.service-card-image {
+  height: 180px;
+  overflow: hidden;
+  position: relative;
+}
+
+.service-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.service-card:hover .service-card-image img {
+  transform: scale(1.05);
+}
+
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #e74c3c;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 0.8rem;
+}
+
+.service-card-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.service-card-content h3 {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.service-description {
+  color: #666;
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.service-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 15px;
+}
+
+.service-price {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-label {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.price-amount {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.service-rating {
+  color: #f39c12;
+  font-weight: 500;
+}
+
+.rating-value {
+  margin-right: 5px;
+}
+
+.rating-count {
+  font-size: 0.85rem;
+  color: #777;
+}
+
+.service-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.view-details-btn,
+.book-now-btn {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  border-radius: 5px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.view-details-btn {
+  background-color: transparent;
+  border: 1px solid #3498db;
+  color: #3498db;
+}
+
+.book-now-btn {
+  background-color: #3498db;
+  color: white;
+  border: 1px solid #3498db;
+}
+
+.view-details-btn:hover {
+  background-color: rgba(52, 152, 219, 0.1);
+}
+
+.book-now-btn:hover {
+  background-color: #2980b9;
+  border-color: #2980b9;
+}
+
+@media (max-width: 768px) {
+  .service-card-image {
+    height: 160px;
+  }
+  
+  .service-card-content h3 {
+    font-size: 1.1rem;
+  }
+  
+  .service-description {
+    font-size: 0.9rem;
+  }
+  
+  .price-amount {
+    font-size: 1.1rem;
+  }
+  
+  .service-actions {
+    flex-direction: column;
+  }
+} 
