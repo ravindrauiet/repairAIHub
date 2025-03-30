@@ -511,6 +511,41 @@ const products = [
   }
 ];
 
+// For each product in the products array, add an 'images' array with multiple image URLs
+products.forEach(product => {
+  // If the product already has an 'images' array, don't override it
+  if (!product.images) {
+    // Generate image URLs based on product ID
+    const baseImage = product.image;
+    
+    // Create variations of the base image path to simulate multiple product images
+    // For example, if base image is '/images/products/tv-screen.jpg'
+    // We'll create '/images/products/tv-screen-1.jpg', '/images/products/tv-screen-2.jpg', etc.
+    
+    const imagePath = baseImage.substring(0, baseImage.lastIndexOf('.'));
+    const imageExt = baseImage.substring(baseImage.lastIndexOf('.'));
+    
+    product.images = [
+      baseImage, // Original image as the first one
+      `${imagePath}-1${imageExt}`,
+      `${imagePath}-2${imageExt}`,
+      `${imagePath}-3${imageExt}`
+    ];
+  }
+});
+
+// Find the TV Screen Replacement product and add specific images
+const tvScreenReplacementIndex = products.findIndex(product => product.id === 'tv-screen-replacement');
+if (tvScreenReplacementIndex !== -1) {
+  products[tvScreenReplacementIndex].images = [
+    '/images/products/tv-screen-replacement.jpg',
+    '/images/products/tv-screen-replacement-front.jpg',
+    '/images/products/tv-screen-replacement-side.jpg',
+    '/images/products/tv-screen-replacement-detail.jpg',
+    '/images/products/tv-screen-replacement-installed.jpg'
+  ];
+}
+
 // Define model-specific products
 export const modelProducts = {
   // Mobile phone model products
@@ -815,5 +850,45 @@ export const bookingDevices = {
     }
   }
 };
+
+// Add specific images for other popular products
+const popularProductImages = {
+  'mobile-screen-replacement': [
+    '/images/products/mobile-screen-replacement.jpg',
+    '/images/products/mobile-screen-replacement-display.jpg',
+    '/images/products/mobile-screen-replacement-components.jpg',
+    '/images/products/mobile-screen-replacement-repair.jpg',
+    '/images/products/mobile-screen-replacement-tools.jpg'
+  ],
+  'laptop-keyboard-replacement': [
+    '/images/products/laptop-keyboard-replacement.jpg',
+    '/images/products/laptop-keyboard-replacement-top.jpg',
+    '/images/products/laptop-keyboard-replacement-close.jpg',
+    '/images/products/laptop-keyboard-replacement-side.jpg',
+    '/images/products/laptop-keyboard-replacement-detail.jpg'
+  ],
+  'ac-gas-refill': [
+    '/images/products/ac-gas-refill.jpg',
+    '/images/products/ac-gas-refill-unit.jpg',
+    '/images/products/ac-gas-refill-technician.jpg',
+    '/images/products/ac-gas-refill-gauge.jpg',
+    '/images/products/ac-gas-refill-complete.jpg'
+  ],
+  'washing-machine-motor-replacement': [
+    '/images/products/washing-machine-motor-replacement.jpg',
+    '/images/products/washing-machine-motor-replacement-parts.jpg',
+    '/images/products/washing-machine-motor-replacement-inside.jpg',
+    '/images/products/washing-machine-motor-replacement-installed.jpg',
+    '/images/products/washing-machine-motor-replacement-close.jpg'
+  ]
+};
+
+// Update products with specific images
+Object.keys(popularProductImages).forEach(productId => {
+  const productIndex = products.findIndex(product => product.id === productId);
+  if (productIndex !== -1) {
+    products[productIndex].images = popularProductImages[productId];
+  }
+});
 
 export default products; 

@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductById, getProductsByCategory, productCategories, brands } from '../data/products.jsx';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import '../styles/productDetail.css';
 
 const ProductDetailPage = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('description');
@@ -17,6 +19,13 @@ const ProductDetailPage = () => {
   const [quantity, setQuantity] = useState(1);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  
+  const imageContainerRef = useRef(null);
+  const zoomFactor = 2.5;
+  const thumbnailSliderRef = useRef(null);
   
   useEffect(() => {
     // Scroll to top when component mounts
@@ -121,6 +130,37 @@ const ProductDetailPage = () => {
     }).join(', ');
   };
   
+  const handleMouseMove = (e) => {
+    if (!imageContainerRef.current) return;
+    
+    const { left, top, width, height } = imageContainerRef.current.getBoundingClientRect();
+    const x = (e.clientX - left) / width;
+    const y = (e.clientY - top) / height;
+    
+    setZoomPosition({ x, y });
+  };
+  
+  const handleMouseEnter = () => {
+    setIsZoomed(true);
+  };
+  
+  const handleMouseLeave = () => {
+    setIsZoomed(false);
+  };
+  
+  const scrollThumbnails = (direction) => {
+    if (thumbnailSliderRef.current) {
+      const scrollAmount = direction === 'left' 
+        ? -100
+        : 100;
+      
+      thumbnailSliderRef.current.scrollBy({
+        left: scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+  
   if (loading) {
     return (
       <div className="loading-container">
@@ -142,6 +182,9 @@ const ProductDetailPage = () => {
     );
   }
   
+  // If no images array exists on the product, create a default one with the image property
+  const productImages = product.images || [product.image];
+  
   return (
     <div className="product-detail-page">
       <div className="container">
@@ -162,103 +205,161 @@ const ProductDetailPage = () => {
         )}
         
         <div className="product-detail-container">
-          <div className="product-detail-grid">
-            <div className="product-gallery">
-              <div className="main-image">
-                <img src={product.image || '/images/product-placeholder.jpg'} alt={product.title} />
-              </div>
-              {/* Thumbnails would go here in a real implementation */}
+          <div className="product-images">
+            <div 
+              className="main-image-container" 
+              ref={imageContainerRef}
+              onMouseMove={handleMouseMove}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <img 
+                src={productImages[currentImageIndex]} 
+                alt={product.title} 
+                className="main-image"
+              />
+              
+              {isZoomed && (
+                <div 
+                  className="zoom-view"
+                  style={{
+                    backgroundImage: `url(${productImages[currentImageIndex]})`,
+                    backgroundPosition: `${zoomPosition.x * 100}% ${zoomPosition.y * 100}%`,
+                    backgroundSize: `${zoomFactor * 100}%`
+                  }}
+                ></div>
+              )}
             </div>
             
-            <div className="product-info">
-              <div className="product-header">
-                <h1>{product.title}</h1>
-                <div className="product-meta">
-                  <span className="product-category">{getCategoryName(product.category)}</span>
-                  <span className="product-rating">
-                    <i className="fas fa-star"></i> {product.rating} ({product.reviewCount} reviews)
-                  </span>
-                </div>
-              </div>
-              
-              <div className="product-price-detail">{currentPrice}</div>
-              
-              {product.compatibleBrands && product.compatibleBrands.length > 0 && (
-                <div className="product-compatible-brands">
-                  <span className="label">Compatible with:</span> {getBrandNames(product.compatibleBrands)}
-                </div>
-              )}
-              
-              {Object.keys(product.price).length > 1 && (
-                <div className="product-variants">
-                  <h3>Select Option</h3>
-                  <div className="variant-options">
-                    {Object.keys(product.price).map(variant => (
-                      <button 
-                        key={variant}
-                        className={`variant-option ${selectedVariant === variant ? 'active' : ''}`}
-                        onClick={() => handleVariantChange(variant)}
-                      >
-                        {variant.charAt(0).toUpperCase() + variant.slice(1).replace(/-/g, ' ')}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              <div className={`product-availability ${product.inStock ? '' : 'out-of-stock'}`}>
-                <i className={`fas ${product.inStock ? 'fa-check-circle' : 'fa-times-circle'}`}></i>
-                {product.inStock ? 'In Stock' : 'Out of Stock'}
-              </div>
-              
-              <div className="product-description-detail">
-                {product.description}
-              </div>
-              
-              <div className="product-actions">
-                <div className="quantity-selector">
-                  <button 
-                    className="quantity-btn" 
-                    onClick={() => handleQuantityChange(-1)}
-                    disabled={quantity <= 1}
-                  >
-                    -
-                  </button>
-                  <span className="quantity-display">{quantity}</span>
-                  <button 
-                    className="quantity-btn" 
-                    onClick={() => handleQuantityChange(1)}
-                    disabled={quantity >= 10 || !product.inStock}
-                  >
-                    +
-                  </button>
+            {productImages.length > 1 && (
+              <div className="thumbnail-container">
+                <button 
+                  className="thumbnail-arrow thumbnail-arrow-left" 
+                  onClick={() => scrollThumbnails('left')}
+                >
+                  <span className="material-icons">chevron_left</span>
+                </button>
+                
+                <div className="thumbnail-slider" ref={thumbnailSliderRef}>
+                  {productImages.map((image, index) => (
+                    <div 
+                      key={index} 
+                      className={`thumbnail ${index === currentImageIndex ? 'active' : ''}`}
+                      onClick={() => setCurrentImageIndex(index)}
+                    >
+                      <img src={image} alt={`${product.title} - ${index + 1}`} />
+                    </div>
+                  ))}
                 </div>
                 
                 <button 
-                  className="add-to-cart-btn" 
-                  onClick={handleAddToCart}
-                  disabled={!product.inStock}
+                  className="thumbnail-arrow thumbnail-arrow-right" 
+                  onClick={() => scrollThumbnails('right')}
                 >
-                  <i className="fas fa-shopping-cart"></i>
-                  {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                  <span className="material-icons">chevron_right</span>
                 </button>
-                
+              </div>
+            )}
+          </div>
+          
+          <div className="product-info">
+            <div className="product-header">
+              <h1>{product.title}</h1>
+              <div className="product-meta">
+                <span className="product-category">{getCategoryName(product.category)}</span>
+                <span className="product-rating">
+                  <i className="fas fa-star"></i> {product.rating} ({product.reviewCount} reviews)
+                </span>
+              </div>
+            </div>
+            
+            <div className="product-price-detail">{currentPrice}</div>
+            
+            {product.compatibleBrands && product.compatibleBrands.length > 0 && (
+              <div className="product-compatible-brands">
+                <span className="label">Compatible with:</span> {getBrandNames(product.compatibleBrands)}
+              </div>
+            )}
+            
+            {Object.keys(product.price).length > 1 && (
+              <div className="product-variants">
+                <h3>Select Option</h3>
+                <div className="variant-options">
+                  {Object.keys(product.price).map(variant => (
+                    <button 
+                      key={variant}
+                      className={`variant-option ${selectedVariant === variant ? 'active' : ''}`}
+                      onClick={() => handleVariantChange(variant)}
+                    >
+                      {variant.charAt(0).toUpperCase() + variant.slice(1).replace(/-/g, ' ')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div className={`product-availability ${product.inStock ? '' : 'out-of-stock'}`}>
+              <i className={`fas ${product.inStock ? 'fa-check-circle' : 'fa-times-circle'}`}></i>
+              {product.inStock ? 'In Stock' : 'Out of Stock'}
+            </div>
+            
+            <div className="product-description-detail">
+              {product.description}
+            </div>
+            
+            <div className="product-actions">
+              <div className="quantity-selector">
                 <button 
-                  className="wishlist-btn"
-                  onClick={handleAddToWishlist}
-                  title="Add to Wishlist"
+                  className="quantity-btn" 
+                  onClick={() => handleQuantityChange(-1)}
+                  disabled={quantity <= 1}
                 >
-                  <i className="fas fa-heart"></i>
+                  -
+                </button>
+                <span className="quantity-display">{quantity}</span>
+                <button 
+                  className="quantity-btn" 
+                  onClick={() => handleQuantityChange(1)}
+                  disabled={quantity >= 10 || !product.inStock}
+                >
+                  +
                 </button>
               </div>
               
-              <div className="product-meta-info">
-                <div className="meta-item">
-                  <span className="label">Warranty:</span> {product.warranty}
-                </div>
-                <div className="meta-item">
-                  <span className="label">Service Time:</span> {product.estimatedTime}
-                </div>
+              <button 
+                className="add-to-cart-btn" 
+                onClick={handleAddToCart}
+                disabled={!product.inStock}
+              >
+                <i className="fas fa-shopping-cart"></i>
+                {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+              </button>
+              
+              <button 
+                className={`wishlist-btn ${isInWishlist(product.id) ? 'in-wishlist' : ''}`}
+                onClick={() => {
+                  if (isInWishlist(product.id)) {
+                    removeFromWishlist(product.id);
+                  } else {
+                    addToWishlist({
+                      id: product.id,
+                      title: product.title,
+                      price: product.price,
+                      image: product.image || '/images/product-placeholder.jpg'
+                    });
+                  }
+                }}
+              >
+                <i className="fas fa-heart"></i>
+              </button>
+            </div>
+            
+            <div className="product-meta-info">
+              <div className="meta-item">
+                <span className="label">Warranty:</span> {product.warranty}
+              </div>
+              <div className="meta-item">
+                <span className="label">Service Time:</span> {product.estimatedTime}
               </div>
             </div>
           </div>
