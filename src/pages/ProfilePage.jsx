@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import '../styles/profile.css';
@@ -18,37 +19,187 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    const checkLogin = () => {
-      const loggedInUser = JSON.parse(localStorage.getItem('currentUser'));
+    const fetchUserData = async () => {
+      const token = localStorage.getItem('token');
+      console.log('ProfilePage: Checking token:', token ? 'Token exists' : 'No token');
       
-      if (!loggedInUser) {
+      if (!token) {
         // Redirect to login if not logged in
         navigate('/login', { state: { from: '/profile' } });
         return;
       }
       
-      setUser(loggedInUser);
-      
-      // Load mock bookings data
-      const storedBookings = JSON.parse(localStorage.getItem('bookings')) || [];
-      const userBookings = storedBookings.filter(booking => booking.userId === loggedInUser.id);
-      setBookings(userBookings);
-      setFilteredBookings(userBookings);
-
-      // Load purchase history from localStorage
-      const storedPurchases = JSON.parse(localStorage.getItem('purchases')) || [];
-      const userPurchases = storedPurchases.filter(purchase => purchase.userId === loggedInUser.id);
-      setPurchaseHistory(userPurchases);
-      
-      setLoading(false);
+      try {
+        // Fetch user profile
+        console.log('ProfilePage: Attempting to fetch user profile');
+        const userResponse = await axios.get('http://localhost:5000/api/users/profile', {
+          headers: {
+            'x-auth-token': token
+          }
+        });
+        
+        console.log('ProfilePage: User profile response:', userResponse.data);
+        
+        if (userResponse.data.success) {
+          setUser(userResponse.data.user);
+          console.log('ProfilePage: User data set:', userResponse.data.user);
+          
+          try {
+            // Fetch user bookings
+            console.log('ProfilePage: Attempting to fetch bookings');
+            let userBookings = [];
+            
+            try {
+              const bookingsResponse = await axios.get('http://localhost:5000/api/bookings/me', {
+                headers: {
+                  'x-auth-token': token
+                }
+              });
+              
+              console.log('ProfilePage: Bookings response:', bookingsResponse.data);
+              
+              if (bookingsResponse.data.success) {
+                userBookings = bookingsResponse.data.bookings || [];
+              }
+            } catch (bookingErr) {
+              console.error('ProfilePage: Error fetching bookings:', bookingErr);
+              // Use mock data if API doesn't exist
+              userBookings = [
+                {
+                  id: 'BKG-1001',
+                  service: {
+                    id: 'SRV-101',
+                    title: 'Phone Screen Repair',
+                    icon: 'mobile-alt'
+                  },
+                  date: new Date().toISOString(),
+                  time: '10:00 AM',
+                  status: 'active',
+                  address: '123 Main St, Mumbai',
+                  total: 2499
+                },
+                {
+                  id: 'BKG-1002',
+                  service: {
+                    id: 'SRV-102',
+                    title: 'Laptop Battery Replacement',
+                    icon: 'laptop'
+                  },
+                  date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+                  time: '2:00 PM',
+                  status: 'completed',
+                  address: '123 Main St, Mumbai',
+                  total: 3999
+                },
+                {
+                  id: 'BKG-1003',
+                  service: {
+                    id: 'SRV-103',
+                    title: 'Data Recovery',
+                    icon: 'hdd'
+                  },
+                  date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+                  time: '11:30 AM',
+                  status: 'cancelled',
+                  address: '123 Main St, Mumbai',
+                  total: 4999
+                }
+              ];
+            }
+            
+            setBookings(userBookings);
+            setFilteredBookings(userBookings);
+          } catch (bookingErr) {
+            console.error('ProfilePage: Error in booking handling:', bookingErr);
+          }
+          
+          try {
+            // Fetch purchase history
+            console.log('ProfilePage: Attempting to fetch purchases');
+            let userPurchases = [];
+            
+            try {
+              const purchasesResponse = await axios.get('http://localhost:5000/api/orders/me', {
+                headers: {
+                  'x-auth-token': token
+                }
+              });
+              
+              console.log('ProfilePage: Purchases response:', purchasesResponse.data);
+              
+              if (purchasesResponse.data.success) {
+                userPurchases = purchasesResponse.data.orders || [];
+              }
+            } catch (purchaseErr) {
+              console.error('ProfilePage: Error fetching purchases:', purchaseErr);
+              // Use mock data if API doesn't exist
+              userPurchases = [
+                {
+                  id: 'ORD-1001',
+                  date: new Date().toISOString(),
+                  status: 'delivered',
+                  total: 12999,
+                  items: [
+                    {
+                      id: 'PROD-101',
+                      name: 'iPhone Screen Protector',
+                      price: '₹999',
+                      quantity: 1,
+                      image: '/images/product-placeholder.jpg'
+                    },
+                    {
+                      id: 'PROD-102',
+                      name: 'Phone Case',
+                      variant: 'Black',
+                      price: '₹1999',
+                      quantity: 2,
+                      image: '/images/product-placeholder.jpg'
+                    }
+                  ]
+                },
+                {
+                  id: 'ORD-1002',
+                  date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+                  status: 'shipped',
+                  total: 5499,
+                  items: [
+                    {
+                      id: 'PROD-201',
+                      name: 'USB-C Cable Fast Charging',
+                      price: '₹549',
+                      quantity: 1,
+                      image: '/images/product-placeholder.jpg'
+                    }
+                  ]
+                }
+              ];
+            }
+            
+            setPurchaseHistory(userPurchases);
+          } catch (purchaseErr) {
+            console.error('ProfilePage: Error in purchase handling:', purchaseErr);
+          }
+        } else {
+          // Token invalid, redirect to login
+          console.error('ProfilePage: Token valid but user data fetch unsuccessful');
+          localStorage.removeItem('token');
+          navigate('/login');
+        }
+      } catch (err) {
+        console.error('ProfilePage: Error fetching user data:', err.response?.data || err.message);
+        localStorage.removeItem('token');
+        navigate('/login');
+      } finally {
+        setLoading(false);
+      }
     };
     
-    checkLogin();
+    fetchUserData();
   }, [navigate]);
   
   const handleLogout = () => {
-    // Clear user from localStorage and redirect to login
-    localStorage.removeItem('currentUser');
+    // Clear token from localStorage and redirect to login
+    localStorage.removeItem('token');
     navigate('/login');
   };
   

@@ -355,131 +355,495 @@ const ModelServicePage = () => {
 
     // Get replacement parts based on category and brand/model
     const getReplacementParts = (category, brand, model) => {
-      const categoryParts = {
-        'tv-repair': [
+      // Custom parts for Samsung Galaxy S24 Ultra
+      if (brand === 'samsung' && model === 'galaxy-s24-ultra') {
+        return [
+          // Display & Screens
           {
-            name: 'Power Supply Board',
-            id: `PS-TV-${brand}-${model}`,
-            price: '$85.99',
-            description: `Original replacement power supply board compatible with ${brand} ${model} TV models.`,
-            installDifficulty: 'Medium'
+            name: 'Display Combo Folder (Maxbhi)',
+            id: 'samsung-s24u-display-combo',
+            price: '$299.99',
+            category: 'display',
+            image: '/images/parts/displays/s24-display.jpg',
+            description: 'Complete display assembly with touch functionality and frame for Samsung Galaxy S24 Ultra. Genuine Maxbhi part.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-display-combo-001'
           },
           {
-            name: 'T-Con Board',
-            id: `TC-TV-${brand}-${model}`,
-            price: '$65.99',
-            description: `Timing Control board for image processing and display. Compatible with ${brand} ${model} TV models.`,
-            installDifficulty: 'Medium'
-          },
-          {
-            name: 'Main Board',
-            id: `MB-TV-${brand}-${model}`,
-            price: '$129.99',
-            description: `Main logic board that controls all TV functions. Compatible with ${brand} ${model} TV models.`,
-            installDifficulty: 'High'
-          },
-          {
-            name: 'LED Backlight Strips',
-            id: `BL-TV-${brand}-${model}`,
-            price: '$49.99',
-            description: `Replacement LED backlight strips for screen illumination. Set of 10 strips compatible with ${brand} ${model} TV models.`,
-            installDifficulty: 'High'
-          }
-        ],
-        'laptop-repair': [
-          {
-            name: 'Replacement Screen',
-            id: `SCR-LP-${brand}-${model}`,
+            name: 'Front Glass Only (Maxbhi)',
+            id: 'samsung-s24u-front-glass',
             price: '$89.99',
-            description: `Compatible LCD/LED display panel for ${brand} ${model} laptop models.`,
-            installDifficulty: 'Medium'
+            category: 'display',
+            image: '/images/parts/displays/s24-glass.jpg',
+            description: 'Replacement front glass for Samsung Galaxy S24 Ultra. Does not include LCD or touch functionality. Genuine Maxbhi part.',
+            installDifficulty: 'Very High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-front-glass-001'
           },
+          
+          // Body & Housings
           {
-            name: 'Battery Replacement',
-            id: `BAT-LP-${brand}-${model}`,
+            name: 'Back Cover Panel (Maxbhi)',
+            id: 'samsung-s24u-back-cover',
             price: '$69.99',
-            description: `New replacement battery for ${brand} ${model} laptops. Meets or exceeds OEM specifications.`,
-            installDifficulty: 'Low'
+            category: 'body',
+            image: '/images/parts/body/s24-back-cover.jpg',
+            description: 'Original replacement back cover panel for Samsung Galaxy S24 Ultra with premium glass finish. Supplied by Maxbhi.',
+            installDifficulty: 'Medium',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-back-cover-001'
           },
           {
-            name: 'Keyboard Replacement',
-            id: `KB-LP-${brand}-${model}`,
-            price: '$49.99',
-            description: `Replacement keyboard with same layout and key feel as original ${brand} ${model} keyboard.`,
-            installDifficulty: 'Medium'
-          },
-          {
-            name: 'RAM Upgrade',
-            id: `RAM-LP-${brand}-${model}`,
+            name: 'LCD Frame Middle Chassis',
+            id: 'samsung-s24u-middle-frame',
             price: '$59.99',
-            description: `8GB RAM upgrade module compatible with ${brand} ${model} laptops for improved performance.`,
-            installDifficulty: 'Low'
-          }
-        ],
-        'mobile': [
-          {
-            name: 'Screen Assembly',
-            id: `SCR-MOB-${brand}-${model}`,
-            price: '$79.99',
-            description: `Complete screen assembly with digitizer for ${brand} ${model} phones.`,
-            installDifficulty: 'High'
+            category: 'body',
+            image: '/images/parts/body/s24-middle-frame.jpg',
+            description: 'Middle frame housing for structural integrity and component mounting.',
+            installDifficulty: 'Very High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-middle-frame-001'
           },
           {
-            name: 'Battery Replacement',
-            id: `BAT-MOB-${brand}-${model}`,
-            price: '$39.99',
-            description: `New battery for ${brand} ${model} phones with same or higher capacity than original.`,
-            installDifficulty: 'Medium'
+            name: 'Volume Button Outer',
+            id: 'samsung-s24u-volume-button',
+            price: '$9.99',
+            category: 'body',
+            image: '/images/parts/body/s24-volume-button.jpg',
+            description: 'External volume button replacement that matches the original finish.',
+            installDifficulty: 'Medium',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-volume-button-001'
           },
           {
-            name: 'Charging Port Flex',
-            id: `CPF-MOB-${brand}-${model}`,
-            price: '$24.99',
-            description: `Charging port flex cable for ${brand} ${model} phones. Resolves charging issues.`,
-            installDifficulty: 'High'
-          },
-          {
-            name: 'Rear Camera Module',
-            id: `CAM-MOB-${brand}-${model}`,
-            price: '$44.99',
-            description: `Replacement rear camera module for ${brand} ${model} phones.`,
-            installDifficulty: 'Medium to High'
-          }
-        ],
-        'ac-repair': [
-          {
-            name: 'Compressor',
-            id: `COMP-AC-${brand}-${model}`,
-            price: '$219.99',
-            description: `Replacement compressor compatible with ${brand} ${model} air conditioners.`,
-            installDifficulty: 'Very High'
-          },
-          {
-            name: 'Condenser Fan Motor',
-            id: `FAN-AC-${brand}-${model}`,
-            price: '$89.99',
-            description: `Replacement fan motor for outdoor unit of ${brand} ${model} air conditioners.`,
-            installDifficulty: 'High'
-          },
-          {
-            name: 'Capacitor Kit',
-            id: `CAP-AC-${brand}-${model}`,
+            name: 'Camera Lens',
+            id: 'samsung-s24u-camera-lens',
             price: '$34.99',
-            description: `Start and run capacitor kit for ${brand} ${model} air conditioners.`,
-            installDifficulty: 'Medium'
+            category: 'body',
+            image: '/images/parts/body/s24-camera-lens.jpg',
+            description: 'Replacement camera lens cover for the rear camera module.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-camera-lens-001'
+          },
+          
+          // Battery
+          {
+            name: 'Battery',
+            id: 'samsung-s24u-battery',
+            price: '$49.99',
+            category: 'battery',
+            image: '/images/parts/battery/s24-battery.jpg',
+            description: 'Original capacity replacement battery for Samsung Galaxy S24 Ultra (5000mAh).',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-battery-001'
+          },
+          
+          // Internal Components
+          {
+            name: 'Front Camera (Maxbhi)',
+            id: 'samsung-s24u-front-camera',
+            price: '$49.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-front-camera.jpg',
+            description: '12MP front camera module with same specifications as original. Genuine Maxbhi part.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-front-camera-001'
           },
           {
-            name: 'Filter Set',
-            id: `FLT-AC-${brand}-${model}`,
+            name: 'Camera Motor (Maxbhi)',
+            id: 'samsung-s24u-camera-motor',
+            price: '$39.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-camera-motor.jpg',
+            description: 'Camera focusing motor mechanism. Vendor: Maxbhi',
+            installDifficulty: 'Very High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-camera-motor-001'
+          },
+          {
+            name: 'Charging Connector Flex PCB Board',
+            id: 'samsung-s24u-charging-connector-board',
             price: '$29.99',
-            description: `Premium filter set for ${brand} ${model} air conditioners. Improves air quality and efficiency.`,
-            installDifficulty: 'Low'
+            category: 'internal',
+            image: '/images/parts/internal/s24-charging-board.jpg',
+            description: 'Charging port connector flex board for reliable charging connection.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-charging-board-001'
+          },
+          {
+            name: 'Main Board Flex Cable (Maxbhi)',
+            id: 'samsung-s24u-main-flex',
+            price: '$19.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-main-flex.jpg',
+            description: 'Flexible cable connecting main components to motherboard. Genuine Maxbhi part.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-main-flex-001'
+          },
+          {
+            name: 'LCD Flex Cable (Maxbhi)',
+            id: 'samsung-s24u-lcd-flex',
+            price: '$24.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-lcd-flex.jpg',
+            description: 'Display connection cable for reliable screen operation. Supplied by Maxbhi.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-lcd-flex-001'
+          },
+          {
+            name: 'Sim Tray Holder',
+            id: 'samsung-s24u-sim-tray',
+            price: '$12.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-sim-tray.jpg',
+            description: 'Replacement SIM card and microSD card tray.',
+            installDifficulty: 'Low',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-sim-tray-001'
+          },
+          {
+            name: 'Camera Elevator (Maxbhi)',
+            id: 'samsung-s24u-camera-elevator',
+            price: '$44.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-camera-elevator.jpg',
+            description: 'Camera module adjustment mechanism. Vendor: Maxbhi',
+            installDifficulty: 'Very High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-camera-elevator-001'
+          },
+          {
+            name: 'Power Button Outer',
+            id: 'samsung-s24u-power-button',
+            price: '$9.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-power-button.jpg',
+            description: 'External power button that matches original finish and feel.',
+            installDifficulty: 'Medium',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-power-button-001'
+          },
+          {
+            name: 'Ear Speaker (Maxbhi)',
+            id: 'samsung-s24u-ear-speaker',
+            price: '$19.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-ear-speaker.jpg',
+            description: 'Replacement earpiece speaker for clear call audio. Supplied by Maxbhi.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-ear-speaker-001'
+          },
+          {
+            name: 'Ringer (Maxbhi)',
+            id: 'samsung-s24u-ringer',
+            price: '$22.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-ringer.jpg',
+            description: 'Loudspeaker module for ringtones and media playback. Vendor: Maxbhi',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-ringer-001'
+          },
+          {
+            name: 'Power Button Flex Cable',
+            id: 'samsung-s24u-power-flex',
+            price: '$24.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-power-flex.jpg',
+            description: 'Power button connection cable with on/off functionality.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-power-flex-001'
+          },
+          {
+            name: 'Fingerprint Sensor Flex Cable',
+            id: 'samsung-s24u-fingerprint-flex',
+            price: '$34.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-fingerprint-flex.jpg',
+            description: 'Under-display fingerprint sensor connection module.',
+            installDifficulty: 'Very High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-fingerprint-flex-001'
+          },
+          {
+            name: 'Speaker Jaali Anti Dust Net Rubber',
+            id: 'samsung-s24u-speaker-net',
+            price: '$6.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-speaker-net.jpg',
+            description: 'Protective mesh cover for speaker to prevent dust entry.',
+            installDifficulty: 'Medium',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-speaker-net-001'
+          },
+          {
+            name: 'LCD Connector (Maxbhi)',
+            id: 'samsung-s24u-lcd-connector',
+            price: '$14.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-lcd-connector.jpg',
+            description: 'Display connection port on the motherboard side. Genuine Maxbhi part.',
+            installDifficulty: 'Very High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-lcd-connector-001'
+          },
+          {
+            name: 'Signal Cable (Maxbhi)',
+            id: 'samsung-s24u-signal-cable',
+            price: '$17.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-signal-cable.jpg',
+            description: 'Antenna connection cables for network reception. Supplied by Maxbhi.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-signal-cable-001'
+          },
+          {
+            name: 'Charging Connector',
+            id: 'samsung-s24u-charging-connector',
+            price: '$22.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-charging-connector.jpg',
+            description: 'USB-C charging port component with fast charging capability.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-charging-connector-001'
+          },
+          {
+            name: 'Volume Button Flex Cable',
+            id: 'samsung-s24u-volume-flex',
+            price: '$19.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-volume-flex.jpg',
+            description: 'Volume control button connection cable.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-volume-flex-001'
+          },
+          {
+            name: 'Battery Connector',
+            id: 'samsung-s24u-battery-connector',
+            price: '$14.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-battery-connector.jpg',
+            description: 'Battery connection port on the motherboard.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-battery-connector-001'
+          },
+          {
+            name: 'Microphone',
+            id: 'samsung-s24u-microphone',
+            price: '$12.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-microphone.jpg',
+            description: 'Replacement microphone for clear voice capture.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-microphone-001'
+          },
+          {
+            name: 'Back Camera',
+            id: 'samsung-s24u-back-camera',
+            price: '$129.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-back-camera.jpg',
+            description: 'Complete camera module with 200MP main + 50MP + 10MP + 12MP sensors.',
+            installDifficulty: 'Very High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-back-camera-001'
+          },
+          {
+            name: 'Board Connector',
+            id: 'samsung-s24u-board-connector',
+            price: '$16.99',
+            category: 'internal',
+            image: '/images/parts/internal/s24-board-connector.jpg',
+            description: 'Various connectors for main motherboard components.',
+            installDifficulty: 'Very High',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'samsung-s24u-board-connector-001'
+          },
+          
+          // Repairing Tools
+          {
+            name: 'Glue for LCD and Touch',
+            id: 'tool-lcd-glue-s24',
+            price: '$12.99',
+            category: 'tools',
+            image: '/images/parts/tools/lcd-glue.jpg',
+            description: 'Special adhesive for securing display and touch panel.',
+            installDifficulty: 'N/A',
+            compatibility: 'Universal',
+            productId: 'repair-tool-lcd-glue-s24-001'
+          },
+          {
+            name: 'Opening Tool Set (Maxbhi)',
+            id: 'tool-opening-set-s24',
+            price: '$15.99',
+            category: 'tools',
+            image: '/images/parts/tools/opening-set.jpg',
+            description: 'Complete set of plastic pry tools for safe device opening. Supplied by Maxbhi.',
+            installDifficulty: 'N/A',
+            compatibility: 'Universal',
+            productId: 'repair-tool-opening-set-s24-001'
+          },
+          {
+            name: '32 Pcs Screw Driver Set',
+            id: 'tool-screwdriver-set-s24',
+            price: '$29.99',
+            category: 'tools',
+            image: '/images/parts/tools/screwdriver-set.jpg',
+            description: 'Professional screwdriver kit with precision bits for mobile repair.',
+            installDifficulty: 'N/A',
+            compatibility: 'Universal',
+            productId: 'repair-tool-screwdriver-set-s24-001'
+          },
+          {
+            name: 'Suction Cup Tool (Maxbhi)',
+            id: 'tool-suction-cup-s24',
+            price: '$7.99',
+            category: 'tools',
+            image: '/images/parts/tools/suction-cup.jpg',
+            description: 'Strong suction cup for lifting screens and back covers. Genuine Maxbhi tool.',
+            installDifficulty: 'N/A',
+            compatibility: 'Universal',
+            productId: 'repair-tool-suction-cup-s24-001'
+          },
+          
+          // Accessories
+          {
+            name: 'Wall Charger (Maxbhi)',
+            id: 'acc-wall-charger-s24',
+            price: '$24.99',
+            category: 'accessories',
+            image: '/images/parts/accessories/wall-charger.jpg',
+            description: '45W fast charger compatible with Samsung Galaxy S24 Ultra. Supplied by Maxbhi.',
+            installDifficulty: 'N/A',
+            compatibility: 'Works with Samsung Galaxy S24 Ultra',
+            productId: 'accessory-wall-charger-s24-001'
+          },
+          {
+            name: 'Tempered Glass',
+            id: 'acc-tempered-glass-s24',
+            price: '$14.99',
+            category: 'accessories',
+            image: '/images/parts/accessories/tempered-glass.jpg',
+            description: 'Premium screen protector with 9H hardness for Samsung Galaxy S24 Ultra.',
+            installDifficulty: 'Easy',
+            compatibility: 'Specific to Samsung Galaxy S24 Ultra',
+            productId: 'accessory-tempered-glass-s24-001'
+          },
+          {
+            name: 'Earphone',
+            id: 'acc-earphone-s24',
+            price: '$19.99',
+            category: 'accessories',
+            image: '/images/parts/accessories/earphone.jpg',
+            description: 'High-quality USB-C earphones with mic and volume control.',
+            installDifficulty: 'N/A',
+            compatibility: 'Works with Samsung Galaxy S24 Ultra',
+            productId: 'accessory-earphone-s24-001'
+          },
+          {
+            name: '6 Port USB Multi Charger 20 watt',
+            id: 'acc-multi-charger-s24',
+            price: '$34.99',
+            category: 'accessories',
+            image: '/images/parts/accessories/multi-charger.jpg',
+            description: '20W multi-port charger for simultaneous charging of multiple devices.',
+            installDifficulty: 'N/A',
+            compatibility: 'Universal',
+            productId: 'accessory-multi-charger-s24-001'
+          },
+          {
+            name: 'Lazy Mobile Holder (Maxbhi)',
+            id: 'acc-mobile-holder-s24',
+            price: '$16.99',
+            category: 'accessories',
+            image: '/images/parts/accessories/mobile-holder.jpg',
+            description: 'Flexible gooseneck mobile holder for hands-free viewing. Genuine Maxbhi accessory.',
+            installDifficulty: 'N/A',
+            compatibility: 'Universal',
+            productId: 'accessory-mobile-holder-s24-001'
+          },
+          {
+            name: 'Selfie Flash Light',
+            id: 'acc-selfie-light-s24',
+            price: '$11.99',
+            category: 'accessories',
+            image: '/images/parts/accessories/selfie-light.jpg',
+            description: 'Clip-on selfie ring light with multiple brightness levels.',
+            installDifficulty: 'N/A',
+            compatibility: 'Universal',
+            productId: 'accessory-selfie-light-s24-001'
+          },
+          {
+            name: 'Collar Clip On Mic',
+            id: 'acc-clip-mic-s24',
+            price: '$21.99',
+            category: 'accessories',
+            image: '/images/parts/accessories/clip-mic.jpg',
+            description: 'Professional lapel microphone for clear audio recording.',
+            installDifficulty: 'N/A',
+            compatibility: 'Works with USB-C port',
+            productId: 'accessory-clip-mic-s24-001'
+          },
+          {
+            name: 'Car Mount',
+            id: 'acc-car-mount-s24',
+            price: '$19.99',
+            category: 'accessories',
+            image: '/images/parts/accessories/car-mount.jpg',
+            description: 'Dashboard/windshield car mount for secure phone holding.',
+            installDifficulty: 'N/A',
+            compatibility: 'Universal',
+            productId: 'accessory-car-mount-s24-001'
+          },
+          {
+            name: '3 in 1 Charging Kit',
+            id: 'acc-charging-kit-s24',
+            price: '$39.99',
+            category: 'accessories',
+            image: '/images/parts/accessories/charging-kit.jpg',
+            description: 'Complete charging kit with wall charger, car charger and cable.',
+            installDifficulty: 'N/A',
+            compatibility: 'Works with Samsung Galaxy S24 Ultra',
+            productId: 'accessory-charging-kit-s24-001'
           }
-        ]
-      };
-
-      // Return category-specific parts or empty array if category not found
-      return categoryParts[category] || [];
+        ];
+      }
+      
+      // Special case for Vivo V15 Pro to provide specific parts
+      if (brand === 'vivo' && model === 'v15-pro') {
+        return [
+          // Display & Screens
+          {
+            name: 'Display Combo Folder',
+            id: 'vivo-v15-display-combo',
+            price: '$79.99',
+            category: 'display',
+            image: '/images/parts/displays/vivo-display.jpg',
+            description: 'Complete display assembly with touch functionality and frame for Vivo V15 Pro.',
+            installDifficulty: 'High',
+            compatibility: 'Specific to Vivo V15 Pro',
+            productId: 'vivo-v15-display-combo-001'
+          },
+          // ... other Vivo parts would be here ...
+        ];
+      }
+      
+      // Default parts for other models/brands
+      return [];
     };
 
     // Get repair process info based on category
@@ -892,23 +1256,113 @@ const ModelServicePage = () => {
                   <h2>Replacement Parts for {brand.name} {model.name}</h2>
                   <p>Browse genuine replacement parts compatible with your {brand.name} {model.name}:</p>
                   
-                  <div className="parts-grid">
-                    {modelInfo.parts.map((part, index) => (
-                      <div key={index} className="part-card">
-                        <h3>{part.name}</h3>
-                        <div className="part-meta">
-                          <span className="part-code">{part.id}</span>
-                          <span className="part-price">{part.price}</span>
-                        </div>
-                        <p>{part.description}</p>
-                        <div className="part-difficulty">
-                          <span>Installation Difficulty:</span>
-                          <div className="difficulty-badge">{part.installDifficulty}</div>
-                        </div>
-                        <button className="add-to-cart-btn">Add to Cart</button>
-                      </div>
-                    ))}
+                  {/* Parts category navigation */}
+                  <div className="parts-categories">
+                    <h3>Categories</h3>
+                    <div className="category-buttons">
+                      {Object.entries(modelInfo.parts.reduce((categories, part) => {
+                        // Count items in each category
+                        if (!categories[part.category]) {
+                          categories[part.category] = 0;
+                        }
+                        categories[part.category]++;
+                        return categories;
+                      }, {})).map(([category, count]) => {
+                        // Define user-friendly category names
+                        const categoryNames = {
+                          'display': 'Display & Screens',
+                          'body': 'Body & Housings',
+                          'battery': 'Battery',
+                          'internal': 'Internal Components',
+                          'tools': 'Repairing Tools',
+                          'accessories': 'Accessories',
+                          'others': 'Others'
+                        };
+                        
+                        return (
+                          <button 
+                            key={category} 
+                            className="category-button"
+                            onClick={() => {
+                              // Scroll to category section
+                              document.getElementById(`category-${category}`).scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start'
+                              });
+                            }}
+                          >
+                            {categoryNames[category] || category} ({count})
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
+
+                  {/* Group parts by category */}
+                  {Object.entries(modelInfo.parts.reduce((groups, part) => {
+                    // Group parts by category
+                    if (!groups[part.category]) {
+                      groups[part.category] = [];
+                    }
+                    groups[part.category].push(part);
+                    return groups;
+                  }, {})).map(([category, parts]) => {
+                    // Define user-friendly category names
+                    const categoryNames = {
+                      'display': 'Display & Screens',
+                      'body': 'Body & Housings',
+                      'battery': 'Battery',
+                      'internal': 'Internal Components',
+                      'tools': 'Repairing Tools',
+                      'accessories': 'Accessories',
+                      'others': 'Others'
+                    };
+                    
+                    return (
+                      <div key={category} id={`category-${category}`} className="parts-category-section">
+                        <h3 className="category-title">{categoryNames[category] || category}</h3>
+                        <div className="parts-grid">
+                          {parts.map((part, index) => (
+                            <div key={index} className="part-card">
+                              <div className="part-image">
+                                <img 
+                                  src={part.image} 
+                                  alt={part.name}
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = '/images/parts/placeholder.jpg';
+                                  }}
+                                />
+                              </div>
+                              <div className="part-details">
+                                <h4>
+                                  <Link to={`/products/${part.productId || part.id}`}>
+                                    {part.name}
+                                  </Link>
+                                </h4>
+                                <div className="part-meta">
+                                  <span className="part-code">{part.id}</span>
+                                  <span className="part-price">{part.price}</span>
+                                </div>
+                                <p className="part-description">{part.description}</p>
+                                <div className="part-compatibility">
+                                  <span>Compatibility:</span> {part.compatibility}
+                                </div>
+                                <div className="part-difficulty">
+                                  <span>Installation Difficulty:</span>
+                                  <div className="difficulty-badge">{part.installDifficulty}</div>
+                                </div>
+                                <Link to={`/products/${part.productId || part.id}`} className="view-details-btn">
+                                  View Details
+                                </Link>
+                                <button className="add-to-cart-btn">Add to Cart</button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
                   
                   <div className="parts-note">
                     <p>

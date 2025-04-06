@@ -242,7 +242,7 @@ const HomePage = () => {
                       <div className="model-info">
                         <h3>{model.name}</h3>
                         <p className="model-brand">{model.brand}</p>
-                        <Link to={`/services?model=${model.id}`} className="repair-link">
+                        <Link to={`/services/${model.category}-repair/${model.brand.toLowerCase()}/${model.id}`} className="repair-link">
                           View Repair Options
                         </Link>
                       </div>

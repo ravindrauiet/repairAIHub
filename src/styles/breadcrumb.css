@@ -1,0 +1,60 @@
+.breadcrumb {
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.breadcrumb ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.breadcrumb li {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.breadcrumb li a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.breadcrumb li a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.breadcrumb .separator {
+  display: flex;
+  align-items: center;
+  margin: 0 5px;
+}
+
+.breadcrumb .separator i {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.breadcrumb .current {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+/* Dark background override */
+.page-content .breadcrumb li,
+.page-content .breadcrumb li a {
+  color: #666;
+}
+
+.page-content .breadcrumb .current {
+  color: #333;
+} 

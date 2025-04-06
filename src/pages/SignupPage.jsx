@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../styles/auth.css';
 
 const SignupPage = () => {
@@ -8,6 +9,7 @@ const SignupPage = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    phone: '',
     agreeTerms: false
   });
   
@@ -57,6 +59,11 @@ const SignupPage = () => {
       newErrors.email = 'Email is invalid';
     }
     
+    // Phone validation
+    if (!formData.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    }
+    
     // Password validation
     if (!formData.password) {
       newErrors.password = 'Password is required';
@@ -80,53 +87,53 @@ const SignupPage = () => {
     return Object.keys(newErrors).length === 0;
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
       setIsSubmitting(true);
       
-      // Simulate API call
-      setTimeout(() => {
-        // Check if email already exists in local storage
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        const userExists = users.some(user => user.email === formData.email);
+      try {
+        const response = await axios.post('http://localhost:5000/api/auth/register', {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          phone: formData.phone
+        });
         
-        if (userExists) {
+        const { success, token, user } = response.data;
+        
+        if (success) {
+          // Store token in local storage
+          localStorage.setItem('token', token);
+          
+          // Redirect to profile page
+          navigate('/profile');
+        } else {
+          setErrors({
+            ...errors,
+            email: 'Registration failed. Please try again.'
+          });
+        }
+      } catch (err) {
+        console.error('Registration error:', err);
+        
+        // Check if the error is due to email already in use
+        if (err.response?.status === 409 || 
+            err.response?.data?.message?.includes('already exists')) {
           setErrors({
             ...errors,
             email: 'This email is already registered'
           });
-          setIsSubmitting(false);
-          return;
+        } else {
+          setErrors({
+            ...errors,
+            email: err.response?.data?.message || 'Registration failed. Please try again.'
+          });
         }
-        
-        // Create new user
-        const newUser = {
-          id: Date.now().toString(),
-          name: formData.name,
-          email: formData.email,
-          password: formData.password, // In a real app, never store plain text passwords
-          createdAt: new Date().toISOString(),
-          bookings: []
-        };
-        
-        // Save to local storage
-        localStorage.setItem('users', JSON.stringify([...users, newUser]));
-        
-        // Set current user
-        localStorage.setItem('currentUser', JSON.stringify({
-          id: newUser.id,
-          name: newUser.name,
-          email: newUser.email,
-          isLoggedIn: true
-        }));
-        
-        // Redirect to profile page
-        navigate('/profile');
-        
+      } finally {
         setIsSubmitting(false);
-      }, 1000);
+      }
     }
   };
   
@@ -165,6 +172,20 @@ const SignupPage = () => {
               placeholder="Enter your email"
             />
             {errors.email && <div className="form-error">{errors.email}</div>}
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="phone" className="form-label">Phone Number</label>
+            <input
+              type="text"
+              id="phone"
+              name="phone"
+              className={`form-input ${errors.phone ? 'error' : ''}`}
+              value={formData.phone}
+              onChange={handleChange}
+              placeholder="Enter your phone number"
+            />
+            {errors.phone && <div className="form-error">{errors.phone}</div>}
           </div>
           
           <div className="form-group">

@@ -372,11 +372,21 @@
 .view-details-btn {
   background-color: #f0f0f0;
   color: #333;
-  border: 1px solid #ddd;
+  padding: 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+  transition: all 0.3s;
 }
 
 .view-details-btn:hover {
   background-color: #e0e0e0;
+  color: #3498db;
 }
 
 .add-to-cart-btn {
@@ -570,77 +580,283 @@
 }
 
 /* Parts Tab */
-.parts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+.parts-tab {
+  padding: 20px 0;
 }
 
-.part-card {
+.parts-tab h2 {
+  margin-bottom: 0.5rem;
+}
+
+.parts-tab > p {
+  margin-bottom: 25px;
+  color: #666;
+}
+
+/* Parts Categories Navigation */
+.parts-categories {
+  margin-bottom: 30px;
+  padding: 20px;
   background-color: #f8f9fa;
   border-radius: 8px;
-  padding: 1.5rem;
+}
+
+.parts-categories h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+  color: #333;
+}
+
+.category-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.category-button {
+  padding: 8px 16px;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  color: #333;
+  font-size: 0.9rem;
+  cursor: pointer;
   transition: all 0.3s ease;
-  height: 100%;
+}
+
+.category-button:hover {
+  background-color: #e9f5ff;
+  border-color: #3498db;
+}
+
+/* Parts Category Sections */
+.parts-category-section {
+  margin-bottom: 40px;
+  scroll-margin-top: 100px; /* For smooth scrolling with fixed headers */
+}
+
+.category-title {
+  font-size: 1.3rem;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #3498db;
+  color: #333;
+}
+
+/* Parts Grid */
+.parts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+/* Part Card */
+.part-card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .part-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-.part-card h3 {
+.part-image {
+  height: 200px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa;
+  padding: 15px;
+}
+
+.part-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.part-details {
+  padding: 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.part-details h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
   font-size: 1.1rem;
-  margin-bottom: 0.75rem;
   color: #333;
+}
+
+.part-details h4 a {
+  color: #333;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.part-details h4 a:hover {
+  color: #3498db;
 }
 
 .part-meta {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
+  margin-bottom: 15px;
 }
 
 .part-code {
+  font-size: 0.85rem;
   color: #666;
+  font-family: monospace;
 }
 
 .part-price {
-  font-weight: 600;
-  color: var(--primary-color);
+  font-weight: bold;
+  color: #3498db;
 }
 
-.part-card p {
-  color: #666;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  margin-bottom: 1.5rem;
+.part-description {
+  margin-bottom: 15px;
+  color: #555;
+  line-height: 1.5;
   flex-grow: 1;
+}
+
+.part-compatibility {
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.part-compatibility span {
+  font-weight: 500;
+  color: #333;
 }
 
 .part-difficulty {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.25rem;
+  margin-bottom: 20px;
   font-size: 0.9rem;
-  color: #666;
+}
+
+.part-difficulty span {
+  margin-right: 8px;
+  color: #555;
+}
+
+.difficulty-badge {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background-color: #f0f0f0;
+}
+
+/* Difficulty badge colors */
+.part-difficulty .difficulty-badge:contains('Easy') {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.part-difficulty .difficulty-badge:contains('Medium') {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.part-difficulty .difficulty-badge:contains('High') {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.part-difficulty .difficulty-badge:contains('Very High') {
+  background-color: #f1b0b7;
+  color: #5a171d;
+}
+
+.add-to-cart-btn {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #2980b9;
 }
 
 .parts-note {
-  background-color: #e9ecef;
+  margin-top: 40px;
+  padding: 20px;
+  background-color: #f8f9fa;
   border-radius: 8px;
-  padding: 1.5rem;
-  text-align: center;
+  border-left: 4px solid #3498db;
 }
 
 .parts-note p {
-  margin-bottom: 1.25rem;
-  font-size: 0.95rem;
+  margin-bottom: 15px;
+  color: #555;
+}
+
+.btn-secondary {
+  background-color: #fff;
+  border: 1px solid #3498db;
+  color: #3498db;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  display: inline-block;
+  transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+  background-color: #3498db;
+  color: #fff;
+}
+
+/* Display actions in a grid */
+.part-details .part-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .parts-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .category-buttons {
+    gap: 8px;
+  }
+  
+  .category-button {
+    font-size: 0.8rem;
+    padding: 6px 12px;
+  }
+  
+  .part-image {
+    height: 180px;
+  }
 }
 
 @media (max-width: 992px) {

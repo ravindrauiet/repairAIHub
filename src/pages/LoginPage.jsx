@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../styles/auth.css';
 
 const LoginPage = () => {
@@ -18,9 +19,31 @@ const LoginPage = () => {
   
   // Check if user is already logged in
   useEffect(() => {
-    const loggedInUser = localStorage.getItem('currentUser');
-    if (loggedInUser) {
-      navigate('/profile');
+    const token = localStorage.getItem('token');
+    if (token) {
+      // Verify token validity
+      const checkAuth = async () => {
+        try {
+          const response = await axios.get('http://localhost:5000/api/users/profile', {
+            headers: {
+              'x-auth-token': token
+            }
+          });
+          
+          const user = response.data.user;
+          
+          if (user.roles && user.roles.includes('admin')) {
+            navigate('/admin');
+          } else {
+            navigate('/profile');
+          }
+        } catch (err) {
+          // Token is invalid or expired
+          localStorage.removeItem('token');
+        }
+      };
+      
+      checkAuth();
     }
   }, [navigate]);
   
@@ -66,35 +89,55 @@ const LoginPage = () => {
     return Object.keys(newErrors).length === 0;
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
       setIsSubmitting(true);
       
-      // Simulate API call
-      setTimeout(() => {
-        // Check local storage for user
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        const user = users.find(u => u.email === formData.email);
+      try {
+        console.log('Attempting login with:', { email: formData.email });
         
-        if (user && user.password === formData.password) {
-          // Set current user in local storage (in a real app, don't store passwords)
-          localStorage.setItem('currentUser', JSON.stringify({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            isLoggedIn: true
-          }));
-          
-          // Redirect to profile page
-          navigate('/profile');
-        } else {
-          setLoginError('Invalid email or password');
+        // Try the auth endpoint first
+        let response;
+        try {
+          response = await axios.post('http://localhost:5000/api/auth/login', {
+            email: formData.email,
+            password: formData.password
+          });
+          console.log('Auth login response:', response.data);
+        } catch (authErr) {
+          console.log('Auth login failed, trying user login endpoint');
+          // If auth endpoint fails, try the user endpoint
+          response = await axios.post('http://localhost:5000/api/users/login', {
+            email: formData.email,
+            password: formData.password
+          });
+          console.log('User login response:', response.data);
         }
         
+        const data = response.data;
+        console.log('Login response data:', data);
+        
+        if (data.success && data.token) {
+          // Store token in local storage
+          localStorage.setItem('token', data.token);
+          console.log('Token stored in localStorage:', data.token);
+          
+          // Force reload to ensure state is reset across components
+          window.location.href = data.user && data.user.roles && 
+            data.user.roles.includes('admin') ? '/admin' : '/profile';
+          return;
+        } else {
+          setLoginError('Login failed. Please try again.');
+        }
+      } catch (err) {
+        console.error('Login error:', err);
+        const errorMessage = err.response?.data?.message || 'Invalid email or password';
+        setLoginError(errorMessage);
+      } finally {
         setIsSubmitting(false);
-      }, 1000);
+      }
     }
   };
   

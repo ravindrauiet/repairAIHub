@@ -4,6 +4,7 @@ import { getProductById, getProductsByCategory, productCategories, brands } from
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import '../styles/productDetail.css';
+import Breadcrumb from '../components/common/Breadcrumb';
 
 const ProductDetailPage = () => {
   const { productId } = useParams();
@@ -16,12 +17,16 @@ const ProductDetailPage = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
+  const [originalPrice, setOriginalPrice] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const [activeReviewTab, setActiveReviewTab] = useState('all');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
   
   const imageContainerRef = useRef(null);
   const zoomFactor = 2.5;
@@ -45,6 +50,16 @@ const ProductDetailPage = () => {
             if (variants.length > 0) {
               setSelectedVariant(variants[0]);
               setCurrentPrice(productData.price[variants[0]]);
+              
+              // Set original price (for discount calculation)
+              // In a real app, this would come from the backend
+              const discountPercentage = Math.floor(Math.random() * 20) + 5; // Random discount between 5-25%
+              const price = typeof productData.price[variants[0]] === 'string' 
+                ? parseFloat(productData.price[variants[0]].replace(/[₹,]/g, ''))
+                : productData.price[variants[0]];
+              
+              const originalPrice = Math.round(price / (1 - discountPercentage / 100));
+              setOriginalPrice(`₹${originalPrice.toLocaleString()}`);
             }
           }
           
@@ -71,11 +86,27 @@ const ProductDetailPage = () => {
   const handleVariantChange = (variant) => {
     setSelectedVariant(variant);
     setCurrentPrice(product.price[variant]);
+    
+    // Update original price for the new variant
+    const discountPercentage = Math.floor(Math.random() * 20) + 5;
+    const price = typeof product.price[variant] === 'string' 
+      ? parseFloat(product.price[variant].replace(/[₹,]/g, ''))
+      : product.price[variant];
+    
+    const originalPrice = Math.round(price / (1 - discountPercentage / 100));
+    setOriginalPrice(`₹${originalPrice.toLocaleString()}`);
   };
   
   const handleQuantityChange = (value) => {
     const newQty = quantity + value;
     if (newQty >= 1 && newQty <= 10) {
+      setQuantity(newQty);
+    }
+  };
+
+  const handleSetQuantity = (event) => {
+    const newQty = parseInt(event.target.value);
+    if (!isNaN(newQty) && newQty >= 1 && newQty <= 10) {
       setQuantity(newQty);
     }
   };
@@ -103,9 +134,24 @@ const ProductDetailPage = () => {
     showNotificationWithMessage(`${product.title} added to cart.`);
   };
   
+  const handleBuyNow = () => {
+    handleAddToCart();
+    navigate('/cart');
+  };
+  
   const handleAddToWishlist = () => {
-    showNotificationWithMessage(`${product.title} added to wishlist.`);
-    // In a real app, would add to wishlist in context/state management
+    if (!isInWishlist(product.id)) {
+      addToWishlist({
+        id: product.id,
+        title: product.title,
+        price: product.price,
+        image: product.image || '/images/product-placeholder.jpg'
+      });
+      showNotificationWithMessage(`${product.title} added to wishlist.`);
+    } else {
+      removeFromWishlist(product.id);
+      showNotificationWithMessage(`${product.title} removed from wishlist.`);
+    }
   };
   
   const showNotificationWithMessage = (message) => {
@@ -160,6 +206,47 @@ const ProductDetailPage = () => {
       });
     }
   };
+
+  const getDiscountPercentage = () => {
+    if (!originalPrice || !currentPrice) return 0;
+    
+    const original = typeof originalPrice === 'string' 
+      ? parseFloat(originalPrice.replace(/[₹,]/g, ''))
+      : originalPrice;
+      
+    const current = typeof currentPrice === 'string'
+      ? parseFloat(currentPrice.replace(/[₹,]/g, ''))
+      : currentPrice;
+      
+    const discount = ((original - current) / original) * 100;
+    return Math.round(discount);
+  };
+
+  const getEstimatedDelivery = () => {
+    const today = new Date();
+    const deliveryDate = new Date(today);
+    deliveryDate.setDate(today.getDate() + Math.floor(Math.random() * 3) + 3); // 3-5 days delivery
+    
+    return deliveryDate.toLocaleDateString('en-US', { 
+      weekday: 'long',
+      month: 'long', 
+      day: 'numeric'
+    });
+  };
+
+  const generateProductCode = () => {
+    // Generate a product code from the product ID and category
+    if (!product) return '';
+    return `${product.category.toUpperCase()}-${product.id}`;
+  };
+
+  const handleReviewSubmit = (e) => {
+    e.preventDefault();
+    // In a real app, this would send the review to the backend
+    alert(`Thank you for your ${reviewRating}-star review!`);
+    setReviewComment('');
+    setReviewRating(5);
+  };
   
   if (loading) {
     return (
@@ -184,16 +271,19 @@ const ProductDetailPage = () => {
   
   // If no images array exists on the product, create a default one with the image property
   const productImages = product.images || [product.image];
+
+  // Define breadcrumb items
+  const breadcrumbItems = [
+    { label: 'Home', path: '/' },
+    { label: 'Products', path: '/products' },
+    { label: getCategoryName(product.category), path: `/products?category=${product.category}` },
+    { label: product.title, path: '' }
+  ];
   
   return (
     <div className="product-detail-page">
       <div className="container">
-        <div className="breadcrumb">
-          <Link to="/">Home</Link> / 
-          <Link to="/products">Products</Link> / 
-          <Link to={`/products?category=${product.category}`}>{getCategoryName(product.category)}</Link> / 
-          <span>{product.title}</span>
-        </div>
+        <Breadcrumb items={breadcrumbItems} />
         
         {showNotification && (
           <div className="notification">
@@ -228,6 +318,12 @@ const ProductDetailPage = () => {
                     backgroundSize: `${zoomFactor * 100}%`
                   }}
                 ></div>
+              )}
+
+              {getDiscountPercentage() > 0 && (
+                <div className="discount-badge">
+                  {getDiscountPercentage()}% OFF
+                </div>
               )}
             </div>
             
@@ -273,7 +369,21 @@ const ProductDetailPage = () => {
               </div>
             </div>
             
-            <div className="product-price-detail">{currentPrice}</div>
+            <div className="product-code">
+              Product Code: <span>{generateProductCode()}</span>
+            </div>
+            
+            <div className="product-price-detail">
+              <div className="price-container">
+                <span className="current-price">{currentPrice}</span>
+                {getDiscountPercentage() > 0 && (
+                  <>
+                    <span className="original-price">{originalPrice}</span>
+                    <span className="discount-percentage">({getDiscountPercentage()}% OFF)</span>
+                  </>
+                )}
+              </div>
+            </div>
             
             {product.compatibleBrands && product.compatibleBrands.length > 0 && (
               <div className="product-compatible-brands">
@@ -298,9 +408,18 @@ const ProductDetailPage = () => {
               </div>
             )}
             
-            <div className={`product-availability ${product.inStock ? '' : 'out-of-stock'}`}>
-              <i className={`fas ${product.inStock ? 'fa-check-circle' : 'fa-times-circle'}`}></i>
-              {product.inStock ? 'In Stock' : 'Out of Stock'}
+            <div className="product-availability-container">
+              <div className={`product-availability ${product.inStock ? '' : 'out-of-stock'}`}>
+                <i className={`fas ${product.inStock ? 'fa-check-circle' : 'fa-times-circle'}`}></i>
+                <span>{product.inStock ? 'In Stock' : 'Out of Stock'}</span>
+              </div>
+              
+              {product.inStock && (
+                <div className="delivery-estimate">
+                  <i className="fas fa-truck"></i>
+                  <span>Estimated Delivery: {getEstimatedDelivery()}</span>
+                </div>
+              )}
             </div>
             
             <div className="product-description-detail">
@@ -316,7 +435,14 @@ const ProductDetailPage = () => {
                 >
                   -
                 </button>
-                <span className="quantity-display">{quantity}</span>
+                <input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={quantity}
+                  onChange={handleSetQuantity}
+                  className="quantity-input"
+                />
                 <button 
                   className="quantity-btn" 
                   onClick={() => handleQuantityChange(1)}
@@ -336,19 +462,17 @@ const ProductDetailPage = () => {
               </button>
               
               <button 
+                className="buy-now-btn" 
+                onClick={handleBuyNow}
+                disabled={!product.inStock}
+              >
+                <i className="fas fa-bolt"></i>
+                Buy Now
+              </button>
+              
+              <button 
                 className={`wishlist-btn ${isInWishlist(product.id) ? 'in-wishlist' : ''}`}
-                onClick={() => {
-                  if (isInWishlist(product.id)) {
-                    removeFromWishlist(product.id);
-                  } else {
-                    addToWishlist({
-                      id: product.id,
-                      title: product.title,
-                      price: product.price,
-                      image: product.image || '/images/product-placeholder.jpg'
-                    });
-                  }
-                }}
+                onClick={handleAddToWishlist}
               >
                 <i className="fas fa-heart"></i>
               </button>
@@ -360,6 +484,19 @@ const ProductDetailPage = () => {
               </div>
               <div className="meta-item">
                 <span className="label">Service Time:</span> {product.estimatedTime}
+              </div>
+              <div className="meta-item">
+                <span className="label">Return Policy:</span> 7-day replacement
+              </div>
+            </div>
+
+            <div className="social-share">
+              <span className="label">Share:</span>
+              <div className="social-icons">
+                <a href="#" className="social-icon"><i className="fab fa-facebook"></i></a>
+                <a href="#" className="social-icon"><i className="fab fa-twitter"></i></a>
+                <a href="#" className="social-icon"><i className="fab fa-whatsapp"></i></a>
+                <a href="#" className="social-icon"><i className="fab fa-pinterest"></i></a>
               </div>
             </div>
           </div>
@@ -384,6 +521,18 @@ const ProductDetailPage = () => {
               >
                 Compatible Brands
               </button>
+              <button 
+                className={`tab-button ${activeTab === 'reviews' ? 'active' : ''}`}
+                onClick={() => setActiveTab('reviews')}
+              >
+                Reviews ({product.reviewCount})
+              </button>
+              <button 
+                className={`tab-button ${activeTab === 'warranty' ? 'active' : ''}`}
+                onClick={() => setActiveTab('warranty')}
+              >
+                Warranty
+              </button>
             </div>
             
             <div className="tab-content">
@@ -394,6 +543,11 @@ const ProductDetailPage = () => {
                   <p>
                     Our technicians are experts in {getCategoryName(product.category)} repairs and 
                     use only high-quality parts to ensure your device functions properly after repair.
+                  </p>
+                  <p>
+                    This {product.title} is designed to provide exceptional performance and durability.
+                    It's manufactured using premium materials and undergoes rigorous quality testing to
+                    ensure reliability in all conditions.
                   </p>
                 </div>
               )}
@@ -423,6 +577,146 @@ const ProductDetailPage = () => {
                         </div>
                       ) : null;
                     })}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'reviews' && (
+                <div className="reviews-section">
+                  <h3>Customer Reviews</h3>
+                  
+                  <div className="reviews-overview">
+                    <div className="average-rating">
+                      <span className="rating-number">{product.rating}</span>
+                      <div className="stars">
+                        {[...Array(5)].map((_, i) => (
+                          <i key={i} className={`fas fa-star ${i < Math.floor(product.rating) ? 'filled' : ''}`}></i>
+                        ))}
+                      </div>
+                      <span className="total-reviews">{product.reviewCount} reviews</span>
+                    </div>
+                    
+                    <div className="rating-breakdown">
+                      {[5, 4, 3, 2, 1].map(stars => (
+                        <div key={stars} className="rating-bar">
+                          <span>{stars} stars</span>
+                          <div className="progress-bar">
+                            <div 
+                              className="progress" 
+                              style={{ width: `${Math.floor(Math.random() * 100)}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="reviews-filter">
+                    <button 
+                      className={`filter-btn ${activeReviewTab === 'all' ? 'active' : ''}`}
+                      onClick={() => setActiveReviewTab('all')}
+                    >
+                      All Reviews
+                    </button>
+                    <button 
+                      className={`filter-btn ${activeReviewTab === 'positive' ? 'active' : ''}`}
+                      onClick={() => setActiveReviewTab('positive')}
+                    >
+                      Positive (4-5 ★)
+                    </button>
+                    <button 
+                      className={`filter-btn ${activeReviewTab === 'critical' ? 'active' : ''}`}
+                      onClick={() => setActiveReviewTab('critical')}
+                    >
+                      Critical (1-3 ★)
+                    </button>
+                  </div>
+                  
+                  <div className="reviews-list">
+                    {/* Mock reviews - in a real app, these would come from the backend */}
+                    {[...Array(5)].map((_, index) => (
+                      <div key={index} className="review-item">
+                        <div className="review-header">
+                          <span className="reviewer-name">Customer {index + 1}</span>
+                          <div className="review-rating">
+                            {[...Array(5)].map((_, i) => (
+                              <i key={i} className={`fas fa-star ${i < (5 - index % 2) ? 'filled' : ''}`}></i>
+                            ))}
+                          </div>
+                          <span className="review-date">
+                            {new Date(Date.now() - index * 86400000).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="review-text">
+                          {index % 2 === 0 
+                            ? `This ${product.title} is excellent! The quality is outstanding and it works perfectly.` 
+                            : `Good product overall, but delivery was a bit slow. The ${product.title} functions as expected.`}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="write-review">
+                    <h4>Write a Review</h4>
+                    <form onSubmit={handleReviewSubmit}>
+                      <div className="rating-selector">
+                        <span>Your Rating:</span>
+                        <div className="star-rating">
+                          {[5, 4, 3, 2, 1].map(star => (
+                            <i 
+                              key={star}
+                              className={`fas fa-star ${star <= reviewRating ? 'filled' : ''}`}
+                              onClick={() => setReviewRating(star)}
+                            ></i>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      <div className="form-group">
+                        <label htmlFor="review-comment">Your Review:</label>
+                        <textarea 
+                          id="review-comment"
+                          rows="4"
+                          value={reviewComment}
+                          onChange={(e) => setReviewComment(e.target.value)}
+                          placeholder="Share your experience with this product..."
+                          required
+                        ></textarea>
+                      </div>
+                      
+                      <button type="submit" className="submit-review-btn">
+                        Submit Review
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'warranty' && (
+                <div className="warranty-section">
+                  <h3>Warranty Information</h3>
+                  <div className="warranty-details">
+                    <p>
+                      <strong>Warranty Period:</strong> {product.warranty}
+                    </p>
+                    <p>
+                      <strong>Coverage:</strong> The warranty covers manufacturing defects and 
+                      malfunctions that occur during normal use of the product.
+                    </p>
+                    <p>
+                      <strong>Warranty Terms:</strong>
+                    </p>
+                    <ul>
+                      <li>The warranty period begins from the date of purchase.</li>
+                      <li>Proof of purchase is required for warranty claims.</li>
+                      <li>The warranty is void if the product has been damaged due to misuse, accidents, or unauthorized repairs.</li>
+                      <li>The warranty does not cover normal wear and tear.</li>
+                    </ul>
+                    
+                    <p>
+                      <strong>Claim Process:</strong> Contact our customer support team with your 
+                      order details and a description of the issue to initiate a warranty claim.
+                    </p>
                   </div>
                 </div>
               )}
