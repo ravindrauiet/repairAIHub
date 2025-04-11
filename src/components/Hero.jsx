@@ -50,7 +50,7 @@ const Hero = () => {
                   onClick={() => handleServiceSelect(service.id)}
                 >
                   <div className="service-icon">
-                    <img src={service.icon} alt={service.title} />
+                    <img src={service.imageUrl} alt={service.title} />
                   </div>
                   <div className="service-name">{service.title}</div>
                   {service.isNew && <span className="new-badge">NEW</span>}
@@ -101,4 +101,4 @@ const Hero = () => {
   );
 };
 
-export default Hero; 
+export default Hero;

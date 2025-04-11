@@ -5,7 +5,7 @@ const ServiceCard = ({ service }) => {
   return (
     <div className="service-card">
       <div className="service-card-image">
-        <img src={service.image} alt={service.title} />
+        <img src={service.imageUrl} alt={service.title} />
         {service.discount && (
           <div className="discount-badge">
             {service.discount}% OFF
@@ -19,13 +19,13 @@ const ServiceCard = ({ service }) => {
         <div className="service-meta">
           <div className="service-price">
             <span className="price-label">Starting at</span>
-            <span className="price-amount">₹{service.startingPrice}</span>
+            <span className="price-amount">₹{service.priceRange}</span>
           </div>
           
-          <div className="service-rating">
+          {/* <div className="service-rating">
             <span className="rating-value">★ {service.rating}</span>
             <span className="rating-count">({service.reviewCount})</span>
-          </div>
+          </div> */}
         </div>
         
         <div className="service-actions">
@@ -41,4 +41,4 @@ const ServiceCard = ({ service }) => {
   );
 };
 
-export default ServiceCard; 
+export default ServiceCard;

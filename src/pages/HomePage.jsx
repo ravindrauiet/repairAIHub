@@ -347,9 +347,9 @@ const HomePage = () => {
                 {technicians.map(tech => (
                   <div className="slider-item" key={tech.id}>
                     <div className="technician-card">
-                      <div className="technician-image">
+                      {/* <div className="technician-image">
                         <img src={tech.image} alt={tech.name} />
-                      </div>
+                      </div> */}
                       <div className="technician-info">
                         <h3>{tech.name}</h3>
                         <p className="specialty">{tech.specialty}</p>
@@ -480,4 +480,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage; 
+export default HomePage;
