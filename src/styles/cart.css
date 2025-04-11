@@ -105,8 +105,8 @@
 
 .cart-item {
   display: grid;
-  grid-template-columns: 3fr 1fr 1fr 1fr 50px;
-  padding: 1rem;
+  /* grid-template-columns: 3fr 1fr 1fr 1fr 50px; */
+  padding: 0rem 1rem;
   border-bottom: 1px solid #eee;
   align-items: center;
 }

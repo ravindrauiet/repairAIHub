@@ -539,7 +539,8 @@
 .category-services .service-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  padding: 10px;
+  object-fit: contain;
 }
 
 .category-services .service-details {

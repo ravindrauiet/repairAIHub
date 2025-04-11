@@ -181,7 +181,7 @@ const products = [
       '49-55inch': '₹25,000 - ₹40,000',
       '65inch-above': '₹40,000 - ₹80,000'
     },
-    image: '/images/products/tv-screen.jpg',
+    image: '/images/products/tv-screen.jpeg',
     rating: 4.7,
     reviewCount: 148,
     features: [
@@ -204,7 +204,7 @@ const products = [
     price: {
       'standard': '₹3,500 - ₹7,000'
     },
-    image: '/images/products/power-supply.jpg',
+    image: '/images/products/power-supply.jpeg',
     rating: 4.8,
     reviewCount: 120,
     features: [
@@ -227,7 +227,7 @@ const products = [
     price: {
       'standard': '₹8,000 - ₹15,000'
     },
-    image: '/images/products/main-board.jpg',
+    image: '/images/products/main-board.jpeg',
     rating: 4.6,
     reviewCount: 95,
     features: [
@@ -250,7 +250,7 @@ const products = [
     price: {
       'standard': '₹4,000 - ₹8,000'
     },
-    image: '/images/products/backlight.jpg',
+    image: '/images/products/backlight.jpeg',
     rating: 4.5,
     reviewCount: 75,
     features: [
@@ -273,7 +273,7 @@ const products = [
     price: {
       'standard': '₹1,500 - ₹3,000'
     },
-    image: '/images/products/software-update.jpg',
+    image: '/images/products/software-update.jpeg',
     rating: 4.9,
     reviewCount: 200,
     features: [
@@ -300,7 +300,7 @@ const products = [
       'mid-range': '₹4,000 - ₹8,000',
       'premium': '₹8,000 - ₹25,000'
     },
-    image: '/images/products/mobile-screen.jpg',
+    image: '/images/products/mobile-screen.jpeg',
     rating: 4.8,
     reviewCount: 320,
     features: [
@@ -325,7 +325,7 @@ const products = [
       'mid-range': '₹2,000 - ₹3,500',
       'premium': '₹3,500 - ₹8,000'
     },
-    image: '/images/products/mobile-battery.jpg',
+    image: '/images/products/mobile-battery.jpeg',
     rating: 4.9,
     reviewCount: 450,
     features: [
@@ -348,7 +348,7 @@ const products = [
     price: {
       'standard': '₹1,500 - ₹3,500'
     },
-    image: '/images/products/charging-port.jpg',
+    image: '/images/products/charging-port.jpeg',
     rating: 4.7,
     reviewCount: 280,
     features: [
@@ -372,7 +372,7 @@ const products = [
       'basic': '₹2,000 - ₹5,000',
       'advanced': '₹5,000 - ₹10,000'
     },
-    image: '/images/products/water-damage.jpg',
+    image: '/images/products/water-damage.jpeg',
     rating: 4.3,
     reviewCount: 180,
     features: [
@@ -396,7 +396,7 @@ const products = [
       'chip-level': '₹3,000 - ₹8,000',
       'board-replacement': '₹8,000 - ₹15,000'
     },
-    image: '/images/products/mobile-motherboard.jpg',
+    image: '/images/products/mobile-motherboard.jpeg',
     rating: 4.6,
     reviewCount: 150,
     features: [
@@ -421,7 +421,7 @@ const products = [
     price: {
       'standard': '₹1,800 - ₹3,500'
     },
-    image: '/images/products/ac-gas.jpg',
+    image: '/images/products/ac-gas.jpeg',
     rating: 4.8,
     reviewCount: 420,
     features: [
@@ -445,7 +445,7 @@ const products = [
       'repair': '₹2,500 - ₹4,000',
       'replacement': '₹4,000 - ₹8,000'
     },
-    image: '/images/products/ac-pcb.jpg',
+    image: '/images/products/ac-pcb.jpeg',
     rating: 4.7,
     reviewCount: 280,
     features: [
@@ -470,7 +470,7 @@ const products = [
     price: {
       'standard': '₹3,500 - ₹7,000'
     },
-    image: '/images/products/washing-motor.jpg',
+    image: '/images/products/washing-motor.jpeg',
     rating: 4.6,
     reviewCount: 150,
     features: [
@@ -495,7 +495,7 @@ const products = [
     price: {
       'standard': '₹6,000 - ₹12,000'
     },
-    image: '/images/products/fridge-compressor.jpg',
+    image: '/images/products/fridge-compressor.jpeg',
     rating: 4.7,
     reviewCount: 130,
     features: [
@@ -519,8 +519,8 @@ products.forEach(product => {
     const baseImage = product.image;
     
     // Create variations of the base image path to simulate multiple product images
-    // For example, if base image is '/images/products/tv-screen.jpg'
-    // We'll create '/images/products/tv-screen-1.jpg', '/images/products/tv-screen-2.jpg', etc.
+    // For example, if base image is '/images/products/tv-screen.jpeg'
+    // We'll create '/images/products/tv-screen-1.jpeg', '/images/products/tv-screen-2.jpeg', etc.
     
     const imagePath = baseImage.substring(0, baseImage.lastIndexOf('.'));
     const imageExt = baseImage.substring(baseImage.lastIndexOf('.'));
@@ -538,11 +538,11 @@ products.forEach(product => {
 const tvScreenReplacementIndex = products.findIndex(product => product.id === 'tv-screen-replacement');
 if (tvScreenReplacementIndex !== -1) {
   products[tvScreenReplacementIndex].images = [
-    '/images/products/tv-screen-replacement.jpg',
-    '/images/products/tv-screen-replacement-front.jpg',
-    '/images/products/tv-screen-replacement-side.jpg',
-    '/images/products/tv-screen-replacement-detail.jpg',
-    '/images/products/tv-screen-replacement-installed.jpg'
+    '/images/products/tv-screen-replacement.jpeg',
+    '/images/products/tv-screen-replacement-front.jpeg',
+    '/images/products/tv-screen-replacement-side.jpeg',
+    '/images/products/tv-screen-replacement-detail.jpeg',
+    '/images/products/tv-screen-replacement-installed.jpeg'
   ];
 }
 
@@ -555,7 +555,7 @@ export const modelProducts = {
       title: 'Galaxy S24 Ultra Screen Replacement',
       description: 'Replace cracked or damaged screen of Samsung Galaxy S24 Ultra with original display.',
       price: '₹25,000 - ₹35,000',
-      image: '/images/products/s24-ultra-screen.jpg',
+      image: '/images/products/s24-ultra-screen.jpeg',
       rating: 4.8,
       reviewCount: 45,
       features: [
@@ -574,7 +574,7 @@ export const modelProducts = {
       title: 'Galaxy S24 Ultra Battery Replacement',
       description: 'Replace the battery of your Samsung Galaxy S24 Ultra for improved performance.',
       price: '₹4,500 - ₹6,000',
-      image: '/images/products/s24-ultra-battery.jpg',
+      image: '/images/products/s24-ultra-battery.jpeg',
       rating: 4.9,
       reviewCount: 38,
       features: [
@@ -595,7 +595,7 @@ export const modelProducts = {
       title: 'iPhone 15 Pro Max Screen Replacement',
       description: 'Replace damaged screen of iPhone 15 Pro Max with original display.',
       price: '₹35,000 - ₹45,000',
-      image: '/images/products/iphone-15-pro-max-screen.jpg',
+      image: '/images/products/iphone-15-pro-max-screen.jpeg',
       rating: 4.7,
       reviewCount: 52,
       features: [
@@ -617,7 +617,7 @@ export const modelProducts = {
       title: 'Voltas 1.5T Inverter AC PCB Repair',
       description: 'Repair or replace the PCB of your Voltas 1.5T Inverter AC.',
       price: '₹3,500 - ₹5,000',
-      image: '/images/products/voltas-pcb.jpg',
+      image: '/images/products/voltas-pcb.jpeg',
       rating: 4.6,
       reviewCount: 28,
       features: [
@@ -854,32 +854,32 @@ export const bookingDevices = {
 // Add specific images for other popular products
 const popularProductImages = {
   'mobile-screen-replacement': [
-    '/images/products/mobile-screen-replacement.jpg',
-    '/images/products/mobile-screen-replacement-display.jpg',
-    '/images/products/mobile-screen-replacement-components.jpg',
-    '/images/products/mobile-screen-replacement-repair.jpg',
-    '/images/products/mobile-screen-replacement-tools.jpg'
+    '/images/products/mobile-screen-replacement.jpeg',
+    '/images/products/mobile-screen-replacement-display.jpeg',
+    '/images/products/mobile-screen-replacement-components.jpeg',
+    '/images/products/mobile-screen-replacement-repair.jpeg',
+    '/images/products/mobile-screen-replacement-tools.jpeg'
   ],
   'laptop-keyboard-replacement': [
-    '/images/products/laptop-keyboard-replacement.jpg',
-    '/images/products/laptop-keyboard-replacement-top.jpg',
-    '/images/products/laptop-keyboard-replacement-close.jpg',
-    '/images/products/laptop-keyboard-replacement-side.jpg',
-    '/images/products/laptop-keyboard-replacement-detail.jpg'
+    '/images/products/laptop-keyboard-replacement.jpeg',
+    '/images/products/laptop-keyboard-replacement-top.jpeg',
+    '/images/products/laptop-keyboard-replacement-close.jpeg',
+    '/images/products/laptop-keyboard-replacement-side.jpeg',
+    '/images/products/laptop-keyboard-replacement-detail.jpeg'
   ],
   'ac-gas-refill': [
-    '/images/products/ac-gas-refill.jpg',
-    '/images/products/ac-gas-refill-unit.jpg',
-    '/images/products/ac-gas-refill-technician.jpg',
-    '/images/products/ac-gas-refill-gauge.jpg',
-    '/images/products/ac-gas-refill-complete.jpg'
+    '/images/products/ac-gas-refill.jpeg',
+    '/images/products/ac-gas-refill-unit.jpeg',
+    '/images/products/ac-gas-refill-technician.jpeg',
+    '/images/products/ac-gas-refill-gauge.jpeg',
+    '/images/products/ac-gas-refill-complete.jpeg'
   ],
   'washing-machine-motor-replacement': [
-    '/images/products/washing-machine-motor-replacement.jpg',
-    '/images/products/washing-machine-motor-replacement-parts.jpg',
-    '/images/products/washing-machine-motor-replacement-inside.jpg',
-    '/images/products/washing-machine-motor-replacement-installed.jpg',
-    '/images/products/washing-machine-motor-replacement-close.jpg'
+    '/images/products/washing-machine-motor-replacement.jpeg',
+    '/images/products/washing-machine-motor-replacement-parts.jpeg',
+    '/images/products/washing-machine-motor-replacement-inside.jpeg',
+    '/images/products/washing-machine-motor-replacement-installed.jpeg',
+    '/images/products/washing-machine-motor-replacement-close.jpeg'
   ]
 };
 
