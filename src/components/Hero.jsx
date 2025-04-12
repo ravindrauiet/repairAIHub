@@ -70,19 +70,20 @@ const Hero = () => {
           <div className="hero-images">
             <img 
               src="/images/hero/technician-1.jpg" 
-              alt="Technician repairing a device" 
+              alt="Professional technician repairing electronic device" 
               className="hero-image-1"
             />
             <img 
               src="/images/hero/technician-2.jpg" 
-              alt="Technician repairing an appliance" 
+              alt="Expert repairing home appliance" 
               className="hero-image-2"
             />
             <img 
               src="/images/hero/technician-3.jpg" 
-              alt="Satisfied customer" 
+              alt="Customer with repaired device" 
               className="hero-image-3"
             />
+            <div className="images-overlay"></div>
           </div>
         </div>
       </div>
