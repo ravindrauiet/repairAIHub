@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../firebase/config';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../firebase/config';
 import '../styles/auth.css';
 
 const SignupPage = () => {
@@ -110,7 +111,24 @@ const SignupPage = () => {
           displayName: formData.name
         });
         
-        console.log('User registered successfully:', userCredential.user);
+        // Save additional user data to Firestore
+        await setDoc(doc(db, "users", userCredential.user.uid), {
+          uid: userCredential.user.uid,
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: {
+            street: '',
+            city: '',
+            state: '',
+            pincode: ''
+          },
+          photoURL: userCredential.user.photoURL || '',
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        
+        console.log('User registered successfully and data saved to Firestore');
         
         // Redirect to profile page
         navigate('/profile');

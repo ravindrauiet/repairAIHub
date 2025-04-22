@@ -1,26 +1,30 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase/config';
+import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../firebase/config';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import '../styles/profile.css';
 
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filteredBookings, setFilteredBookings] = useState([]);
   const [activeBookingFilter, setActiveBookingFilter] = useState('all');
   const [purchaseHistory, setPurchaseHistory] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editFormData, setEditFormData] = useState({});
   const { cartItems } = useCart();
   const { wishlist, removeFromWishlist } = useWishlist();
   
   const navigate = useNavigate();
   
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       console.log('ProfilePage: Firebase auth state changed:', currentUser ? 'User logged in' : 'No user');
       
       if (!currentUser) {
@@ -29,20 +33,74 @@ const ProfilePage = () => {
         return;
       }
       
-      // Set user data from Firebase
+      // Set basic user data from Firebase Auth
       setUser({
         id: currentUser.uid,
         name: currentUser.displayName || 'User',
         email: currentUser.email,
         phone: currentUser.phoneNumber || '',
         avatar: currentUser.photoURL || '',
-        address: {
-          street: '123 Main St',
-          city: 'Mumbai',
-          state: 'Maharashtra',
-          pincode: '400001'
-        }
+        createdAt: currentUser.metadata.creationTime
       });
+      
+      try {
+        // Fetch detailed user data from Firestore
+        const userRef = doc(db, "users", currentUser.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          console.log('User data from Firestore:', userData);
+          
+          // Set detailed user profile from Firestore
+          setUserProfile(userData);
+          
+          // Update edit form data with current user values
+          setEditFormData({
+            name: userData.name || currentUser.displayName || '',
+            email: userData.email || currentUser.email || '',
+            phone: userData.phone || currentUser.phoneNumber || '',
+            street: userData.address?.street || '',
+            city: userData.address?.city || '',
+            state: userData.address?.state || '',
+            pincode: userData.address?.pincode || ''
+          });
+        } else {
+          console.log('No user data found in Firestore, creating new document');
+          // Create a new user document if it doesn't exist
+          const newUserData = {
+            uid: currentUser.uid,
+            name: currentUser.displayName || 'User',
+            email: currentUser.email,
+            phone: currentUser.phoneNumber || '',
+            address: {
+              street: '',
+              city: '',
+              state: '',
+              pincode: ''
+            },
+            photoURL: currentUser.photoURL || '',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
+          
+          await updateDoc(userRef, newUserData);
+          setUserProfile(newUserData);
+          
+          // Set edit form with basic data
+          setEditFormData({
+            name: currentUser.displayName || '',
+            email: currentUser.email || '',
+            phone: currentUser.phoneNumber || '',
+            street: '',
+            city: '',
+            state: '',
+            pincode: ''
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching user profile from Firestore:', err);
+      }
       
       // Mock bookings data since we're not using the API
       const mockBookings = [
@@ -163,6 +221,58 @@ const ProfilePage = () => {
   const countBookingsByStatus = (status) => {
     if (status === 'all') return bookings.length;
     return bookings.filter(booking => booking.status === status).length;
+  };
+  
+  // Handle profile edit form changes
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData({
+      ...editFormData,
+      [name]: value
+    });
+  };
+  
+  // Save profile changes
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const userRef = doc(db, "users", user.id);
+      
+      await updateDoc(userRef, {
+        name: editFormData.name,
+        email: editFormData.email,
+        phone: editFormData.phone,
+        address: {
+          street: editFormData.street,
+          city: editFormData.city,
+          state: editFormData.state,
+          pincode: editFormData.pincode
+        },
+        updatedAt: serverTimestamp()
+      });
+      
+      // Update userProfile state
+      setUserProfile({
+        ...userProfile,
+        name: editFormData.name,
+        email: editFormData.email,
+        phone: editFormData.phone,
+        address: {
+          street: editFormData.street,
+          city: editFormData.city,
+          state: editFormData.state,
+          pincode: editFormData.pincode
+        }
+      });
+      
+      // Exit edit mode
+      setIsEditing(false);
+      
+      console.log('Profile updated successfully');
+    } catch (err) {
+      console.error('Error updating profile:', err);
+    }
   };
   
   const renderWishlistTab = () => (
@@ -599,20 +709,77 @@ const ProfilePage = () => {
                 
                 <div className="settings-section">
                   <h3>Personal Information</h3>
-                  <form className="settings-form">
+                  <form className="settings-form" onSubmit={handleSaveProfile}>
                     <div className="form-group">
                       <label>Full Name</label>
-                      <input type="text" defaultValue={user.name} />
+                      <input 
+                        type="text" 
+                        name="name"
+                        value={editFormData.name} 
+                        onChange={handleEditChange} 
+                      />
                     </div>
                     
                     <div className="form-group">
                       <label>Email Address</label>
-                      <input type="email" defaultValue={user.email} />
+                      <input 
+                        type="email" 
+                        name="email"
+                        value={editFormData.email} 
+                        onChange={handleEditChange} 
+                        disabled 
+                      />
                     </div>
                     
                     <div className="form-group">
                       <label>Phone Number</label>
-                      <input type="tel" defaultValue="+91 9876543210" />
+                      <input 
+                        type="tel" 
+                        name="phone"
+                        value={editFormData.phone} 
+                        onChange={handleEditChange} 
+                      />
+                    </div>
+                    
+                    <h4>Address</h4>
+                    <div className="form-group">
+                      <label>Street Address</label>
+                      <input 
+                        type="text" 
+                        name="street"
+                        value={editFormData.street} 
+                        onChange={handleEditChange} 
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>City</label>
+                      <input 
+                        type="text" 
+                        name="city"
+                        value={editFormData.city} 
+                        onChange={handleEditChange} 
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>State</label>
+                      <input 
+                        type="text" 
+                        name="state"
+                        value={editFormData.state} 
+                        onChange={handleEditChange} 
+                      />
+                    </div>
+                    
+                    <div className="form-group">
+                      <label>Postal Code</label>
+                      <input 
+                        type="text" 
+                        name="pincode"
+                        value={editFormData.pincode} 
+                        onChange={handleEditChange} 
+                      />
                     </div>
                     
                     <button type="submit" className="btn-primary">Save Changes</button>

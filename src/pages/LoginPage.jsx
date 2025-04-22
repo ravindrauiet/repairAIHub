@@ -6,7 +6,8 @@ import {
   getRedirectResult,
   onAuthStateChanged 
 } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/config';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db, googleProvider } from '../firebase/config';
 import '../styles/auth.css';
 
 const LoginPage = () => {
@@ -31,6 +32,39 @@ const LoginPage = () => {
         const result = await getRedirectResult(auth);
         if (result?.user) {
           console.log('Google sign in successful (redirect):', result.user);
+          
+          // Check if user exists in Firestore, if not create a new document
+          const userRef = doc(db, "users", result.user.uid);
+          const userSnap = await getDoc(userRef);
+          
+          if (!userSnap.exists()) {
+            // User doesn't exist in Firestore, create new document
+            await setDoc(userRef, {
+              uid: result.user.uid,
+              name: result.user.displayName || 'User',
+              email: result.user.email,
+              phone: result.user.phoneNumber || '',
+              address: {
+                street: '',
+                city: '',
+                state: '',
+                pincode: ''
+              },
+              photoURL: result.user.photoURL || '',
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+              lastLogin: serverTimestamp()
+            });
+            console.log('New Google user data saved to Firestore');
+          } else {
+            // Update last login time
+            await setDoc(userRef, {
+              lastLogin: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+            console.log('User login time updated in Firestore');
+          }
+          
           navigate('/profile');
         }
       } catch (err) {
@@ -110,7 +144,14 @@ const LoginPage = () => {
           formData.password
         );
         
-        console.log('Login successful:', userCredential.user);
+        // Update last login time in Firestore
+        const userRef = doc(db, "users", userCredential.user.uid);
+        await setDoc(userRef, {
+          lastLogin: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        
+        console.log('Login successful, login time updated in Firestore');
         navigate('/profile');
       } catch (err) {
         console.error('Login error:', err);
