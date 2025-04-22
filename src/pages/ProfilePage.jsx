@@ -535,6 +535,12 @@ const ProfilePage = () => {
                     Completed ({countBookingsByStatus('completed')})
                   </button>
                   <button 
+                    className={activeBookingFilter === 'pending' ? 'active' : ''}
+                    onClick={() => filterBookings('pending')}
+                  >
+                    Pending ({countBookingsByStatus('pending')})
+                  </button>
+                  <button 
                     className={activeBookingFilter === 'cancelled' ? 'active' : ''}
                     onClick={() => filterBookings('cancelled')}
                   >
@@ -551,67 +557,122 @@ const ProfilePage = () => {
                 ) : (
                   <div className="bookings-list">
                     {filteredBookings.map(booking => (
-                      <div key={booking.id} className="booking-card">
-                        <div className="booking-header">
+                      <div key={booking.id} className="booking-card modern">
+                        <div className="booking-card-header">
+                          <div className="service-icon">
+                            <i className={`fas fa-${booking.service.icon || 'wrench'}`}></i>
+                          </div>
                           <div className="booking-title">
                             <h3>{booking.service.title}</h3>
+                            <div className="booking-meta">
+                              <span className="booking-id">#{booking.id}</span>
+                              <span className="booking-date">
+                                <i className="far fa-calendar-alt"></i>
+                                {new Date(booking.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              </span>
+                              <span className="booking-time">
+                                <i className="far fa-clock"></i>
+                                {booking.time}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="booking-status-container">
                             <span className={`status-badge ${booking.status}`}>
                               {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                             </span>
                           </div>
-                          <div className="booking-id">
-                            Booking ID: <span>#{booking.id}</span>
+                        </div>
+                        
+                        <div className="booking-card-content">
+                          <div className="booking-details-grid">
+                            <div className="booking-detail-group">
+                              <h4>Device Information</h4>
+                              <div className="detail-item">
+                                <label>Brand:</label>
+                                <span>{booking.details?.deviceBrand || 'Not specified'}</span>
+                              </div>
+                              <div className="detail-item">
+                                <label>Model:</label>
+                                <span>{booking.details?.deviceModel || 'Not specified'}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="booking-detail-group">
+                              <h4>Service Location</h4>
+                              <div className="detail-item">
+                                <label>Address:</label>
+                                <span>{booking.address}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="booking-detail-group">
+                              <h4>Issue Details</h4>
+                              <div className="detail-item description">
+                                <p>{booking.details?.issueDescription || 'No description provided'}</p>
+                              </div>
+                              {booking.details?.additionalInfo && (
+                                <div className="detail-item notes">
+                                  <label>Additional Notes:</label>
+                                  <p>{booking.details.additionalInfo}</p>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="booking-detail-group">
+                              <h4>Pricing</h4>
+                              <div className="detail-item price">
+                                <label>Service Fee:</label>
+                                <span className="price-value">
+                                  {booking.total > 0 ? `₹${booking.total.toLocaleString('en-IN')}` : 'To be determined'}
+                                </span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                         
-                        <div className="booking-details">
-                          <div className="booking-detail">
-                            <i className="fas fa-calendar"></i>
-                            <div>
-                              <span className="label">Date</span>
-                              <span className="value">{new Date(booking.date).toLocaleDateString()}</span>
+                        <div className="booking-card-footer">
+                          <div className="booking-timeline">
+                            <div className={`timeline-step ${booking.status !== 'cancelled' ? 'completed' : ''}`}>
+                              <div className="step-icon"><i className="fas fa-clipboard-check"></i></div>
+                              <div className="step-label">Booked</div>
+                            </div>
+                            <div className={`timeline-connector ${booking.status === 'pending' || booking.status === 'active' || booking.status === 'completed' ? 'active' : ''}`}></div>
+                            <div className={`timeline-step ${booking.status === 'active' || booking.status === 'completed' ? 'completed' : ''}`}>
+                              <div className="step-icon"><i className="fas fa-tools"></i></div>
+                              <div className="step-label">In Progress</div>
+                            </div>
+                            <div className={`timeline-connector ${booking.status === 'completed' ? 'active' : ''}`}></div>
+                            <div className={`timeline-step ${booking.status === 'completed' ? 'completed' : ''}`}>
+                              <div className="step-icon"><i className="fas fa-check-circle"></i></div>
+                              <div className="step-label">Completed</div>
                             </div>
                           </div>
                           
-                          <div className="booking-detail">
-                            <i className="fas fa-clock"></i>
-                            <div>
-                              <span className="label">Time</span>
-                              <span className="value">{booking.time}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="booking-detail">
-                            <i className="fas fa-map-marker-alt"></i>
-                            <div>
-                              <span className="label">Address</span>
-                              <span className="value">{booking.address}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="booking-detail">
-                            <i className="fas fa-rupee-sign"></i>
-                            <div>
-                              <span className="label">Total</span>
-                              <span className="value">₹{booking.total.toLocaleString('en-IN')}</span>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <div className="booking-actions">
-                          <Link to={`/services/${booking.service.id}`} className="btn-outline">
-                            View Service
-                          </Link>
-                          {booking.status === 'active' && (
-                            <button className="btn-outline btn-danger">
-                              Cancel Booking
-                            </button>
-                          )}
-                          {booking.status === 'completed' && (
+                          <div className="booking-actions">
+                            {booking.status === 'pending' && (
+                              <>
+                                <button className="btn-outline btn-reschedule">
+                                  <i className="fas fa-clock"></i> Reschedule
+                                </button>
+                                <button className="btn-outline btn-danger">
+                                  <i className="fas fa-times-circle"></i> Cancel
+                                </button>
+                              </>
+                            )}
+                            {booking.status === 'active' && (
+                              <button className="btn-outline btn-danger">
+                                <i className="fas fa-times-circle"></i> Cancel
+                              </button>
+                            )}
+                            {booking.status === 'completed' && (
+                              <button className="btn-outline">
+                                <i className="fas fa-star"></i> Review
+                              </button>
+                            )}
                             <button className="btn-outline">
-                              Leave Review
+                              <i className="fas fa-headset"></i> Support
                             </button>
-                          )}
+                          </div>
                         </div>
                       </div>
                     ))}
