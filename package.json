@@ -12,6 +12,7 @@
   "dependencies": {
     "@fortawesome/react-fontawesome": "^0.2.2",
     "axios": "^1.8.4",
+    "firebase": "^11.6.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.4.1"
