@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth } from '../firebase/config';
 import '../styles/auth.css';
 
 const SignupPage = () => {
@@ -22,10 +23,13 @@ const SignupPage = () => {
   
   // Check if user is already logged in
   useEffect(() => {
-    const loggedInUser = localStorage.getItem('currentUser');
-    if (loggedInUser) {
-      navigate('/profile');
-    }
+    const unsubscribe = auth.onAuthStateChanged(user => {
+      if (user) {
+        navigate('/profile');
+      }
+    });
+    
+    return () => unsubscribe();
   }, [navigate]);
   
   const handleChange = (e) => {
@@ -94,33 +98,27 @@ const SignupPage = () => {
       setIsSubmitting(true);
       
       try {
-        const response = await axios.post('http://localhost:5000/api/auth/register', {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          phone: formData.phone
+        // Create user with Firebase Authentication
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+        
+        // Update the user profile with display name
+        await updateProfile(userCredential.user, {
+          displayName: formData.name
         });
         
-        const { success, token, user } = response.data;
+        console.log('User registered successfully:', userCredential.user);
         
-        if (success) {
-          // Store token in local storage
-          localStorage.setItem('token', token);
-          
-          // Redirect to profile page
-          navigate('/profile');
-        } else {
-          setErrors({
-            ...errors,
-            email: 'Registration failed. Please try again.'
-          });
-        }
+        // Redirect to profile page
+        navigate('/profile');
       } catch (err) {
         console.error('Registration error:', err);
         
-        // Check if the error is due to email already in use
-        if (err.response?.status === 409 || 
-            err.response?.data?.message?.includes('already exists')) {
+        // Handle Firebase-specific errors
+        if (err.code === 'auth/email-already-in-use') {
           setErrors({
             ...errors,
             email: 'This email is already registered'
@@ -128,7 +126,7 @@ const SignupPage = () => {
         } else {
           setErrors({
             ...errors,
-            email: err.response?.data?.message || 'Registration failed. Please try again.'
+            email: err.message || 'Registration failed. Please try again.'
           });
         }
       } finally {

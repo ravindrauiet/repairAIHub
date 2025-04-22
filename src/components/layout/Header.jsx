@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../../firebase/config';
 import { getAllServices } from '../../data/services';
 import { useCart } from '../../context/CartContext';
 
@@ -24,52 +25,30 @@ const Header = () => {
     return acc;
   }, {});
 
-  // Check if user is logged in
+  // Check if user is logged in using Firebase
   useEffect(() => {
-    const checkLoginStatus = async () => {
-      const token = localStorage.getItem('token');
-      console.log('Header: Checking login token:', token ? 'Token exists' : 'No token');
-      
-      if (token) {
-        try {
-          console.log('Header: Fetching user profile');
-          const response = await axios.get('http://localhost:5000/api/users/profile', {
-            headers: {
-              'x-auth-token': token
-            }
-          });
-          
-          console.log('Header: User profile response:', response.data);
-          const userData = response.data.user;
-          setUser(userData);
-          
-          // Check if user has admin role
-          setIsAdmin(userData.roles && userData.roles.includes('admin'));
-          console.log('Header: User is admin:', userData.roles && userData.roles.includes('admin'));
-        } catch (err) {
-          console.error('Header: Error fetching user profile:', err.response?.data || err.message);
-          localStorage.removeItem('token');
-          setUser(null);
-          setIsAdmin(false);
-        }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        console.log('Header: Firebase user logged in:', currentUser.displayName);
+        setUser({
+          name: currentUser.displayName || 'User',
+          email: currentUser.email,
+          photoURL: currentUser.photoURL,
+          uid: currentUser.uid,
+          createdAt: currentUser.metadata.creationTime
+        });
+        
+        // You can implement admin check here if needed
+        // For now, no admin role is set
+        setIsAdmin(false);
       } else {
+        console.log('Header: No Firebase user logged in');
         setUser(null);
         setIsAdmin(false);
       }
-    };
-    
-    checkLoginStatus();
-    
-    // Listen for storage events to update when login/logout happens in other tabs
-    window.addEventListener('storage', (e) => {
-      if (e.key === 'token') {
-        checkLoginStatus();
-      }
     });
     
-    return () => {
-      window.removeEventListener('storage', () => {});
-    };
+    return () => unsubscribe();
   }, []);
 
   // Close mobile menu when route changes
@@ -117,6 +96,11 @@ const Header = () => {
     if (window.innerWidth > 768) {
       setServicesDropdownOpen(false);
     }
+  };
+
+  const handleLogout = () => {
+    auth.signOut();
+    window.location.href = '/login';
   };
 
   return (
@@ -218,7 +202,16 @@ const Header = () => {
               <li className="auth-links">
                 <div className="user-dropdown">
                   <div className="profile-link">
-                    <span className="profile-icon">{user.name.charAt(0).toUpperCase()}</span>
+                    {user.photoURL ? (
+                      <img 
+                        src={user.photoURL} 
+                        alt={user.name} 
+                        className="profile-photo"
+                        style={{ width: '30px', height: '30px', borderRadius: '50%' }}
+                      />
+                    ) : (
+                      <span className="profile-icon">{user.name.charAt(0).toUpperCase()}</span>
+                    )}
                     <span className="profile-name">{user.name}</span>
                     <i className="fas fa-caret-down"></i>
                   </div>
@@ -233,10 +226,7 @@ const Header = () => {
                     )}
                     <button 
                       className="dropdown-item"
-                      onClick={() => {
-                        localStorage.removeItem('token');
-                        window.location.href = '/login';
-                      }}
+                      onClick={handleLogout}
                     >
                       <i className="fas fa-sign-out-alt"></i> Logout
                     </button>
@@ -247,9 +237,6 @@ const Header = () => {
               <li className="auth-links">
                 <NavLink to="/login" className="login-link">
                   Login
-                </NavLink>
-                <NavLink to="/signup" className="signup-link">
-                  Sign Up
                 </NavLink>
               </li>
             )}

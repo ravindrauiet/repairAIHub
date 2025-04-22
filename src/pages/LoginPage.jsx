@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { 
+  signInWithEmailAndPassword, 
+  signInWithRedirect, 
+  getRedirectResult,
+  onAuthStateChanged 
+} from 'firebase/auth';
+import { auth, googleProvider } from '../firebase/config';
 import '../styles/auth.css';
 
 const LoginPage = () => {
@@ -17,34 +23,34 @@ const LoginPage = () => {
   
   const navigate = useNavigate();
   
-  // Check if user is already logged in
+  // Check if user is already logged in and handle redirect result
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      // Verify token validity
-      const checkAuth = async () => {
-        try {
-          const response = await axios.get('http://localhost:5000/api/users/profile', {
-            headers: {
-              'x-auth-token': token
-            }
-          });
-          
-          const user = response.data.user;
-          
-          if (user.roles && user.roles.includes('admin')) {
-            navigate('/admin');
-          } else {
-            navigate('/profile');
-          }
-        } catch (err) {
-          // Token is invalid or expired
-          localStorage.removeItem('token');
+    // Check for redirect result on page load
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result?.user) {
+          console.log('Google sign in successful (redirect):', result.user);
+          navigate('/profile');
         }
-      };
-      
-      checkAuth();
-    }
+      } catch (err) {
+        console.error('Google redirect sign in error:', err);
+        setLoginError(err.message);
+      }
+    };
+
+    handleRedirectResult();
+
+    // Check auth state
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in
+        navigate('/profile');
+      }
+    });
+    
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, [navigate]);
   
   const handleChange = (e) => {
@@ -98,46 +104,37 @@ const LoginPage = () => {
       try {
         console.log('Attempting login with:', { email: formData.email });
         
-        // Try the auth endpoint first
-        let response;
-        try {
-          response = await axios.post('http://localhost:5000/api/auth/login', {
-            email: formData.email,
-            password: formData.password
-          });
-          console.log('Auth login response:', response.data);
-        } catch (authErr) {
-          console.log('Auth login failed, trying user login endpoint');
-          // If auth endpoint fails, try the user endpoint
-          response = await axios.post('http://localhost:5000/api/users/login', {
-            email: formData.email,
-            password: formData.password
-          });
-          console.log('User login response:', response.data);
-        }
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
         
-        const data = response.data;
-        console.log('Login response data:', data);
-        
-        if (data.success && data.token) {
-          // Store token in local storage
-          localStorage.setItem('token', data.token);
-          console.log('Token stored in localStorage:', data.token);
-          
-          // Force reload to ensure state is reset across components
-          window.location.href = data.user && data.user.roles && 
-            data.user.roles.includes('admin') ? '/admin' : '/profile';
-          return;
-        } else {
-          setLoginError('Login failed. Please try again.');
-        }
+        console.log('Login successful:', userCredential.user);
+        navigate('/profile');
       } catch (err) {
         console.error('Login error:', err);
-        const errorMessage = err.response?.data?.message || 'Invalid email or password';
+        const errorMessage = err.code === 'auth/invalid-credential' 
+          ? 'Invalid email or password' 
+          : err.message;
         setLoginError(errorMessage);
       } finally {
         setIsSubmitting(false);
       }
+    }
+  };
+  
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsSubmitting(true);
+      // Use redirect instead of popup
+      await signInWithRedirect(auth, googleProvider);
+      // No need to navigate here as the redirect will happen
+      // and we'll handle the result in useEffect
+    } catch (err) {
+      console.error('Google sign in error:', err);
+      setLoginError(err.message);
+      setIsSubmitting(false);
     }
   };
   
@@ -217,7 +214,12 @@ const LoginPage = () => {
           </div>
           
           <div className="social-buttons">
-            <button type="button" className="social-btn">
+            <button 
+              type="button" 
+              className="social-btn" 
+              onClick={handleGoogleSignIn}
+              disabled={isSubmitting}
+            >
               <img src="https://cdn.jsdelivr.net/npm/simple-icons@v7/icons/google.svg" alt="Google" />
             </button>
             <button type="button" className="social-btn">
