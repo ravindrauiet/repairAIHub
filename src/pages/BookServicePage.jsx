@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, doc, serverTimestamp, updateDoc, arrayUnion } from 'firebase/firestore';
+import { 
+  collection, 
+  addDoc, 
+  doc, 
+  getDoc,
+  setDoc, 
+  updateDoc, 
+  serverTimestamp, 
+  arrayUnion 
+} from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import services from '../data/services';
 import BookingDeviceSelector from '../components/BookingDeviceSelector';
@@ -191,10 +200,35 @@ const BookServicePage = () => {
         // If user is logged in, update their profile with this booking reference
         if (user) {
           const userRef = doc(db, "users", user.id);
-          await updateDoc(userRef, {
-            bookings: arrayUnion(bookingRef.id),
-            updatedAt: serverTimestamp()
-          });
+          
+          // Check if user document exists first
+          const userDoc = await getDoc(userRef);
+          
+          if (userDoc.exists()) {
+            // Update existing user document
+            await updateDoc(userRef, {
+              bookings: arrayUnion(bookingRef.id),
+              updatedAt: serverTimestamp()
+            });
+          } else {
+            // Create new user document if it doesn't exist
+            await setDoc(userRef, {
+              uid: user.id,
+              name: user.name || '',
+              email: user.email || '',
+              phone: user.phone || '',
+              address: {
+                street: '',
+                city: '',
+                state: '',
+                pincode: ''
+              },
+              photoURL: '',
+              bookings: [bookingRef.id],
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            });
+          }
         }
         
         setIsSubmitting(false);

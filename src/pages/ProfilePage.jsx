@@ -4,7 +4,8 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { 
   doc, 
   getDoc, 
-  updateDoc, 
+  updateDoc,
+  setDoc,
   collection, 
   query, 
   where, 
@@ -97,7 +98,8 @@ const ProfilePage = () => {
             updatedAt: serverTimestamp()
           };
           
-          await updateDoc(userRef, newUserData);
+          // Use setDoc instead of updateDoc to create the document
+          await setDoc(userRef, newUserData);
           setUserProfile(newUserData);
           
           // Set edit form with basic data
