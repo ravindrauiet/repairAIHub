@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, addDoc, doc, serverTimestamp, updateDoc, arrayUnion } from 'firebase/firestore';
+import { auth, db } from '../firebase/config';
 import services from '../data/services';
 import BookingDeviceSelector from '../components/BookingDeviceSelector';
 
@@ -27,19 +30,30 @@ const BookServicePage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [bookingReference, setBookingReference] = useState('');
   
   // Check if user is logged in and get service from location state
   useEffect(() => {
-    const loggedInUser = JSON.parse(localStorage.getItem('currentUser'));
-    if (loggedInUser) {
-      setUser(loggedInUser);
-      // Pre-fill user details
-      setFormData(prev => ({
-        ...prev,
-        name: loggedInUser.name || '',
-        email: loggedInUser.email || ''
-      }));
-    }
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser({
+          id: currentUser.uid,
+          name: currentUser.displayName || '',
+          email: currentUser.email || '',
+          phone: currentUser.phoneNumber || ''
+        });
+        
+        // Pre-fill user details
+        setFormData(prev => ({
+          ...prev,
+          name: currentUser.displayName || '',
+          email: currentUser.email || '',
+          phone: currentUser.phoneNumber || ''
+        }));
+      } else {
+        setUser(null);
+      }
+    });
 
     // Get service from location state if available
     if (location.state?.service) {
@@ -49,6 +63,8 @@ const BookServicePage = () => {
         serviceType: location.state.service.id
       }));
     }
+    
+    return () => unsubscribe();
   }, [location]);
   
   // Get time slots for booking
@@ -134,41 +150,52 @@ const BookServicePage = () => {
   };
   
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validateForm()) {
       setIsSubmitting(true);
       
-      // Simulate API call
-      setTimeout(() => {
-        // Create a new booking
-        const booking = {
-          id: Date.now().toString(),
+      try {
+        // Get the selected service details
+        const serviceDetails = services.find(service => service.id === formData.serviceType) || {};
+        
+        // Create a new booking object
+        const bookingData = {
           ...formData,
+          userId: user?.id || null,
           status: 'pending',
-          createdAt: new Date().toISOString()
+          service: {
+            id: serviceDetails.id || '',
+            title: serviceDetails.title || '',
+            icon: serviceDetails.icon || '',
+            price: serviceDetails.price || 0
+          },
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
         };
         
-        // If user is logged in, save booking to their profile
-        if (user) {
-          const users = JSON.parse(localStorage.getItem('users')) || [];
-          const updatedUsers = users.map(u => {
-            if (u.id === user.id) {
-              return {
-                ...u,
-                bookings: [...(u.bookings || []), booking]
-              };
-            }
-            return u;
-          });
-          
-          localStorage.setItem('users', JSON.stringify(updatedUsers));
-        }
+        // Save the booking to Firestore
+        const bookingRef = await addDoc(collection(db, "bookings"), bookingData);
+        console.log("Booking saved with ID: ", bookingRef.id);
         
-        // Save all bookings to localStorage for reference
-        const allBookings = JSON.parse(localStorage.getItem('bookings')) || [];
-        localStorage.setItem('bookings', JSON.stringify([...allBookings, booking]));
+        // Generate a booking reference number
+        const bookingId = `BKG-${Date.now().toString().slice(-6)}`;
+        setBookingReference(bookingId);
+        
+        // Update the booking with the reference ID
+        await updateDoc(doc(db, "bookings", bookingRef.id), {
+          bookingId: bookingId
+        });
+        
+        // If user is logged in, update their profile with this booking reference
+        if (user) {
+          const userRef = doc(db, "users", user.id);
+          await updateDoc(userRef, {
+            bookings: arrayUnion(bookingRef.id),
+            updatedAt: serverTimestamp()
+          });
+        }
         
         setIsSubmitting(false);
         setShowSuccess(true);
@@ -181,7 +208,7 @@ const BookServicePage = () => {
           issueDescription: '',
           name: user ? user.name : '',
           email: user ? user.email : '',
-          phone: '',
+          phone: user ? user.phone : '',
           address: '',
           city: '',
           pincode: '',
@@ -198,7 +225,11 @@ const BookServicePage = () => {
             navigate('/');
           }
         }, 3000);
-      }, 1000);
+      } catch (error) {
+        console.error("Error adding booking: ", error);
+        setIsSubmitting(false);
+        // Handle error display to user here
+      }
     }
   };
   
@@ -222,7 +253,7 @@ const BookServicePage = () => {
             <div className="success-icon">✓</div>
             <h2>Booking Successful!</h2>
             <p>Your service request has been submitted successfully. Our team will contact you shortly to confirm your appointment.</p>
-            <p>Booking reference: <strong>#{Date.now().toString().slice(-8)}</strong></p>
+            <p>Booking reference: <strong>{bookingReference}</strong></p>
             <div className="success-actions">
               {user ? (
                 <Link to="/profile" className="btn-primary">View in My Bookings</Link>

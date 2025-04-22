@@ -11,6 +11,10 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: ['firebase/app', 'firebase/auth', 'firebase/firestore']
+    include: [
+      'firebase/app', 
+      'firebase/auth', 
+      'firebase/firestore'
+    ]
   }
 })

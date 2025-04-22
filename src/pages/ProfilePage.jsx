@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  serverTimestamp 
+} from 'firebase/firestore';
 import { auth, db } from '../firebase/config';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -65,6 +74,9 @@ const ProfilePage = () => {
             state: userData.address?.state || '',
             pincode: userData.address?.pincode || ''
           });
+          
+          // Fetch user's bookings from Firestore
+          await fetchUserBookings(currentUser.uid);
         } else {
           console.log('No user data found in Firestore, creating new document');
           // Create a new user document if it doesn't exist
@@ -80,6 +92,7 @@ const ProfilePage = () => {
               pincode: ''
             },
             photoURL: currentUser.photoURL || '',
+            bookings: [],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
           };
@@ -97,58 +110,16 @@ const ProfilePage = () => {
             state: '',
             pincode: ''
           });
+          
+          // No bookings yet for new users
+          setBookings([]);
+          setFilteredBookings([]);
         }
       } catch (err) {
         console.error('Error fetching user profile from Firestore:', err);
       }
       
-      // Mock bookings data since we're not using the API
-      const mockBookings = [
-        {
-          id: 'BKG-1001',
-          service: {
-            id: 'SRV-101',
-            title: 'Phone Screen Repair',
-            icon: 'mobile-alt'
-          },
-          date: new Date().toISOString(),
-          time: '10:00 AM',
-          status: 'active',
-          address: '123 Main St, Mumbai',
-          total: 2499
-        },
-        {
-          id: 'BKG-1002',
-          service: {
-            id: 'SRV-102',
-            title: 'Laptop Battery Replacement',
-            icon: 'laptop'
-          },
-          date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-          time: '2:00 PM',
-          status: 'completed',
-          address: '123 Main St, Mumbai',
-          total: 3999
-        },
-        {
-          id: 'BKG-1003',
-          service: {
-            id: 'SRV-103',
-            title: 'Data Recovery',
-            icon: 'hdd'
-          },
-          date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-          time: '11:30 AM',
-          status: 'cancelled',
-          address: '123 Main St, Mumbai',
-          total: 4999
-        }
-      ];
-      
-      setBookings(mockBookings);
-      setFilteredBookings(mockBookings);
-      
-      // Mock purchase history
+      // Mock purchase history for now (could be implemented with Firestore later)
       const mockPurchases = [
         {
           id: 'ORD-1001',
@@ -197,6 +168,57 @@ const ProfilePage = () => {
     // Clean up subscription
     return () => unsubscribe();
   }, [navigate]);
+  
+  // Fetch user bookings from Firestore
+  const fetchUserBookings = async (userId) => {
+    try {
+      // Query bookings where userId matches the current user
+      const bookingsQuery = query(
+        collection(db, "bookings"),
+        where("userId", "==", userId)
+      );
+      
+      const bookingsSnapshot = await getDocs(bookingsQuery);
+      const userBookings = [];
+      
+      bookingsSnapshot.forEach((doc) => {
+        const data = doc.data();
+        
+        // Convert Firestore timestamp to readable date
+        const createdAt = data.createdAt?.toDate ? 
+          data.createdAt.toDate().toISOString() : 
+          new Date().toISOString();
+        
+        // Format the booking data
+        userBookings.push({
+          id: data.bookingId || doc.id,
+          service: data.service || {
+            id: data.serviceType || 'unknown',
+            title: data.serviceType || 'Service',
+            icon: 'wrench'
+          },
+          date: data.preferredDate || createdAt,
+          time: data.preferredTime || '10:00 AM',
+          status: data.status || 'pending',
+          address: `${data.address}, ${data.city}, ${data.pincode}`,
+          total: data.service?.price || 0,
+          details: data // Store full booking details for reference
+        });
+      });
+      
+      console.log('Fetched user bookings:', userBookings);
+      
+      // Sort bookings by date (newest first)
+      userBookings.sort((a, b) => new Date(b.date) - new Date(a.date));
+      
+      setBookings(userBookings);
+      setFilteredBookings(userBookings);
+    } catch (error) {
+      console.error("Error fetching user bookings:", error);
+      setBookings([]);
+      setFilteredBookings([]);
+    }
+  };
   
   const handleLogout = () => {
     // Sign out from Firebase
