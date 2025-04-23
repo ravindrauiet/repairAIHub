@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { Link } from 'react-router-dom';
+import { 
+  getAllModels, 
+  getAllBrands, 
+  deleteModel 
+} from '../../services/firestoreService';
+import { storage } from '../../firebase/config';
+import { ref, deleteObject } from 'firebase/storage';
+import { toast } from 'react-toastify';
 
 const ModelList = () => {
   // State for device models and form
@@ -8,284 +16,239 @@ const ModelList = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Form state
-  const [newModel, setNewModel] = useState({
-    name: '',
-    brandId: '',
-    deviceType: '',
-    releaseYear: '',
-    description: ''
-  });
-  const [editingModel, setEditingModel] = useState(null);
-  const [formErrors, setFormErrors] = useState({});
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [brandFilter, setBrandFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage] = useState(10);
   
   // Delete confirmation state
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [modelToDelete, setModelToDelete] = useState(null);
-  
-  // Device type options
-  const deviceTypes = [
-    { value: 'smartphone', label: 'Smartphone' },
-    { value: 'tablet', label: 'Tablet' },
-    { value: 'laptop', label: 'Laptop' },
-    { value: 'desktop', label: 'Desktop' },
-    { value: 'smartwatch', label: 'Smartwatch' },
-    { value: 'other', label: 'Other' }
-  ];
+  const [isDeleting, setIsDeleting] = useState(false);
   
   // Fetch models and brands on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const token = localStorage.getItem('token');
-        
-        // Fetch brands first
-        const brandsResponse = await axios.get('http://localhost:5000/api/brands', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        
-        setBrands(brandsResponse.data.brands);
-        
-        // Then fetch models
-        const modelsResponse = await axios.get('http://localhost:5000/api/models', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        
-        setModels(modelsResponse.data.models);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load data. Please try again.');
-        setLoading(false);
-      }
-    };
-    
     fetchData();
   }, []);
   
-  // Validate form
-  const validateForm = (data) => {
-    const errors = {};
-    
-    if (!data.name.trim()) {
-      errors.name = 'Model name is required';
-    }
-    
-    if (!data.brandId) {
-      errors.brandId = 'Brand is required';
-    }
-    
-    if (!data.deviceType) {
-      errors.deviceType = 'Device type is required';
-    }
-    
-    if (data.releaseYear && (isNaN(data.releaseYear) || parseInt(data.releaseYear) < 1980 || parseInt(data.releaseYear) > new Date().getFullYear())) {
-      errors.releaseYear = `Release year must be between 1980 and ${new Date().getFullYear()}`;
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  // Apply filters when filter parameters change
+  useEffect(() => {
+    applyFiltersAndPagination();
+  }, [searchTerm, brandFilter, currentPage]);
   
-  // Handle input change for form
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (editingModel) {
-      setEditingModel({
-        ...editingModel,
-        [name]: value
-      });
-    } else {
-      setNewModel({
-        ...newModel,
-        [name]: value
-      });
-    }
-    
-    // Clear error if user is correcting it
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: null
-      });
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch brands first
+      const brandsData = await getAllBrands();
+      setBrands(brandsData);
+      
+      // Then fetch models
+      const modelsData = await getAllModels();
+      setModels(modelsData);
+      
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('Failed to load data. Please try again.');
+      toast.error('Failed to load data from database');
+      setLoading(false);
     }
   };
   
-  // Add new model
-  const handleAddModel = async (e) => {
-    e.preventDefault();
+  // Apply client-side filtering and pagination
+  const applyFiltersAndPagination = () => {
+    let filteredModels = [...models];
     
-    if (!validateForm(newModel)) {
+    // Apply brand filter
+    if (brandFilter !== 'all') {
+      filteredModels = filteredModels.filter(model => model.brandId === brandFilter);
+    }
+    
+    // Apply search filter
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase();
+      filteredModels = filteredModels.filter(model => 
+        (model.name && model.name.toLowerCase().includes(searchLower)) ||
+        (model.description && model.description.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Calculate total pages
+    const total = filteredModels.length;
+    const calculatedTotalPages = Math.ceil(total / itemsPerPage);
+    
+    // Ensure valid current page
+    if (currentPage > calculatedTotalPages && calculatedTotalPages > 0) {
+      setCurrentPage(1);
       return;
     }
     
-    try {
-      const token = localStorage.getItem('token');
-      
-      // Prepare data for submission
-      const modelData = { ...newModel };
-      
-      // Convert releaseYear to number if provided
-      if (modelData.releaseYear) {
-        modelData.releaseYear = parseInt(modelData.releaseYear);
-      }
-      
-      await axios.post('http://localhost:5000/api/models', modelData, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      // Reset form and fetch updated models
-      setNewModel({
-        name: '',
-        brandId: '',
-        deviceType: '',
-        releaseYear: '',
-        description: ''
-      });
-      
-      // Fetch updated models
-      const response = await axios.get('http://localhost:5000/api/models', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      setModels(response.data.models);
-    } catch (err) {
-      console.error('Error adding model:', err);
-      setError('Failed to add model. Please try again.');
-    }
+    setTotalPages(calculatedTotalPages);
   };
   
-  // Edit model
-  const handleEditModel = (model) => {
-    setEditingModel({
-      ...model,
-      // Ensure brandId is a string for form select
-      brandId: model.brandId.toString()
-    });
-    setFormErrors({});
+  const handleBrandFilterChange = (e) => {
+    setBrandFilter(e.target.value);
+    setCurrentPage(1);
   };
   
-  // Update model
-  const handleUpdateModel = async (e) => {
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+  
+  const handleSearch = (e) => {
     e.preventDefault();
-    
-    if (!validateForm(editingModel)) {
-      return;
-    }
-    
-    try {
-      const token = localStorage.getItem('token');
-      
-      // Prepare data for submission
-      const modelData = { ...editingModel };
-      
-      // Convert releaseYear to number if provided
-      if (modelData.releaseYear) {
-        modelData.releaseYear = parseInt(modelData.releaseYear);
-      }
-      
-      await axios.put(`http://localhost:5000/api/models/${editingModel.id}`, modelData, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      // Reset editing state
-      setEditingModel(null);
-      
-      // Fetch updated models
-      const response = await axios.get('http://localhost:5000/api/models', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      setModels(response.data.models);
-    } catch (err) {
-      console.error('Error updating model:', err);
-      setError('Failed to update model. Please try again.');
+    // The useEffect will handle the actual filtering
+  };
+  
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
     }
   };
   
-  // Confirm delete
-  const confirmDelete = (model) => {
+  // Open delete modal
+  const openDeleteModal = (model) => {
     setModelToDelete(model);
     setShowDeleteModal(true);
   };
   
+  // Close delete modal
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setModelToDelete(null);
+    setIsDeleting(false);
+  };
+  
   // Delete model
   const handleDeleteModel = async () => {
+    if (!modelToDelete) return;
+    
+    setIsDeleting(true);
+    
     try {
-      const token = localStorage.getItem('token');
-      
-      await axios.delete(`http://localhost:5000/api/models/${modelToDelete.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
+      // If the model has an image, delete it from storage
+      if (modelToDelete.imageUrl) {
+        try {
+          // Extract path from URL
+          const imageRef = ref(storage, modelToDelete.imageUrl);
+          await deleteObject(imageRef);
+        } catch (imageError) {
+          console.error('Error deleting image:', imageError);
+          // Continue with model deletion even if image deletion fails
         }
-      });
+      }
       
-      // Close modal and update models list
-      setShowDeleteModal(false);
-      setModelToDelete(null);
+      // Delete model from Firestore
+      await deleteModel(modelToDelete.id);
       
-      // Fetch updated models
-      const response = await axios.get('http://localhost:5000/api/models', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Update models list
+      setModels(models.filter(model => model.id !== modelToDelete.id));
+      toast.success(`Model "${modelToDelete.name}" deleted successfully`);
       
-      setModels(response.data.models);
+      // Close modal
+      closeDeleteModal();
     } catch (err) {
       console.error('Error deleting model:', err);
       setError('Failed to delete model. Please try again.');
-      setShowDeleteModal(false);
+      toast.error('Failed to delete model');
+      setIsDeleting(false);
     }
   };
   
-  // Cancel editing
-  const handleCancelEdit = () => {
-    setEditingModel(null);
-    setFormErrors({});
-  };
-  
-  // Get brand name by ID
+  // Get brand name from ID
   const getBrandName = (brandId) => {
     const brand = brands.find(b => b.id === brandId);
     return brand ? brand.name : 'Unknown Brand';
   };
   
-  // Get device type label
-  const getDeviceTypeLabel = (value) => {
-    const deviceType = deviceTypes.find(type => type.value === value);
-    return deviceType ? deviceType.label : value;
+  // Generate pagination
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+    
+    const pages = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+    
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+    
+    // Previous button
+    pages.push(
+      <button
+        key="prev"
+        className="admin-pagination-btn"
+        onClick={() => handlePageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+      >
+        <i className="fas fa-chevron-left"></i>
+      </button>
+    );
+    
+    // Page numbers
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(
+        <button
+          key={i}
+          className={`admin-pagination-btn ${i === currentPage ? 'active' : ''}`}
+          onClick={() => handlePageChange(i)}
+        >
+          {i}
+        </button>
+      );
+    }
+    
+    // Next button
+    pages.push(
+      <button
+        key="next"
+        className="admin-pagination-btn"
+        onClick={() => handlePageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+      >
+        <i className="fas fa-chevron-right"></i>
+      </button>
+    );
+    
+    return <div className="admin-pagination">{pages}</div>;
   };
   
   if (loading) {
     return (
       <div className="admin-loading-container">
         <div className="spinner"></div>
-        <p>Loading device models...</p>
+        <p>Loading models...</p>
       </div>
     );
   }
   
+  // Calculate visible models based on pagination
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const visibleModels = models
+    .filter(model => brandFilter === 'all' || model.brandId === brandFilter)
+    .filter(model => {
+      if (searchTerm.trim() === '') return true;
+      const searchLower = searchTerm.toLowerCase();
+      return (
+        (model.name && model.name.toLowerCase().includes(searchLower)) ||
+        (model.description && model.description.toLowerCase().includes(searchLower))
+      );
+    })
+    .slice(startIndex, startIndex + itemsPerPage);
+  
   return (
-    <div className="admin-models">
-      <div className="admin-section-header">
+    <div className="admin-models-list">
+      <div className="admin-header-actions">
         <h2 className="admin-section-title">Device Models Management</h2>
+        <Link to="/admin/models/new" className="admin-btn admin-btn-primary">
+          <i className="fas fa-plus"></i> Add New Model
+        </Link>
       </div>
       
       {error && (
@@ -300,218 +263,167 @@ const ModelList = () => {
         </div>
       )}
       
-      <div className="admin-grid">
-        {/* Model Form */}
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h3>{editingModel ? 'Edit Device Model' : 'Add New Device Model'}</h3>
-          </div>
-          <div className="admin-card-body">
-            <form onSubmit={editingModel ? handleUpdateModel : handleAddModel}>
-              <div className="admin-form-row">
-                <div className="admin-form-group">
-                  <label htmlFor="name" className="admin-label">
-                    Model Name <span className="required">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    className={`admin-input ${formErrors.name ? 'has-error' : ''}`}
-                    value={editingModel ? editingModel.name : newModel.name}
-                    onChange={handleInputChange}
-                    placeholder="Enter model name (e.g. iPhone 13 Pro)"
-                  />
-                  {formErrors.name && <div className="admin-error-msg">{formErrors.name}</div>}
-                </div>
-                
-                <div className="admin-form-group">
-                  <label htmlFor="brandId" className="admin-label">
-                    Brand <span className="required">*</span>
-                  </label>
-                  <select
-                    id="brandId"
-                    name="brandId"
-                    className={`admin-select ${formErrors.brandId ? 'has-error' : ''}`}
-                    value={editingModel ? editingModel.brandId : newModel.brandId}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Select Brand</option>
-                    {brands.map(brand => (
-                      <option key={brand.id} value={brand.id}>
-                        {brand.name}
-                      </option>
-                    ))}
-                  </select>
-                  {formErrors.brandId && <div className="admin-error-msg">{formErrors.brandId}</div>}
-                </div>
-              </div>
-              
-              <div className="admin-form-row">
-                <div className="admin-form-group">
-                  <label htmlFor="deviceType" className="admin-label">
-                    Device Type <span className="required">*</span>
-                  </label>
-                  <select
-                    id="deviceType"
-                    name="deviceType"
-                    className={`admin-select ${formErrors.deviceType ? 'has-error' : ''}`}
-                    value={editingModel ? editingModel.deviceType : newModel.deviceType}
-                    onChange={handleInputChange}
-                  >
-                    <option value="">Select Device Type</option>
-                    {deviceTypes.map(type => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                  {formErrors.deviceType && <div className="admin-error-msg">{formErrors.deviceType}</div>}
-                </div>
-                
-                <div className="admin-form-group">
-                  <label htmlFor="releaseYear" className="admin-label">
-                    Release Year
-                  </label>
-                  <input
-                    type="number"
-                    id="releaseYear"
-                    name="releaseYear"
-                    className={`admin-input ${formErrors.releaseYear ? 'has-error' : ''}`}
-                    value={editingModel ? editingModel.releaseYear : newModel.releaseYear}
-                    onChange={handleInputChange}
-                    min="1980"
-                    max={new Date().getFullYear()}
-                    placeholder="Enter release year"
-                  />
-                  {formErrors.releaseYear && <div className="admin-error-msg">{formErrors.releaseYear}</div>}
-                </div>
-              </div>
-              
-              <div className="admin-form-group">
-                <label htmlFor="description" className="admin-label">
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  className="admin-textarea"
-                  value={editingModel ? editingModel.description : newModel.description}
-                  onChange={handleInputChange}
-                  rows="3"
-                  placeholder="Enter model description (optional)"
-                ></textarea>
-              </div>
-              
-              <div className="admin-form-actions">
-                {editingModel && (
-                  <button
-                    type="button"
-                    className="admin-btn admin-btn-secondary"
-                    onClick={handleCancelEdit}
-                  >
-                    Cancel
-                  </button>
-                )}
-                <button type="submit" className="admin-btn admin-btn-primary">
-                  {editingModel ? 'Update Model' : 'Add Model'}
-                </button>
-              </div>
-            </form>
-          </div>
+      {/* Filters and Search */}
+      <div className="admin-filters">
+        <div className="admin-filter-group">
+          <label htmlFor="brandFilter" className="admin-filter-label">
+            Brand:
+          </label>
+          <select
+            id="brandFilter"
+            className="admin-select"
+            value={brandFilter}
+            onChange={handleBrandFilterChange}
+          >
+            <option value="all">All Brands</option>
+            {brands.map(brand => (
+              <option key={brand.id} value={brand.id}>
+                {brand.name}
+              </option>
+            ))}
+          </select>
         </div>
         
-        {/* Models List */}
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h3>Device Models List</h3>
-          </div>
-          <div className="admin-card-body">
-            {models.length === 0 ? (
-              <div className="admin-empty-state">
-                <i className="fas fa-mobile-alt"></i>
-                <p>No device models found. Add your first model!</p>
-              </div>
-            ) : (
-              <div className="admin-table-responsive">
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Brand</th>
-                      <th>Device Type</th>
-                      <th>Release Year</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {models.map(model => (
-                      <tr key={model.id}>
-                        <td>{model.name}</td>
-                        <td>{getBrandName(model.brandId)}</td>
-                        <td>{getDeviceTypeLabel(model.deviceType)}</td>
-                        <td>{model.releaseYear || 'N/A'}</td>
-                        <td>
-                          <div className="admin-table-actions">
-                            <button
-                              className="admin-btn admin-btn-sm admin-btn-primary"
-                              onClick={() => handleEditModel(model)}
-                            >
-                              <i className="fas fa-edit"></i>
-                            </button>
-                            <button
-                              className="admin-btn admin-btn-sm admin-btn-danger"
-                              onClick={() => confirmDelete(model)}
-                            >
-                              <i className="fas fa-trash"></i>
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+        <div className="admin-filter-group">
+          <form onSubmit={handleSearch} className="admin-search-form">
+            <input
+              type="text"
+              className="admin-input"
+              placeholder="Search models..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+            <button type="submit" className="admin-btn admin-btn-primary">
+              <i className="fas fa-search"></i>
+            </button>
+          </form>
         </div>
       </div>
+      
+      {visibleModels.length === 0 ? (
+        <div className="admin-empty-state">
+          <i className="fas fa-mobile-alt admin-empty-icon"></i>
+          <p>No models found</p>
+          <Link to="/admin/models/new" className="admin-btn admin-btn-primary">
+            Add Your First Model
+          </Link>
+        </div>
+      ) : (
+        <div className="admin-card">
+          <div className="admin-card-body">
+            <div className="admin-table-responsive">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Image</th>
+                    <th>Name</th>
+                    <th>Brand</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleModels.map(model => (
+                    <tr key={model.id}>
+                      <td>
+                        {model.imageUrl ? (
+                          <img 
+                            src={model.imageUrl} 
+                            alt={model.name}
+                            className="admin-thumb" 
+                            width="50"
+                          />
+                        ) : (
+                          <div className="admin-no-image">No Image</div>
+                        )}
+                      </td>
+                      <td>{model.name}</td>
+                      <td>{getBrandName(model.brandId)}</td>
+                      <td>
+                        {model.description
+                          ? model.description.length > 100
+                            ? `${model.description.substring(0, 100)}...`
+                            : model.description
+                          : 'No description'}
+                      </td>
+                      <td>
+                        <div className="admin-table-actions">
+                          <Link
+                            to={`/admin/models/edit/${model.id}`}
+                            className="admin-btn admin-btn-sm admin-btn-secondary"
+                            title="Edit Model"
+                          >
+                            <i className="fas fa-edit"></i>
+                          </Link>
+                          <button
+                            onClick={() => openDeleteModal(model)}
+                            className="admin-btn admin-btn-sm admin-btn-danger"
+                            title="Delete Model"
+                          >
+                            <i className="fas fa-trash"></i>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Pagination */}
+            {renderPagination()}
+          </div>
+        </div>
+      )}
       
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="admin-modal">
-          <div className="admin-modal-overlay" onClick={() => setShowDeleteModal(false)}></div>
-          <div className="admin-modal-container">
+          <div className="admin-modal-overlay" onClick={closeDeleteModal}></div>
+          <div className="admin-modal-content">
             <div className="admin-modal-header">
-              <h3>Confirm Deletion</h3>
-              <button
-                className="admin-modal-close"
-                onClick={() => setShowDeleteModal(false)}
-              >
+              <h3>Confirm Delete</h3>
+              <button onClick={closeDeleteModal} className="admin-modal-close">
                 <i className="fas fa-times"></i>
               </button>
             </div>
             <div className="admin-modal-body">
               <p>
-                Are you sure you want to delete the device model{' '}
-                <strong>{modelToDelete?.name}</strong>?
+                Are you sure you want to delete the model "{modelToDelete?.name}"?
               </p>
-              <p className="admin-text-danger">
+              <p className="admin-modal-warning">
                 <i className="fas fa-exclamation-triangle"></i> This action cannot be undone.
               </p>
+              {modelToDelete?.imageUrl && (
+                <div className="admin-delete-preview">
+                  <img 
+                    src={modelToDelete.imageUrl} 
+                    alt={modelToDelete.name} 
+                    className="admin-delete-image"
+                  />
+                </div>
+              )}
             </div>
             <div className="admin-modal-footer">
               <button
+                onClick={closeDeleteModal}
                 className="admin-btn admin-btn-secondary"
-                onClick={() => setShowDeleteModal(false)}
+                disabled={isDeleting}
               >
                 Cancel
               </button>
               <button
-                className="admin-btn admin-btn-danger"
                 onClick={handleDeleteModel}
+                className="admin-btn admin-btn-danger"
+                disabled={isDeleting}
               >
-                Delete Model
+                {isDeleting ? (
+                  <>
+                    <div className="spinner-small"></div> Deleting...
+                  </>
+                ) : (
+                  'Delete Model'
+                )}
               </button>
             </div>
           </div>

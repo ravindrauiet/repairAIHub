@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Route, Routes, Link, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import { auth, isUserAdmin, getCurrentUser } from '../firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
+import * as firestoreService from '../services/firestoreService';
 import '../styles/adminDashboard.css';
 
 // Import admin dashboard components
@@ -15,12 +17,13 @@ import UserForm from '../components/admin/UserForm';
 import CategoryForm from '../components/admin/CategoryForm';
 import BrandForm from '../components/admin/BrandForm';
 import DeviceModelForm from '../components/admin/DeviceModelForm';
-import CategoryList from '../components/admin/CategoryList';
+import CategoriesList from '../components/admin/CategoriesList';
 import BrandList from '../components/admin/BrandList';
 import ModelList from '../components/admin/ModelList';
 import OrderList from '../components/admin/OrderList';
 import BookingList from '../components/admin/BookingList';
 import UserList from '../components/admin/UserList';
+import ImportDataButton from '../components/admin/ImportDataButton';
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -35,82 +38,111 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('token');
-        console.log('AdminDashboard: Checking token:', token ? 'Token exists' : 'No token');
+        setLoading(true);
         
-        if (!token) {
-          console.log('AdminDashboard: No token found, redirecting to login');
-          navigate('/login');
-          return;
-        }
+        // Check if user is logged in and is an admin using Firebase
+        const isAdmin = await isUserAdmin();
+        console.log('AdminDashboard: Admin status:', isAdmin);
         
-        // Get user profile to check admin status
-        console.log('AdminDashboard: Fetching user profile to verify admin status');
-        const response = await axios.get('http://localhost:5000/api/users/profile', {
-          headers: {
-            'x-auth-token': token
-          }
-        });
-        
-        console.log('AdminDashboard: User profile response:', response.data);
-        const user = response.data.user;
-        
-        if (!user || !(user.roles && user.roles.includes('admin'))) {
+        if (!isAdmin) {
           console.log('AdminDashboard: User is not an admin, redirecting to login');
           navigate('/login');
           return;
         }
         
+        // Get current user data
+        const userData = await getCurrentUser();
         console.log('AdminDashboard: Admin verification successful');
-        setCurrentUser(user);
+        setCurrentUser(userData);
         fetchAdminStats();
       } catch (err) {
-        console.error('AdminDashboard: Authentication error:', err.response?.data || err.message);
+        console.error('AdminDashboard: Authentication error:', err);
         navigate('/login');
       }
     };
     
-    checkAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        console.log('AdminDashboard: No user found, redirecting to login');
+        navigate('/login');
+        return;
+      }
+      
+      checkAuth();
+    });
+    
+    return () => unsubscribe();
   }, [navigate]);
   
   // Fetch admin dashboard statistics
   const fetchAdminStats = async () => {
     try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      console.log('AdminDashboard: Fetching admin stats');
+      console.log('AdminDashboard: Fetching admin stats from Firestore');
       
-      try {
-        const response = await axios.get('http://localhost:5000/api/dashboard/admin/stats', {
-          headers: {
-            'x-auth-token': token
-          }
-        });
+      // Fetch data from Firestore collections
+      const [users, orders, bookings, products, services] = await Promise.all([
+        firestoreService.getAllUsers(),
+        firestoreService.getAllOrders(),
+        firestoreService.getAllDocuments('bookings'),
+        firestoreService.getAllProducts(),
+        firestoreService.getAllServices()
+      ]);
+      
+      // Calculate statistics
+      const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+      
+      // Get recent activity
+      const allActivity = [
+        ...orders.map(order => ({ 
+          type: 'order', 
+          id: order.id, 
+          user: order.userName || 'Customer', 
+          amount: order.total, 
+          date: order.createdAt?.toDate() || new Date() 
+        })),
+        ...bookings.map(booking => ({ 
+          type: 'booking', 
+          id: booking.id, 
+          user: booking.userName || 'Customer', 
+          service: booking.serviceName, 
+          date: booking.createdAt?.toDate() || new Date() 
+        }))
+      ];
+      
+      // Sort by date descending and take latest 10
+      const recentActivity = allActivity
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 10);
+      
+      // Calculate monthly and daily revenue 
+      const now = new Date();
+      const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      const oneDayAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+      
+      const monthlyRevenue = orders
+        .filter(order => order.createdAt?.toDate() >= oneMonthAgo)
+        .reduce((sum, order) => sum + (order.total || 0), 0);
         
-        console.log('AdminDashboard: Stats response:', response.data);
-        setAdminStats(response.data);
-      } catch (statsErr) {
-        console.error('AdminDashboard: Error fetching stats:', statsErr.response?.data || statsErr.message);
-        // Use mock data if the endpoint doesn't exist
-        setAdminStats({
-          stats: {
-            totalUsers: 120,
-            totalOrders: 45,
-            totalBookings: 78,
-            totalProducts: 230,
-            revenue: {
-              total: 124500,
-              monthly: 32400,
-              daily: 4500
-            },
-            recentActivity: [
-              { type: 'order', id: 'ORD-1001', user: 'John Doe', amount: 2499, date: new Date().toISOString() },
-              { type: 'booking', id: 'BKG-1002', user: 'Jane Smith', service: 'Screen Repair', date: new Date().toISOString() },
-              { type: 'user', id: 'USR-1003', name: 'Alex Johnson', action: 'registered', date: new Date().toISOString() }
-            ]
-          }
-        });
-      }
+      const dailyRevenue = orders
+        .filter(order => order.createdAt?.toDate() >= oneDayAgo)
+        .reduce((sum, order) => sum + (order.total || 0), 0);
+      
+      // Set admin stats
+      setAdminStats({
+        stats: {
+          totalUsers: users.length,
+          totalOrders: orders.length,
+          totalBookings: bookings.length,
+          totalProducts: products.length,
+          totalServices: services.length,
+          revenue: {
+            total: totalRevenue,
+            monthly: monthlyRevenue,
+            daily: dailyRevenue
+          },
+          recentActivity
+        }
+      });
       
       setLoading(false);
     } catch (err) {
@@ -128,8 +160,8 @@ const AdminDashboard = () => {
   // Handle logout
   const handleLogout = () => {
     console.log('AdminDashboard: Logging out');
-    localStorage.removeItem('token');
-    window.location.href = '/login'; // Force a full page reload
+    auth.signOut();
+    navigate('/login');
   };
   
   // Check if a route is active
@@ -291,6 +323,16 @@ const AdminDashboard = () => {
               <span className="admin-sidebar-text">Settings</span>
             </Link>
           </div>
+          
+          <div className="admin-sidebar-item">
+            <Link 
+              to="/admin/data-tools"
+              className={`admin-sidebar-link ${isActiveRoute('/admin/data-tools') ? 'active' : ''}`}
+            >
+              <i className="admin-sidebar-icon fas fa-database"></i>
+              <span className="admin-sidebar-text">Data Tools</span>
+            </Link>
+          </div>
         </div>
       </div>
       
@@ -305,10 +347,10 @@ const AdminDashboard = () => {
             {currentUser && (
               <>
                 <div className="admin-user-avatar">
-                  {currentUser.name.charAt(0).toUpperCase()}
+                  {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : currentUser.email ? currentUser.email.charAt(0).toUpperCase() : 'A'}
                 </div>
                 <div className="admin-user-name">
-                  {currentUser.name}
+                  {currentUser.name || currentUser.email || 'Admin User'}
                 </div>
               </>
             )}
@@ -332,7 +374,9 @@ const AdminDashboard = () => {
             <Route path="/products/edit/:id" element={<ProductForm />} />
             
             {/* Category Routes */}
-            <Route path="/categories" element={<CategoryList />} />
+            <Route path="/categories" element={<CategoriesList />} />
+            <Route path="/categories/add" element={<CategoryForm />} />
+            <Route path="/categories/edit/:id" element={<CategoryForm />} />
             
             {/* Brand Routes */}
             <Route path="/brands" element={<BrandList />} />
@@ -356,6 +400,20 @@ const AdminDashboard = () => {
             {/* User Routes */}
             <Route path="/users" element={<UserList />} />
             <Route path="/users/edit/:id" element={<UserForm />} />
+            
+            {/* Data Tools Route */}
+            <Route path="/data-tools" element={
+              <div className="admin-page-container">
+                <div className="admin-page-header">
+                  <h1>Data Tools</h1>
+                  <p className="admin-page-subtitle">Import, export, and manage application data</p>
+                </div>
+                
+                <div className="admin-content-wrapper">
+                  <ImportDataButton />
+                </div>
+              </div>
+            } />
             
             {/* Fallback to dashboard for undefined routes */}
             <Route path="*" element={<AdminStats stats={adminStats} />} />

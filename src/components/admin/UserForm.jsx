@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { 
+  getUserById, 
+  updateUser, 
+  addUser,
+  setUserAsAdmin
+} from '../../services/firestoreService';
+import { toast } from 'react-toastify';
+import { auth } from '../../firebase/config';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 
 const UserForm = () => {
   const { id } = useParams();
@@ -33,29 +41,29 @@ const UserForm = () => {
       const fetchUser = async () => {
         try {
           setFetchLoading(true);
-          const token = localStorage.getItem('token');
           
-          const response = await axios.get(`http://localhost:5000/api/admin/users/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
+          const userData = await getUserById(id);
           
-          const userData = response.data.user;
-          setFormData({
-            name: userData.name || '',
-            email: userData.email || '',
-            password: '',
-            confirmPassword: '',
-            role: userData.role || 'user',
-            phone: userData.phone || '',
-            address: userData.address || ''
-          });
+          if (userData) {
+            setFormData({
+              name: userData.name || '',
+              email: userData.email || '',
+              password: '',
+              confirmPassword: '',
+              role: userData.role || 'user',
+              phone: userData.phone || '',
+              address: userData.address || ''
+            });
+          } else {
+            setError('User not found');
+            toast.error('User not found');
+          }
           
           setFetchLoading(false);
         } catch (err) {
           console.error('Error fetching user:', err);
           setError('Failed to load user data. Please try again.');
+          toast.error('Failed to load user data');
           setFetchLoading(false);
         }
       };
@@ -131,9 +139,7 @@ const UserForm = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
-      
-      // Prepare data for API
+      // Prepare data
       const userData = {
         name: formData.name,
         email: formData.email,
@@ -142,36 +148,56 @@ const UserForm = () => {
         address: formData.address
       };
       
-      // Only include password if provided
-      if (formData.password) {
-        userData.password = formData.password;
-      }
-      
       if (isEditMode) {
         // Update existing user
-        await axios.put(`http://localhost:5000/api/admin/users/${id}`, userData, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        await updateUser(id, userData);
+        
+        // If role changed to admin, set user as admin
+        if (formData.role === 'admin') {
+          await setUserAsAdmin(id);
+        }
+        
+        toast.success('User updated successfully');
       } else {
         // Create new user
-        await axios.post('http://localhost:5000/api/admin/users', userData, {
-          headers: {
-            Authorization: `Bearer ${token}`
+        try {
+          // First create the user in Firebase Auth
+          const userCredential = await createUserWithEmailAndPassword(
+            auth, 
+            formData.email, 
+            formData.password
+          );
+          
+          // Update the user's display name
+          await updateProfile(userCredential.user, {
+            displayName: formData.name
+          });
+          
+          // Add user info to Firestore
+          await addUser({
+            uid: userCredential.user.uid,
+            ...userData,
+            createdAt: new Date()
+          });
+          
+          // If role is admin, set user as admin
+          if (formData.role === 'admin') {
+            await setUserAsAdmin(userCredential.user.uid);
           }
-        });
+          
+          toast.success('User created successfully');
+        } catch (authError) {
+          console.error('Error creating user in Firebase Auth:', authError);
+          throw new Error(authError.message || 'Failed to create user account');
+        }
       }
       
       // Redirect to users list
       navigate('/admin/users');
     } catch (err) {
       console.error('Error saving user:', err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('Failed to save user. Please try again.');
-      }
+      setError(err.message || 'Failed to save user. Please try again.');
+      toast.error(err.message || 'Failed to save user');
       setLoading(false);
     }
   };
@@ -191,11 +217,20 @@ const UserForm = () => {
         <h2 className="admin-section-title">
           {isEditMode ? 'Edit User' : 'Add New User'}
         </h2>
+        <Link to="/admin/users" className="admin-btn admin-btn-secondary">
+          <i className="fas fa-arrow-left"></i> Back to Users
+        </Link>
       </div>
       
       {error && (
         <div className="admin-alert admin-alert-danger">
-          {error}
+          <i className="fas fa-exclamation-circle"></i> {error}
+          <button
+            className="admin-alert-close"
+            onClick={() => setError(null)}
+          >
+            <i className="fas fa-times"></i>
+          </button>
         </div>
       )}
       
@@ -226,8 +261,12 @@ const UserForm = () => {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="Email Address"
+                disabled={isEditMode} // Can't change email in edit mode due to Firebase Auth limitations
               />
               {formErrors.email && <div className="admin-form-error">{formErrors.email}</div>}
+              {isEditMode && (
+                <p className="admin-form-help">Email cannot be changed after user creation</p>
+              )}
             </div>
             
             <div className="admin-form-group">
@@ -247,41 +286,44 @@ const UserForm = () => {
               </select>
             </div>
             
-            <div className="admin-form-group">
-              <label htmlFor="password" className="admin-label">
-                {isEditMode ? 'Password (leave blank to keep current)' : 'Password'}
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                className={`admin-input ${formErrors.password ? 'admin-input-error' : ''}`}
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Password"
-              />
-              {formErrors.password && <div className="admin-form-error">{formErrors.password}</div>}
+            <div className="admin-form-row">
+              <div className="admin-form-group">
+                <label htmlFor="password" className="admin-label">
+                  {isEditMode ? 'New Password (leave blank to keep current)' : 'Password'}
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  className={`admin-input ${formErrors.password ? 'admin-input-error' : ''}`}
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder={isEditMode ? 'New Password' : 'Password'}
+                />
+                {formErrors.password && <div className="admin-form-error">{formErrors.password}</div>}
+              </div>
+              
+              <div className="admin-form-group">
+                <label htmlFor="confirmPassword" className="admin-label">Confirm Password</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  className={`admin-input ${formErrors.confirmPassword ? 'admin-input-error' : ''}`}
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="Confirm Password"
+                />
+                {formErrors.confirmPassword && (
+                  <div className="admin-form-error">{formErrors.confirmPassword}</div>
+                )}
+              </div>
             </div>
             
             <div className="admin-form-group">
-              <label htmlFor="confirmPassword" className="admin-label">Confirm Password</label>
+              <label htmlFor="phone" className="admin-label">Phone Number (Optional)</label>
               <input
-                type="password"
-                id="confirmPassword"
-                name="confirmPassword"
-                className={`admin-input ${formErrors.confirmPassword ? 'admin-input-error' : ''}`}
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="Confirm Password"
-                disabled={!formData.password && isEditMode}
-              />
-              {formErrors.confirmPassword && <div className="admin-form-error">{formErrors.confirmPassword}</div>}
-            </div>
-            
-            <div className="admin-form-group">
-              <label htmlFor="phone" className="admin-label">Phone Number</label>
-              <input
-                type="text"
+                type="tel"
                 id="phone"
                 name="phone"
                 className="admin-input"
@@ -292,19 +334,19 @@ const UserForm = () => {
             </div>
             
             <div className="admin-form-group">
-              <label htmlFor="address" className="admin-label">Address</label>
+              <label htmlFor="address" className="admin-label">Address (Optional)</label>
               <textarea
                 id="address"
                 name="address"
                 className="admin-textarea"
                 value={formData.address}
                 onChange={handleChange}
-                placeholder="Full Address"
-                rows="3"
+                placeholder="Address"
+                rows="2"
               ></textarea>
             </div>
             
-            <div className="admin-form-buttons">
+            <div className="admin-form-actions">
               <button
                 type="button"
                 className="admin-btn admin-btn-secondary"
@@ -313,19 +355,13 @@ const UserForm = () => {
               >
                 Cancel
               </button>
-              
-              <button
-                type="submit"
-                className="admin-btn admin-btn-primary"
-                disabled={loading}
-              >
+              <button type="submit" className="admin-btn admin-btn-primary" disabled={loading}>
                 {loading ? (
                   <>
-                    <span className="spinner-small"></span>
-                    {isEditMode ? 'Updating...' : 'Creating...'}
+                    <div className="spinner-small"></div> Saving...
                   </>
                 ) : (
-                  isEditMode ? 'Update User' : 'Create User'
+                  <>{isEditMode ? 'Update' : 'Create'} User</>
                 )}
               </button>
             </div>

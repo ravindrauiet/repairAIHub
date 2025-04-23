@@ -3,14 +3,17 @@
   --primary-color: #0056B3;  /* Blue */
   --primary-light: rgba(0, 86, 179, 0.1);
   --primary-dark: #004494;
+  --primary-rgb: 0, 86, 179;
   
   --accent-color: #E5322D;  /* Red */
   --accent-light: rgba(229, 50, 45, 0.1);
   --accent-dark: #C41C17;
+  --accent-rgb: 229, 50, 45;
   
   --secondary-color: #28A745;  /* Green */
   --secondary-light: rgba(40, 167, 69, 0.1);
   --secondary-dark: #1E7E34;
+  --secondary-rgb: 40, 167, 69;
   
   --black: #222222;
   --black-light: rgba(34, 34, 34, 0.1);

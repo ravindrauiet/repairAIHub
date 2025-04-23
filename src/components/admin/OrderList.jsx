@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import * as firestoreService from '../../services/firestoreService';
+import { toast } from 'react-toastify';
 
 const OrderList = () => {
   // State for orders
   const [orders, setOrders] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -32,47 +34,103 @@ const OrderList = () => {
     { value: 'refunded', label: 'Refunded', color: 'secondary' }
   ];
   
-  // Fetch orders on component mount and when filters change
+  // Fetch orders on component mount
   useEffect(() => {
     fetchOrders();
-  }, [currentPage, statusFilter, sortBy, sortDirection, searchTerm]);
+  }, []);
+  
+  // Apply filtering, sorting, and pagination when these values change
+  useEffect(() => {
+    if (allOrders.length > 0) {
+      applyFiltersAndPagination();
+    }
+  }, [allOrders, currentPage, statusFilter, sortBy, sortDirection, searchTerm]);
   
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       
-      // Construct query parameters
-      const params = {
-        page: currentPage,
-        limit,
-        sortBy,
-        sortDirection,
-      };
+      // Fetch all orders from Firestore
+      const fetchedOrders = await firestoreService.getAllOrders();
+      setAllOrders(fetchedOrders);
       
-      if (statusFilter !== 'all') {
-        params.status = statusFilter;
-      }
-      
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      
-      const response = await axios.get('http://localhost:5000/api/admin/orders', {
-        params,
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      setOrders(response.data.orders);
-      setTotalPages(Math.ceil(response.data.total / limit));
       setLoading(false);
     } catch (err) {
       console.error('Error fetching orders:', err);
       setError('Failed to load orders. Please try again.');
+      toast.error('Failed to load orders from the database');
       setLoading(false);
     }
+  };
+  
+  // Apply client-side filtering, sorting, and pagination
+  const applyFiltersAndPagination = () => {
+    let filteredOrders = [...allOrders];
+    
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      filteredOrders = filteredOrders.filter(order => order.status === statusFilter);
+    }
+    
+    // Apply search
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase();
+      filteredOrders = filteredOrders.filter(order => 
+        (order.orderNumber && order.orderNumber.toLowerCase().includes(searchLower)) ||
+        (order.user && order.user.name && order.user.name.toLowerCase().includes(searchLower)) ||
+        (order.user && order.user.email && order.user.email.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Apply sorting
+    filteredOrders.sort((a, b) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+      
+      // Handle missing values
+      if (aValue === undefined) aValue = '';
+      if (bValue === undefined) bValue = '';
+      
+      // Handle date comparison for createdAt
+      if (sortBy === 'createdAt') {
+        const aDate = aValue ? new Date(aValue.toDate ? aValue.toDate() : aValue) : new Date(0);
+        const bDate = bValue ? new Date(bValue.toDate ? bValue.toDate() : bValue) : new Date(0);
+        return sortDirection === 'asc' ? aDate - bDate : bDate - aDate;
+      }
+      
+      // Number comparison for totalAmount
+      if (sortBy === 'totalAmount') {
+        const aNum = parseFloat(aValue) || 0;
+        const bNum = parseFloat(bValue) || 0;
+        return sortDirection === 'asc' ? aNum - bNum : bNum - aNum;
+      }
+      
+      // String comparison for other fields
+      const aString = String(aValue).toLowerCase();
+      const bString = String(bValue).toLowerCase();
+      
+      return sortDirection === 'asc' 
+        ? aString.localeCompare(bString)
+        : bString.localeCompare(aString);
+    });
+    
+    // Calculate total pages
+    const total = filteredOrders.length;
+    const calculatedTotalPages = Math.ceil(total / limit);
+    
+    // Ensure valid current page
+    if (currentPage > calculatedTotalPages && calculatedTotalPages > 0) {
+      setCurrentPage(1);
+      return;
+    }
+    
+    setTotalPages(calculatedTotalPages);
+    
+    // Apply pagination
+    const startIndex = (currentPage - 1) * limit;
+    const paginatedOrders = filteredOrders.slice(startIndex, startIndex + limit);
+    
+    setOrders(paginatedOrders);
   };
   
   // Handle pagination
@@ -115,29 +173,43 @@ const OrderList = () => {
   // Update order status
   const updateOrderStatus = async () => {
     try {
-      const token = localStorage.getItem('token');
+      setLoading(true);
       
-      await axios.put(`http://localhost:5000/api/admin/orders/${selectedOrder.id}/status`, {
+      // Update order status in Firestore
+      await firestoreService.updateOrder(selectedOrder.id, {
         status: newStatus
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
       });
       
-      // Close modal and refresh orders
+      // Update local state
+      const updatedOrders = allOrders.map(order => 
+        order.id === selectedOrder.id ? { ...order, status: newStatus } : order
+      );
+      setAllOrders(updatedOrders);
+      
+      // Close modal
       setShowStatusModal(false);
-      fetchOrders();
+      toast.success('Order status updated successfully');
+      setLoading(false);
     } catch (err) {
       console.error('Error updating order status:', err);
       setError('Failed to update order status. Please try again.');
+      toast.error('Failed to update order status');
+      setLoading(false);
     }
   };
   
   // Format date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
+  const formatDate = (dateValue) => {
+    if (!dateValue) return 'N/A';
+    
+    let date;
+    if (dateValue.toDate) {
+      // Convert Firestore Timestamp to JS Date
+      date = dateValue.toDate();
+    } else {
+      date = new Date(dateValue);
+    }
+    
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
@@ -361,7 +433,7 @@ const OrderList = () => {
                   <tbody>
                     {orders.map(order => (
                       <tr key={order.id}>
-                        <td>{order.orderNumber || `#${order.id}`}</td>
+                        <td>{order.orderNumber || `#${order.id.substring(0, 8)}`}</td>
                         <td>
                           {order.user ? (
                             <div className="order-customer">
@@ -426,7 +498,7 @@ const OrderList = () => {
             </div>
             <div className="admin-modal-body">
               <p>
-                Update status for order {selectedOrder.orderNumber || `#${selectedOrder.id}`}
+                Update status for order {selectedOrder.orderNumber || `#${selectedOrder.id.substring(0, 8)}`}
               </p>
               <div className="admin-form-group">
                 <label htmlFor="orderStatus" className="admin-label">

@@ -1,55 +1,107 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Link } from 'react-router-dom';
+import * as firestoreService from '../../services/firestoreService';
 
 const ServicesList = () => {
   const [services, setServices] = useState([]);
+  const [allServices, setAllServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortField, setSortField] = useState('name');
+  const [sortField, setSortField] = useState('title');
   const [sortDirection, setSortDirection] = useState('asc');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState(null);
 
-  // Fetch services from API
+  const ITEMS_PER_PAGE = 10;
+
+  // Fetch services from Firebase
   useEffect(() => {
     fetchServices();
-  }, [currentPage, sortField, sortDirection, searchTerm]);
+  }, []);
+
+  // Apply filtering, sorting, and pagination whenever these values change
+  useEffect(() => {
+    if (allServices.length > 0) {
+      applyFiltersAndPagination();
+    }
+  }, [allServices, currentPage, sortField, sortDirection, searchTerm]);
 
   const fetchServices = async () => {
     try {
       setLoading(true);
-      
-      // Build query params
-      const queryParams = new URLSearchParams({
-        page: currentPage,
-        limit: 10,
-        sortBy: sortField,
-        sortDirection: sortDirection
-      });
-      
-      if (searchTerm) {
-        queryParams.append('search', searchTerm);
-      }
-      
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`http://localhost:5000/api/admin/services?${queryParams}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      setServices(response.data.services || []);
-      setTotalPages(Math.ceil((response.data.total || 0) / 10));
+      const fetchedServices = await firestoreService.getAllServices();
+      setAllServices(fetchedServices);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching services:', err);
-      setError('Failed to load services. Please try again.');
+      setError('Failed to load services from Firebase. Please try again.');
       setLoading(false);
     }
+  };
+
+  // Apply client-side filtering, sorting, and pagination
+  const applyFiltersAndPagination = () => {
+    let filteredServices = [...allServices];
+
+    // Apply search/filter
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase();
+      filteredServices = filteredServices.filter(service => 
+        (service.title && service.title.toLowerCase().includes(searchLower)) ||
+        (service.description && service.description.toLowerCase().includes(searchLower)) ||
+        (service.category && service.category.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Apply sorting
+    filteredServices.sort((a, b) => {
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+      
+      // Handle nested properties like Category.name
+      if (sortField === 'category' && a.category && b.category) {
+        aValue = a.category;
+        bValue = b.category;
+      }
+      
+      // Handle missing values
+      if (aValue === undefined) aValue = '';
+      if (bValue === undefined) bValue = '';
+      
+      // Handle number comparison
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+      
+      // String comparison
+      const aString = String(aValue).toLowerCase();
+      const bString = String(bValue).toLowerCase();
+      
+      return sortDirection === 'asc' 
+        ? aString.localeCompare(bString)
+        : bString.localeCompare(aString);
+    });
+
+    // Calculate total pages
+    const total = filteredServices.length;
+    const calculatedTotalPages = Math.ceil(total / ITEMS_PER_PAGE);
+    
+    // Ensure valid current page
+    if (currentPage > calculatedTotalPages && calculatedTotalPages > 0) {
+      setCurrentPage(1);
+      return;
+    }
+    
+    setTotalPages(calculatedTotalPages);
+
+    // Apply pagination
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const paginatedServices = filteredServices.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    
+    setServices(paginatedServices);
   };
 
   // Handle sorting
@@ -66,6 +118,7 @@ const ServicesList = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
+    // The useEffect will handle the actual filtering
   };
 
   // Handle pagination
@@ -78,28 +131,41 @@ const ServicesList = () => {
     if (!serviceToDelete) return;
     
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/services/${serviceToDelete}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      setLoading(true);
+      await firestoreService.deleteService(serviceToDelete);
       
       setShowDeleteModal(false);
       setServiceToDelete(null);
+      
+      // Refresh services after deletion
       fetchServices();
+      
+      setLoading(false);
     } catch (err) {
       console.error('Error deleting service:', err);
       setError('Failed to delete service. Please try again.');
+      setLoading(false);
     }
   };
 
   // Format price as currency
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-US', {
+    if (!price) return 'N/A';
+    
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'INR',
+      maximumFractionDigits: 0
     }).format(price);
+  };
+
+  // Extract price from price range (e.g., "₹500 - ₹8,000" -> 500)
+  const extractPrice = (priceRange) => {
+    if (!priceRange) return 0;
+    
+    // Extract the first number from the price range
+    const match = priceRange.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
   };
 
   return (
@@ -162,11 +228,11 @@ const ServicesList = () => {
                       <th onClick={() => handleSort('id')} className="sortable">
                         ID {sortField === 'id' && <i className={`fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>}
                       </th>
-                      <th onClick={() => handleSort('name')} className="sortable">
-                        Name {sortField === 'name' && <i className={`fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>}
+                      <th onClick={() => handleSort('title')} className="sortable">
+                        Name {sortField === 'title' && <i className={`fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>}
                       </th>
-                      <th onClick={() => handleSort('price')} className="sortable">
-                        Price {sortField === 'price' && <i className={`fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>}
+                      <th onClick={() => handleSort('priceRange')} className="sortable">
+                        Price {sortField === 'priceRange' && <i className={`fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>}
                       </th>
                       <th onClick={() => handleSort('category')} className="sortable">
                         Category {sortField === 'category' && <i className={`fas fa-sort-${sortDirection === 'asc' ? 'up' : 'down'}`}></i>}
@@ -177,10 +243,10 @@ const ServicesList = () => {
                   <tbody>
                     {services.map((service) => (
                       <tr key={service.id}>
-                        <td>{service.id}</td>
-                        <td>{service.name}</td>
-                        <td>{formatPrice(service.price)}</td>
-                        <td>{service.Category?.name || 'Uncategorized'}</td>
+                        <td>{service.id.substring(0, 8)}...</td>
+                        <td>{service.title}</td>
+                        <td>{service.priceRange || 'N/A'}</td>
+                        <td>{service.category || 'Uncategorized'}</td>
                         <td>
                           <div className="admin-actions">
                             <Link to={`/admin/services/edit/${service.id}`} className="admin-btn admin-btn-sm admin-btn-info">
@@ -261,13 +327,10 @@ const ServicesList = () => {
         <div className="admin-modal">
           <div className="admin-modal-content">
             <div className="admin-modal-header">
-              <h3>Confirm Delete</h3>
+              <h3>Confirm Deletion</h3>
               <button
                 className="admin-modal-close"
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setServiceToDelete(null);
-                }}
+                onClick={() => setShowDeleteModal(false)}
               >
                 <i className="fas fa-times"></i>
               </button>
@@ -278,10 +341,7 @@ const ServicesList = () => {
             <div className="admin-modal-footer">
               <button
                 className="admin-btn admin-btn-secondary"
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setServiceToDelete(null);
-                }}
+                onClick={() => setShowDeleteModal(false)}
               >
                 Cancel
               </button>

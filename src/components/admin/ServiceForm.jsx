@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import * as firestoreService from '../../services/firestoreService';
+import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import app from '../../firebase/config';
 
 const ServiceForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEditing = !!id;
+  const storage = getStorage(app);
   
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    duration: '',
-    categoryId: '',
-    featured: false
+    title: '',
+    shortDescription: '',
+    longDescription: '',
+    priceRange: '',
+    icon: '',
+    category: '',
+    featured: false,
+    imageUrl: ''
   });
   
   const [image, setImage] = useState(null);
@@ -24,21 +29,17 @@ const ServiceForm = () => {
   const [errors, setErrors] = useState({});
   const [errorMessage, setErrorMessage] = useState('');
   
-  // Fetch service details if editing
+  // Fetch service details if editing and categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:5000/api/categories', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        
-        setCategories(response.data.categories || []);
+        // Get all services to extract unique categories
+        const services = await firestoreService.getAllServices();
+        const uniqueCategories = [...new Set(services.map(service => service.category).filter(Boolean))];
+        setCategories(uniqueCategories);
       } catch (err) {
         console.error('Error fetching categories:', err);
-        setErrorMessage('Failed to load categories');
+        setErrorMessage('Failed to load categories from Firebase');
       }
     };
     
@@ -47,32 +48,31 @@ const ServiceForm = () => {
       
       setLoading(true);
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:5000/api/services/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
+        const service = await firestoreService.getServiceById(id);
+        
+        if (service) {
+          setFormData({
+            title: service.title || '',
+            shortDescription: service.shortDescription || '',
+            longDescription: service.longDescription || '',
+            priceRange: service.priceRange || '',
+            icon: service.icon || '',
+            category: service.category || '',
+            featured: service.featured || false,
+            imageUrl: service.imageUrl || ''
+          });
+          
+          if (service.imageUrl) {
+            setPreviewUrl(service.imageUrl);
           }
-        });
-        
-        const service = response.data.service;
-        
-        setFormData({
-          name: service.name,
-          description: service.description,
-          price: service.price,
-          duration: service.duration,
-          categoryId: service.categoryId,
-          featured: service.featured
-        });
-        
-        if (service.image) {
-          setPreviewUrl(`http://localhost:5000/${service.image}`);
+        } else {
+          setErrorMessage('Service not found');
         }
         
         setLoading(false);
       } catch (err) {
         console.error('Error fetching service details:', err);
-        setErrorMessage('Failed to load service details');
+        setErrorMessage('Failed to load service details from Firebase');
         setLoading(false);
       }
     };
@@ -119,26 +119,34 @@ const ServiceForm = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.name.trim()) {
-      newErrors.name = 'Service name is required';
+    if (!formData.title.trim()) {
+      newErrors.title = 'Service title is required';
     }
     
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required';
+    if (!formData.shortDescription.trim()) {
+      newErrors.shortDescription = 'Short description is required';
     }
     
-    if (!formData.price) {
-      newErrors.price = 'Price is required';
-    } else if (isNaN(formData.price) || parseFloat(formData.price) <= 0) {
-      newErrors.price = 'Price must be a positive number';
+    if (!formData.priceRange.trim()) {
+      newErrors.priceRange = 'Price range is required';
     }
     
-    if (!formData.categoryId) {
-      newErrors.categoryId = 'Category is required';
+    if (!formData.category.trim()) {
+      newErrors.category = 'Category is required';
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+  
+  // Upload image to Firebase Storage and get URL
+  const uploadImageToFirebase = async (file) => {
+    if (!file) return null;
+    
+    const fileRef = ref(storage, `services/${Date.now()}_${file.name}`);
+    await uploadBytes(fileRef, file);
+    const downloadURL = await getDownloadURL(fileRef);
+    return downloadURL;
   };
   
   // Form submission
@@ -152,43 +160,25 @@ const ServiceForm = () => {
     setSaveLoading(true);
     
     try {
-      const token = localStorage.getItem('token');
+      let imageUrl = formData.imageUrl;
       
-      // Prepare form data
-      const serviceData = new FormData();
-      serviceData.append('name', formData.name);
-      serviceData.append('description', formData.description);
-      serviceData.append('price', formData.price);
-      
-      if (formData.duration) {
-        serviceData.append('duration', formData.duration);
-      }
-      
-      serviceData.append('categoryId', formData.categoryId);
-      serviceData.append('featured', formData.featured);
-      
+      // Upload new image if selected
       if (image) {
-        serviceData.append('image', image);
+        imageUrl = await uploadImageToFirebase(image);
       }
       
-      let response;
+      // Prepare service data
+      const serviceData = {
+        ...formData,
+        imageUrl
+      };
       
       if (isEditing) {
         // Update existing service
-        response = await axios.put(`http://localhost:5000/api/services/${id}`, serviceData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        });
+        await firestoreService.updateService(id, serviceData);
       } else {
         // Create new service
-        response = await axios.post('http://localhost:5000/api/services', serviceData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        });
+        await firestoreService.addService(serviceData);
       }
       
       setSaveLoading(false);
@@ -197,7 +187,7 @@ const ServiceForm = () => {
       navigate('/admin/services');
     } catch (err) {
       console.error('Error saving service:', err);
-      setErrorMessage(err.response?.data?.message || 'Failed to save service. Please try again.');
+      setErrorMessage('Failed to save service to Firebase. Please try again.');
       setSaveLoading(false);
     }
   };
@@ -234,120 +224,173 @@ const ServiceForm = () => {
           <form onSubmit={handleSubmit}>
             <div className="admin-form-row">
               <div className="admin-form-group">
-                <label htmlFor="name" className="admin-label">Service Name</label>
+                <label htmlFor="title" className="admin-label">Service Title</label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
-                  className={`admin-input ${errors.name ? 'is-invalid' : ''}`}
-                  value={formData.name}
+                  id="title"
+                  name="title"
+                  className={`admin-input ${errors.title ? 'is-invalid' : ''}`}
+                  value={formData.title}
                   onChange={handleChange}
-                  placeholder="Enter service name"
+                  placeholder="Enter service title"
                 />
-                {errors.name && <div className="admin-error-msg">{errors.name}</div>}
+                {errors.title && <div className="admin-error-msg">{errors.title}</div>}
               </div>
               
               <div className="admin-form-group">
-                <label htmlFor="price" className="admin-label">Price</label>
+                <label htmlFor="priceRange" className="admin-label">Price Range</label>
                 <input
-                  type="number"
-                  id="price"
-                  name="price"
-                  className={`admin-input ${errors.price ? 'is-invalid' : ''}`}
-                  value={formData.price}
+                  type="text"
+                  id="priceRange"
+                  name="priceRange"
+                  className={`admin-input ${errors.priceRange ? 'is-invalid' : ''}`}
+                  value={formData.priceRange}
                   onChange={handleChange}
-                  placeholder="Enter price"
-                  min="0"
-                  step="0.01"
+                  placeholder="e.g. ₹500 - ₹2,000"
                 />
-                {errors.price && <div className="admin-error-msg">{errors.price}</div>}
+                {errors.priceRange && <div className="admin-error-msg">{errors.priceRange}</div>}
               </div>
             </div>
             
             <div className="admin-form-row">
               <div className="admin-form-group">
-                <label htmlFor="categoryId" className="admin-label">Category</label>
+                <label htmlFor="category" className="admin-label">Category</label>
                 <select
-                  id="categoryId"
-                  name="categoryId"
-                  className={`admin-select ${errors.categoryId ? 'is-invalid' : ''}`}
-                  value={formData.categoryId}
+                  id="category"
+                  name="category"
+                  className={`admin-select ${errors.category ? 'is-invalid' : ''}`}
+                  value={formData.category}
                   onChange={handleChange}
                 >
-                  <option value="">Select a category</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
+                  <option value="">Select Category</option>
+                  {categories.map((category, index) => (
+                    <option key={index} value={category}>
+                      {category}
                     </option>
                   ))}
+                  <option value="new">+ Add New Category</option>
                 </select>
-                {errors.categoryId && <div className="admin-error-msg">{errors.categoryId}</div>}
+                {errors.category && <div className="admin-error-msg">{errors.category}</div>}
               </div>
               
+              {formData.category === 'new' && (
+                <div className="admin-form-group">
+                  <label htmlFor="newCategory" className="admin-label">New Category</label>
+                  <input
+                    type="text"
+                    id="newCategory"
+                    name="newCategory"
+                    className="admin-input"
+                    value={formData.newCategory || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      newCategory: e.target.value
+                    })}
+                    placeholder="Enter new category name"
+                    autoFocus
+                  />
+                </div>
+              )}
+              
               <div className="admin-form-group">
-                <label htmlFor="duration" className="admin-label">Duration (in minutes)</label>
+                <label htmlFor="icon" className="admin-label">Icon Name</label>
                 <input
-                  type="number"
-                  id="duration"
-                  name="duration"
+                  type="text"
+                  id="icon"
+                  name="icon"
                   className="admin-input"
-                  value={formData.duration}
+                  value={formData.icon}
                   onChange={handleChange}
-                  placeholder="Enter duration in minutes"
-                  min="0"
+                  placeholder="e.g. tv, mobile-alt, etc."
+                />
+                <small className="admin-help-text">FontAwesome icon name</small>
+              </div>
+            </div>
+            
+            <div className="admin-form-group">
+              <label htmlFor="shortDescription" className="admin-label">Short Description</label>
+              <input
+                type="text"
+                id="shortDescription"
+                name="shortDescription"
+                className={`admin-input ${errors.shortDescription ? 'is-invalid' : ''}`}
+                value={formData.shortDescription}
+                onChange={handleChange}
+                placeholder="Brief description (displayed in cards)"
+              />
+              {errors.shortDescription && <div className="admin-error-msg">{errors.shortDescription}</div>}
+            </div>
+            
+            <div className="admin-form-group">
+              <label htmlFor="longDescription" className="admin-label">Long Description</label>
+              <textarea
+                id="longDescription"
+                name="longDescription"
+                className="admin-textarea"
+                value={formData.longDescription}
+                onChange={handleChange}
+                placeholder="Detailed service description"
+                rows={5}
+              ></textarea>
+            </div>
+            
+            <div className="admin-form-group">
+              <label className="admin-label">Service Image</label>
+              <div className="admin-image-upload">
+                {previewUrl ? (
+                  <div className="admin-preview-image">
+                    <img src={previewUrl} alt="Service preview" />
+                    <button
+                      type="button"
+                      className="admin-remove-image"
+                      onClick={() => {
+                        setImage(null);
+                        setPreviewUrl('');
+                        setFormData({...formData, imageUrl: ''});
+                      }}
+                    >
+                      <i className="fas fa-times"></i>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="admin-upload-placeholder">
+                    <i className="fas fa-cloud-upload-alt"></i>
+                    <p>Upload Image</p>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  id="image"
+                  name="image"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="admin-file-input"
                 />
               </div>
             </div>
             
             <div className="admin-form-group">
-              <label htmlFor="description" className="admin-label">Description</label>
-              <textarea
-                id="description"
-                name="description"
-                className={`admin-textarea ${errors.description ? 'is-invalid' : ''}`}
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Enter service description"
-                rows="5"
-              ></textarea>
-              {errors.description && <div className="admin-error-msg">{errors.description}</div>}
+              <div className="admin-checkbox-group">
+                <input
+                  type="checkbox"
+                  id="featured"
+                  name="featured"
+                  checked={formData.featured}
+                  onChange={handleChange}
+                  className="admin-checkbox"
+                />
+                <label htmlFor="featured" className="admin-checkbox-label">
+                  Feature this service on homepage
+                </label>
+              </div>
             </div>
             
-            <div className="admin-form-group">
-              <label htmlFor="image" className="admin-label">Service Image</label>
-              <input
-                type="file"
-                id="image"
-                name="image"
-                className="admin-input"
-                onChange={handleImageChange}
-                accept="image/*"
-              />
-              
-              {previewUrl && (
-                <div className="admin-image-preview">
-                  <img src={previewUrl} alt="Service preview" />
-                </div>
-              )}
-            </div>
-            
-            <div className="admin-form-group admin-checkbox-group">
-              <input
-                type="checkbox"
-                id="featured"
-                name="featured"
-                checked={formData.featured}
-                onChange={handleChange}
-                className="admin-checkbox"
-              />
-              <label htmlFor="featured" className="admin-checkbox-label">Featured service</label>
-            </div>
-            
-            <div className="admin-form-actions">
+            <div className="admin-form-buttons">
               <button
                 type="button"
                 className="admin-btn admin-btn-secondary"
                 onClick={() => navigate('/admin/services')}
+                disabled={saveLoading}
               >
                 Cancel
               </button>
@@ -358,11 +401,11 @@ const ServiceForm = () => {
               >
                 {saveLoading ? (
                   <>
-                    <span className="spinner-sm"></span>
+                    <span className="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
                     Saving...
                   </>
                 ) : (
-                  isEditing ? 'Update Service' : 'Create Service'
+                  'Save Service'
                 )}
               </button>
             </div>

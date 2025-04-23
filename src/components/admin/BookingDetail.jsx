@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import { 
+  getBookingById, 
+  updateBooking, 
+  updateBookingStatus 
+} from '../../services/firestoreService';
+import { toast } from 'react-toastify';
 
 const BookingDetail = () => {
   const { id } = useParams();
@@ -9,7 +14,7 @@ const BookingDetail = () => {
   const [booking, setBooking] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [statusOptions] = useState(['pending', 'confirmed', 'cancelled', 'completed']);
+  const [statusOptions] = useState(['pending', 'confirmed', 'cancelled', 'completed', 'in_progress', 'no_show']);
   const [updateStatus, setUpdateStatus] = useState('');
   const [updateNote, setUpdateNote] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,20 +24,21 @@ const BookingDetail = () => {
     const fetchBookingDetails = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
         
-        const response = await axios.get(`http://localhost:5000/api/bookings/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
+        const bookingData = await getBookingById(id);
         
-        setBooking(response.data.booking);
-        setUpdateStatus(response.data.booking.status);
+        if (!bookingData) {
+          setError('Booking not found');
+        } else {
+          setBooking(bookingData);
+          setUpdateStatus(bookingData.status);
+        }
+        
         setLoading(false);
       } catch (err) {
         console.error('Error fetching booking:', err);
         setError('Failed to load booking details. Please try again.');
+        toast.error('Failed to load booking details');
         setLoading(false);
       }
     };
@@ -41,13 +47,31 @@ const BookingDetail = () => {
   }, [id]);
   
   // Format date
-  const formatDate = (dateString) => {
+  const formatDate = (dateValue) => {
+    if (!dateValue) return 'N/A';
+    
+    let date;
+    if (dateValue.toDate) {
+      // Convert Firestore Timestamp to JS Date
+      date = dateValue.toDate();
+    } else {
+      date = new Date(dateValue);
+    }
+    
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString(undefined, options);
+    return date.toLocaleDateString(undefined, options);
+  };
+  
+  // Format time
+  const formatTime = (timeValue) => {
+    if (!timeValue) return 'N/A';
+    return timeValue;
   };
   
   // Format price
   const formatPrice = (price) => {
+    if (!price && price !== 0) return 'N/A';
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
@@ -61,10 +85,14 @@ const BookingDetail = () => {
         return 'admin-badge-warning';
       case 'confirmed':
         return 'admin-badge-info';
+      case 'in_progress':
+        return 'admin-badge-primary';
       case 'completed':
         return 'admin-badge-success';
       case 'cancelled':
         return 'admin-badge-danger';
+      case 'no_show':
+        return 'admin-badge-secondary';
       default:
         return 'admin-badge-secondary';
     }
@@ -81,37 +109,36 @@ const BookingDetail = () => {
     setIsSubmitting(true);
     
     try {
-      const token = localStorage.getItem('token');
-      
       const updateData = {
         status: updateStatus
       };
       
       if (updateNote.trim()) {
-        updateData.notes = booking.notes 
-          ? `${booking.notes}\n\n${new Date().toLocaleString()}: ${updateNote}`
-          : `${new Date().toLocaleString()}: ${updateNote}`;
+        // Format the note with timestamp
+        const timestamp = new Date().toLocaleString();
+        const formattedNote = `${timestamp}: ${updateNote}`;
+        
+        if (booking.notes) {
+          updateData.notes = `${booking.notes}\n\n${formattedNote}`;
+        } else {
+          updateData.notes = formattedNote;
+        }
       }
       
-      await axios.put(`http://localhost:5000/api/bookings/${id}`, updateData, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Update booking status with note
+      await updateBookingStatus(id, updateStatus, updateNote.trim() ? updateNote : null);
       
       // Refresh booking data
-      const response = await axios.get(`http://localhost:5000/api/bookings/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      setBooking(response.data.booking);
+      const updatedBooking = await getBookingById(id);
+      setBooking(updatedBooking);
       setUpdateNote('');
+      toast.success(`Booking status updated to ${updateStatus}`);
+      
       setIsSubmitting(false);
     } catch (err) {
       console.error('Error updating booking:', err);
       setError('Failed to update booking. Please try again.');
+      toast.error('Failed to update booking status');
       setIsSubmitting(false);
     }
   };
@@ -128,8 +155,9 @@ const BookingDetail = () => {
   if (error) {
     return (
       <div className="admin-error-container">
-        <h2>Error</h2>
-        <p>{error}</p>
+        <div className="admin-alert admin-alert-danger">
+          <i className="fas fa-exclamation-circle"></i> {error}
+        </div>
         <button
           className="admin-btn admin-btn-primary"
           onClick={() => navigate('/admin/bookings')}
@@ -143,8 +171,9 @@ const BookingDetail = () => {
   if (!booking) {
     return (
       <div className="admin-error-container">
-        <h2>Booking Not Found</h2>
-        <p>The booking you're looking for could not be found.</p>
+        <div className="admin-alert admin-alert-danger">
+          <i className="fas fa-exclamation-circle"></i> Booking Not Found
+        </div>
         <button
           className="admin-btn admin-btn-primary"
           onClick={() => navigate('/admin/bookings')}
@@ -182,28 +211,66 @@ const BookingDetail = () => {
             
             <div className="admin-detail-row">
               <div className="admin-detail-label">Service</div>
-              <div className="admin-detail-value">{booking.Service?.name || 'N/A'}</div>
+              <div className="admin-detail-value">{booking.serviceName || 'N/A'}</div>
             </div>
             
             <div className="admin-detail-row">
               <div className="admin-detail-label">Price</div>
-              <div className="admin-detail-value">{booking.Service?.price ? formatPrice(booking.Service.price) : 'N/A'}</div>
+              <div className="admin-detail-value">{formatPrice(booking.price)}</div>
             </div>
             
             <div className="admin-detail-row">
               <div className="admin-detail-label">Booking Date</div>
-              <div className="admin-detail-value">{formatDate(booking.bookingDate)}</div>
+              <div className="admin-detail-value">{formatDate(booking.date)}</div>
             </div>
             
             <div className="admin-detail-row">
               <div className="admin-detail-label">Time Slot</div>
-              <div className="admin-detail-value">{booking.timeSlot}</div>
+              <div className="admin-detail-value">{formatTime(booking.time)}</div>
             </div>
             
             <div className="admin-detail-row">
               <div className="admin-detail-label">Created On</div>
               <div className="admin-detail-value">{formatDate(booking.createdAt)}</div>
             </div>
+          </div>
+        </div>
+        
+        {/* Customer Info Card */}
+        <div className="admin-card">
+          <div className="admin-card-header">
+            <h3>Customer Information</h3>
+          </div>
+          
+          <div className="admin-card-body">
+            <div className="admin-detail-row">
+              <div className="admin-detail-label">Name</div>
+              <div className="admin-detail-value">{booking.customerName || 'N/A'}</div>
+            </div>
+            
+            <div className="admin-detail-row">
+              <div className="admin-detail-label">Email</div>
+              <div className="admin-detail-value">{booking.customerEmail || 'N/A'}</div>
+            </div>
+            
+            <div className="admin-detail-row">
+              <div className="admin-detail-label">Phone</div>
+              <div className="admin-detail-value">{booking.customerPhone || 'N/A'}</div>
+            </div>
+            
+            {booking.device && (
+              <div className="admin-detail-row">
+                <div className="admin-detail-label">Device</div>
+                <div className="admin-detail-value">{booking.device}</div>
+              </div>
+            )}
+            
+            {booking.issue && (
+              <div className="admin-detail-row">
+                <div className="admin-detail-label">Issue Description</div>
+                <div className="admin-detail-value">{booking.issue}</div>
+              </div>
+            )}
           </div>
         </div>
         
@@ -225,7 +292,7 @@ const BookingDetail = () => {
                 >
                   {statusOptions.map((status) => (
                     <option key={status} value={status}>
-                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                      {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
                     </option>
                   ))}
                 </select>
@@ -248,77 +315,30 @@ const BookingDetail = () => {
                 className="admin-btn admin-btn-primary admin-btn-block"
                 disabled={isSubmitting || updateStatus === booking.status}
               >
-                {isSubmitting ? 'Updating...' : 'Update Booking'}
+                {isSubmitting ? (
+                  <>
+                    <div className="spinner-small"></div> Updating...
+                  </>
+                ) : (
+                  'Update Status'
+                )}
               </button>
             </form>
           </div>
         </div>
         
-        {/* Customer Info Card */}
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h3>Customer Information</h3>
-          </div>
-          
-          <div className="admin-card-body">
-            <div className="admin-detail-row">
-              <div className="admin-detail-label">Name</div>
-              <div className="admin-detail-value">{booking.User?.name || 'N/A'}</div>
-            </div>
-            
-            <div className="admin-detail-row">
-              <div className="admin-detail-label">Email</div>
-              <div className="admin-detail-value">{booking.User?.email || 'N/A'}</div>
-            </div>
-            
-            <div className="admin-detail-row">
-              <div className="admin-detail-label">Phone</div>
-              <div className="admin-detail-value">{booking.contactNumber || booking.User?.phone || 'N/A'}</div>
-            </div>
-            
-            <div className="admin-detail-row">
-              <div className="admin-detail-label">Address</div>
-              <div className="admin-detail-value">{booking.address || booking.User?.address || 'N/A'}</div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Device Details Card */}
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <h3>Device & Issue Details</h3>
-          </div>
-          
-          <div className="admin-card-body">
-            <div className="admin-detail-row">
-              <div className="admin-detail-label">Device Details</div>
-              <div className="admin-detail-value">{booking.deviceDetails || 'No device details provided'}</div>
-            </div>
-            
-            <div className="admin-detail-row">
-              <div className="admin-detail-label">Issue Description</div>
-              <div className="admin-detail-value">{booking.issue || 'No issue description provided'}</div>
-            </div>
-            
-            <div className="admin-detail-row">
-              <div className="admin-detail-label">Technician Assigned</div>
-              <div className="admin-detail-value">{booking.technician || 'Not assigned yet'}</div>
-            </div>
-          </div>
-        </div>
-        
         {/* Notes Card */}
         {booking.notes && (
-          <div className="admin-card admin-card-full">
+          <div className="admin-card">
             <div className="admin-card-header">
-              <h3>Notes & History</h3>
+              <h3>Notes History</h3>
             </div>
             
             <div className="admin-card-body">
-              <div className="admin-notes">
+              <div className="admin-notes-history">
                 {booking.notes.split('\n\n').map((note, index) => (
-                  <div key={index} className="admin-note">
-                    {note}
+                  <div key={index} className="admin-note-item">
+                    <p>{note}</p>
                   </div>
                 ))}
               </div>

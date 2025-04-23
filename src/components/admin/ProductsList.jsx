@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import * as firestoreService from '../../services/firestoreService';
+import { toast } from 'react-toastify';
+import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+import app from '../../firebase/config';
 
 const ProductsList = () => {
   const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -15,42 +19,97 @@ const ProductsList = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const storage = getStorage(app);
 
   useEffect(() => {
     fetchProducts();
-  }, [currentPage, pageSize, sortField, sortDirection]);
+  }, []);
+
+  // Apply filtering, sorting, and pagination
+  useEffect(() => {
+    if (allProducts.length > 0) {
+      applyFiltersAndPagination();
+    }
+  }, [allProducts, currentPage, pageSize, sortField, sortDirection, searchTerm]);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       
-      // Build query parameters
-      const queryParams = new URLSearchParams({
-        page: currentPage,
-        limit: pageSize,
-        sort: `${sortField}:${sortDirection.toLowerCase()}`
-      });
+      // Fetch all products from Firestore
+      const fetchedProducts = await firestoreService.getAllProducts();
+      setAllProducts(fetchedProducts);
       
-      // Add search term if provided
-      if (searchTerm) {
-        queryParams.append('search', searchTerm);
-      }
-      
-      const response = await axios.get(`http://localhost:5000/api/products?${queryParams}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      setProducts(response.data.products);
-      setTotalPages(response.data.totalPages);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching products:', err);
       setError('Failed to load products. Please try again later.');
+      toast.error('Failed to load products from database');
       setLoading(false);
     }
+  };
+
+  // Apply client-side filtering, sorting and pagination
+  const applyFiltersAndPagination = () => {
+    let filteredProducts = [...allProducts];
+    
+    // Apply search filter
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase();
+      filteredProducts = filteredProducts.filter(product => 
+        (product.name && product.name.toLowerCase().includes(searchLower)) ||
+        (product.description && product.description.toLowerCase().includes(searchLower)) ||
+        (product.category && product.category.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Apply sorting
+    filteredProducts.sort((a, b) => {
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+      
+      // Handle missing values
+      if (aValue === undefined) aValue = '';
+      if (bValue === undefined) bValue = '';
+      
+      // Handle date comparison for createdAt
+      if (sortField === 'createdAt') {
+        const aDate = aValue ? new Date(aValue.toDate ? aValue.toDate() : aValue) : new Date(0);
+        const bDate = bValue ? new Date(bValue.toDate ? bValue.toDate() : bValue) : new Date(0);
+        return sortDirection === 'ASC' ? aDate - bDate : bDate - aDate;
+      }
+      
+      // Handle number comparison
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'ASC' ? aValue - bValue : bValue - aValue;
+      }
+      
+      // String comparison for other fields
+      const aString = String(aValue).toLowerCase();
+      const bString = String(bValue).toLowerCase();
+      
+      return sortDirection === 'ASC' 
+        ? aString.localeCompare(bString)
+        : bString.localeCompare(aString);
+    });
+    
+    // Calculate total pages
+    const total = filteredProducts.length;
+    const calculatedTotalPages = Math.ceil(total / pageSize);
+    
+    // Ensure valid current page
+    if (currentPage > calculatedTotalPages && calculatedTotalPages > 0) {
+      setCurrentPage(1);
+      return;
+    }
+    
+    setTotalPages(calculatedTotalPages);
+    
+    // Apply pagination
+    const startIndex = (currentPage - 1) * pageSize;
+    const paginatedProducts = filteredProducts.slice(startIndex, startIndex + pageSize);
+    
+    setProducts(paginatedProducts);
   };
 
   const handleSort = (field) => {
@@ -65,14 +124,13 @@ const ProductsList = () => {
   const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
-    fetchProducts();
+    // The useEffect will handle the actual filtering
   };
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     if (e.target.value === '') {
       setCurrentPage(1);
-      fetchProducts();
     }
   };
 
@@ -95,30 +153,34 @@ const ProductsList = () => {
   const handleDeleteProduct = async () => {
     try {
       setDeleteLoading(true);
-      const token = localStorage.getItem('token');
       
-      await axios.delete(`http://localhost:5000/api/products/${productToDelete.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Delete product from Firestore
+      await firestoreService.deleteProduct(productToDelete.id);
       
-      // Close modal and refresh products
+      // Close modal
       setShowDeleteModal(false);
+      
+      // Update local state
+      const updatedProducts = allProducts.filter(
+        product => product.id !== productToDelete.id
+      );
+      setAllProducts(updatedProducts);
+      
       setProductToDelete(null);
       setDeleteLoading(false);
       
-      // Refresh product list
-      fetchProducts();
+      toast.success('Product deleted successfully');
     } catch (err) {
       console.error('Error deleting product:', err);
       setDeleteLoading(false);
-      // You might want to show an error message here
+      toast.error('Failed to delete product from database');
     }
   };
 
   // Format currency
   const formatCurrency = (amount) => {
+    if (!amount && amount !== 0) return 'N/A';
+    
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -283,26 +345,30 @@ const ProductsList = () => {
                   <tbody>
                     {products.map((product) => (
                       <tr key={product.id}>
-                        <td>{product.id}</td>
+                        <td>{product.id.substring(0, 8)}...</td>
                         <td>
-                          {product.ProductImages && product.ProductImages.length > 0 ? (
-                            <img
-                              src={`http://localhost:5000/${product.ProductImages[0].url}`}
-                              alt={product.name}
-                              className="product-thumbnail"
-                            />
-                          ) : (
-                            <div className="no-image">No Image</div>
-                          )}
+                          <div className="admin-product-info">
+                            {product.imageUrl ? (
+                              <img 
+                                src={product.imageUrl} 
+                                alt={product.name}
+                                className="admin-product-thumbnail" 
+                              />
+                            ) : (
+                              <div className="admin-product-no-image">
+                                <i className="fas fa-image"></i>
+                              </div>
+                            )}
+                            <span>{product.name}</span>
+                          </div>
                         </td>
-                        <td>{product.name}</td>
                         <td>{formatCurrency(product.price)}</td>
                         <td>
-                          <span className={`stock-badge ${product.stockQuantity <= 5 ? 'low-stock' : ''}`}>
-                            {product.stockQuantity}
+                          <span className={`admin-stock-badge ${parseInt(product.stock) > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                            {parseInt(product.stock) > 0 ? 'In Stock' : 'Out of Stock'}
                           </span>
                         </td>
-                        <td>{product.Category?.name || 'N/A'}</td>
+                        <td>{product.category || 'Uncategorized'}</td>
                         <td>{product.Brand?.name || 'N/A'}</td>
                         <td>
                           {product.isFeatured ? (

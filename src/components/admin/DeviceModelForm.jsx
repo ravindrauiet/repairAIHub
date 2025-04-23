@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { 
+  getModelById, 
+  updateModel, 
+  addModel, 
+  getAllBrands 
+} from '../../services/firestoreService';
+import { storage } from '../../firebase/config';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import { toast } from 'react-toastify';
 
 const DeviceModelForm = () => {
   const { id } = useParams();
@@ -13,7 +21,6 @@ const DeviceModelForm = () => {
     description: '',
     brandId: '',
     specifications: '',
-    image: null
   });
   
   // UI state
@@ -21,8 +28,10 @@ const DeviceModelForm = () => {
   const [fetchLoading, setFetchLoading] = useState(isEditMode);
   const [error, setError] = useState(null);
   const [formErrors, setFormErrors] = useState({});
+  const [image, setImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
   // Get brands for dropdown
   const [brands, setBrands] = useState([]);
@@ -33,19 +42,14 @@ const DeviceModelForm = () => {
     const fetchBrands = async () => {
       try {
         setBrandsLoading(true);
-        const token = localStorage.getItem('token');
         
-        const response = await axios.get('http://localhost:5000/api/brands', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        
-        setBrands(response.data.brands || []);
+        const brandsData = await getAllBrands();
+        setBrands(brandsData || []);
         setBrandsLoading(false);
       } catch (err) {
         console.error('Error fetching brands:', err);
         setError('Failed to load brands. Please try again.');
+        toast.error('Failed to load brands');
         setBrandsLoading(false);
       }
     };
@@ -59,31 +63,30 @@ const DeviceModelForm = () => {
       const fetchDeviceModel = async () => {
         try {
           setFetchLoading(true);
-          const token = localStorage.getItem('token');
           
-          const response = await axios.get(`http://localhost:5000/api/device-models/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`
+          const modelData = await getModelById(id);
+          
+          if (modelData) {
+            setFormData({
+              name: modelData.name || '',
+              description: modelData.description || '',
+              brandId: modelData.brandId || '',
+              specifications: modelData.specifications || '',
+            });
+            
+            if (modelData.imageUrl) {
+              setCurrentImage(modelData.imageUrl);
             }
-          });
-          
-          const modelData = response.data.deviceModel;
-          setFormData({
-            name: modelData.name || '',
-            description: modelData.description || '',
-            brandId: modelData.brandId?.toString() || '',
-            specifications: modelData.specifications || '',
-            image: null // We don't load the actual image file, just the URL
-          });
-          
-          if (modelData.image) {
-            setCurrentImage(`http://localhost:5000/${modelData.image}`);
+          } else {
+            setError('Device model not found');
+            toast.error('Device model not found');
           }
           
           setFetchLoading(false);
         } catch (err) {
           console.error('Error fetching device model:', err);
           setError('Failed to load device model data. Please try again.');
+          toast.error('Failed to load device model data');
           setFetchLoading(false);
         }
       };
@@ -114,10 +117,7 @@ const DeviceModelForm = () => {
     const file = e.target.files[0];
     
     if (file) {
-      setFormData(prevData => ({
-        ...prevData,
-        image: file
-      }));
+      setImage(file);
       
       // Create preview
       const reader = new FileReader();
@@ -138,10 +138,7 @@ const DeviceModelForm = () => {
   
   // Remove selected image
   const handleRemoveImage = () => {
-    setFormData(prevData => ({
-      ...prevData,
-      image: null
-    }));
+    setImage(null);
     setPreviewImage(null);
   };
   
@@ -161,6 +158,38 @@ const DeviceModelForm = () => {
     return Object.keys(errors).length === 0;
   };
   
+  // Upload image to Firebase Storage
+  const uploadImageToFirebase = async (file) => {
+    if (!file) return null;
+    
+    try {
+      const storageRef = ref(storage, `models/${Date.now()}-${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      
+      return new Promise((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+            setUploadProgress(progress);
+          },
+          (error) => {
+            console.error('Upload error:', error);
+            reject(error);
+          },
+          async () => {
+            // Get download URL
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(downloadURL);
+          }
+        );
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  };
+  
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -173,53 +202,35 @@ const DeviceModelForm = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
+      let imageUrl = currentImage;
       
-      // Create FormData object for file upload
-      const formDataObj = new FormData();
-      formDataObj.append('name', formData.name);
-      formDataObj.append('brandId', formData.brandId);
-      
-      if (formData.description) {
-        formDataObj.append('description', formData.description);
+      // Upload new image if selected
+      if (image) {
+        imageUrl = await uploadImageToFirebase(image);
       }
       
-      if (formData.specifications) {
-        formDataObj.append('specifications', formData.specifications);
-      }
-      
-      // Only append image if there's a new one
-      if (formData.image) {
-        formDataObj.append('image', formData.image);
-      }
+      // Prepare device model data
+      const modelData = {
+        ...formData,
+        imageUrl
+      };
       
       if (isEditMode) {
         // Update existing device model
-        await axios.put(`http://localhost:5000/api/device-models/${id}`, formDataObj, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`
-          }
-        });
+        await updateModel(id, modelData);
+        toast.success('Device model updated successfully');
       } else {
         // Create new device model
-        await axios.post('http://localhost:5000/api/device-models', formDataObj, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`
-          }
-        });
+        await addModel(modelData);
+        toast.success('Device model created successfully');
       }
       
       // Redirect to device models list
-      navigate('/admin/device-models');
+      navigate('/admin/models');
     } catch (err) {
       console.error('Error saving device model:', err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('Failed to save device model. Please try again.');
-      }
+      setError('Failed to save device model. Please try again.');
+      toast.error('Failed to save device model');
       setLoading(false);
     }
   };
@@ -239,11 +250,20 @@ const DeviceModelForm = () => {
         <h2 className="admin-section-title">
           {isEditMode ? 'Edit Device Model' : 'Add New Device Model'}
         </h2>
+        <Link to="/admin/models" className="admin-btn admin-btn-secondary">
+          <i className="fas fa-arrow-left"></i> Back to Models
+        </Link>
       </div>
       
       {error && (
         <div className="admin-alert admin-alert-danger">
-          {error}
+          <i className="fas fa-exclamation-circle"></i> {error}
+          <button
+            className="admin-alert-close"
+            onClick={() => setError(null)}
+          >
+            <i className="fas fa-times"></i>
+          </button>
         </div>
       )}
       
@@ -252,7 +272,9 @@ const DeviceModelForm = () => {
           <form onSubmit={handleSubmit}>
             <div className="admin-form-row">
               <div className="admin-form-group">
-                <label htmlFor="name" className="admin-label">Model Name</label>
+                <label htmlFor="name" className="admin-label">
+                  Model Name <span className="required">*</span>
+                </label>
                 <input
                   type="text"
                   id="name"
@@ -260,13 +282,15 @@ const DeviceModelForm = () => {
                   className={`admin-input ${formErrors.name ? 'admin-input-error' : ''}`}
                   value={formData.name}
                   onChange={handleChange}
-                  placeholder="Device Model Name"
+                  placeholder="Model Name"
                 />
                 {formErrors.name && <div className="admin-form-error">{formErrors.name}</div>}
               </div>
               
               <div className="admin-form-group">
-                <label htmlFor="brandId" className="admin-label">Brand</label>
+                <label htmlFor="brandId" className="admin-label">
+                  Brand <span className="required">*</span>
+                </label>
                 <select
                   id="brandId"
                   name="brandId"
@@ -274,7 +298,7 @@ const DeviceModelForm = () => {
                   value={formData.brandId}
                   onChange={handleChange}
                 >
-                  <option value="">Select Brand</option>
+                  <option value="">Select a Brand</option>
                   {brands.map(brand => (
                     <option key={brand.id} value={brand.id}>
                       {brand.name}
@@ -293,7 +317,7 @@ const DeviceModelForm = () => {
                 className="admin-textarea"
                 value={formData.description}
                 onChange={handleChange}
-                placeholder="Device Model Description"
+                placeholder="Model Description"
                 rows="3"
               ></textarea>
             </div>
@@ -306,20 +330,23 @@ const DeviceModelForm = () => {
                 className="admin-textarea"
                 value={formData.specifications}
                 onChange={handleChange}
-                placeholder="Enter technical specifications"
-                rows="4"
+                placeholder="Model Specifications"
+                rows="5"
               ></textarea>
+              <p className="admin-form-help">
+                Enter technical specifications like processor, memory, display size, etc.
+              </p>
             </div>
             
             <div className="admin-form-group">
-              <label className="admin-label">Device Image (Optional)</label>
+              <label className="admin-label">Model Image (Optional)</label>
               
               <div className="admin-image-upload">
                 {(previewImage || currentImage) && (
                   <div className="admin-image-preview">
                     <img 
                       src={previewImage || currentImage} 
-                      alt="Device Preview" 
+                      alt="Model Preview" 
                       className="admin-preview-img"
                     />
                     <button
@@ -327,51 +354,49 @@ const DeviceModelForm = () => {
                       className="admin-btn admin-btn-danger admin-btn-sm"
                       onClick={handleRemoveImage}
                     >
-                      Remove
+                      <i className="fas fa-times"></i> Remove
                     </button>
                   </div>
                 )}
                 
                 <input
                   type="file"
-                  id="image"
-                  accept="image/*"
-                  onChange={handleImageChange}
+                  id="modelImage"
+                  name="image"
                   className="admin-file-input"
+                  onChange={handleImageChange}
+                  accept="image/*"
                 />
-                
-                <label htmlFor="image" className="admin-file-label">
-                  {previewImage || currentImage 
-                    ? 'Change Image' 
-                    : isEditMode 
-                      ? 'Upload New Image' 
-                      : 'Upload Image'}
+                <label htmlFor="modelImage" className="admin-file-label">
+                  <i className="fas fa-upload"></i> Choose Image
                 </label>
+                <span className="admin-file-name">
+                  {image ? image.name : 'No file chosen'}
+                </span>
               </div>
             </div>
             
-            <div className="admin-form-buttons">
+            <div className="admin-form-actions">
               <button
                 type="button"
                 className="admin-btn admin-btn-secondary"
-                onClick={() => navigate('/admin/device-models')}
+                onClick={() => navigate('/admin/models')}
                 disabled={loading}
               >
                 Cancel
               </button>
-              
-              <button
-                type="submit"
-                className="admin-btn admin-btn-primary"
+              <button 
+                type="submit" 
+                className="admin-btn admin-btn-primary" 
                 disabled={loading}
               >
                 {loading ? (
                   <>
-                    <span className="spinner-small"></span>
-                    {isEditMode ? 'Updating...' : 'Creating...'}
+                    <div className="spinner-small"></div>
+                    {uploadProgress > 0 ? `Uploading ${uploadProgress}%` : 'Saving...'}
                   </>
                 ) : (
-                  isEditMode ? 'Update Device Model' : 'Create Device Model'
+                  <>{isEditMode ? 'Update' : 'Create'} Device Model</>
                 )}
               </button>
             </div>

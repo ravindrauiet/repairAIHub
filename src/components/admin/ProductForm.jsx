@@ -1,6 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import {
+  getProductById,
+  getAllCategories,
+  getAllBrands,
+  addProduct,
+  updateProduct,
+  deleteDocument
+} from '../../services/firestoreService';
+import { storage } from '../../firebase/config';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import { toast } from 'react-toastify';
 
 const ProductForm = () => {
   const { id } = useParams();
@@ -36,44 +46,49 @@ const ProductForm = () => {
         setLoading(true);
         
         // Get categories
-        const categoriesResponse = await axios.get('http://localhost:5000/api/categories');
-        setCategories(categoriesResponse.data.categories);
+        const categoriesData = await getAllCategories();
+        setCategories(categoriesData);
         
         // Get brands
-        const brandsResponse = await axios.get('http://localhost:5000/api/brands');
-        setBrands(brandsResponse.data.brands);
+        const brandsData = await getAllBrands();
+        setBrands(brandsData);
         
         // If in edit mode, get product details
         if (isEditMode) {
-          const productResponse = await axios.get(`http://localhost:5000/api/products/${id}`);
-          const product = productResponse.data.product;
+          const product = await getProductById(id);
           
-          // Set form data
-          setFormData({
-            name: product.name,
-            description: product.description,
-            price: product.price,
-            stockQuantity: product.stockQuantity,
-            categoryId: product.categoryId,
-            brandId: product.brandId,
-            isFeatured: product.isFeatured,
-          });
-          
-          // Set existing images
-          if (product.ProductImages) {
-            setExistingImages(product.ProductImages);
+          if (product) {
+            // Set form data
+            setFormData({
+              name: product.name,
+              description: product.description,
+              price: product.price,
+              stockQuantity: product.stockQuantity,
+              categoryId: product.categoryId,
+              brandId: product.brandId,
+              isFeatured: product.isFeatured || false,
+            });
+            
+            // Set existing images
+            if (product.images) {
+              setExistingImages(product.images);
+            }
+          } else {
+            toast.error("Product not found");
+            navigate('/admin/products');
           }
         }
         
         setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
+        toast.error(`Failed to load data: ${err.message}`);
         setLoading(false);
       }
     };
     
     fetchData();
-  }, [id, isEditMode]);
+  }, [id, isEditMode, navigate]);
   
   // Handle input changes
   const handleInputChange = (e) => {
@@ -99,20 +114,25 @@ const ProductForm = () => {
   };
   
   // Handle removing existing image
-  const handleRemoveExistingImage = async (imageId) => {
+  const handleRemoveExistingImage = async (imageUrl) => {
     try {
-      const token = localStorage.getItem('token');
-      
-      await axios.delete(`http://localhost:5000/api/products/${id}/images/${imageId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Delete from Firebase Storage
+      const imageRef = ref(storage, imageUrl);
+      await deleteObject(imageRef);
       
       // Update existing images state
-      setExistingImages(existingImages.filter(img => img.id !== imageId));
+      setExistingImages(existingImages.filter(img => img !== imageUrl));
+      
+      // If in edit mode, update the product to remove the image
+      if (isEditMode) {
+        const updatedProduct = { ...formData };
+        updatedProduct.images = existingImages.filter(img => img !== imageUrl);
+        await updateProduct(id, updatedProduct);
+        toast.success("Image removed successfully");
+      }
     } catch (err) {
       console.error('Error removing image:', err);
+      toast.error(`Failed to remove image: ${err.message}`);
     }
   };
   
@@ -163,53 +183,74 @@ const ProductForm = () => {
     
     // Validate form
     if (!validateForm()) {
+      toast.error("Please correct the errors in the form");
       return;
     }
     
     try {
       setSubmitting(true);
       setSubmitError(null);
-      const token = localStorage.getItem('token');
       
-      // Prepare form data for submission
-      const productFormData = new FormData();
-      productFormData.append('name', formData.name);
-      productFormData.append('description', formData.description);
-      productFormData.append('price', formData.price);
-      productFormData.append('stockQuantity', formData.stockQuantity);
-      productFormData.append('categoryId', formData.categoryId);
-      productFormData.append('brandId', formData.brandId);
-      productFormData.append('isFeatured', formData.isFeatured);
+      // Upload images first
+      const imageUrls = [...existingImages];
       
-      // Add images
-      images.forEach(image => {
-        productFormData.append('images', image);
-      });
-      
-      const config = {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setUploadProgress(percentCompleted);
+      // Upload new images to Firebase Storage
+      if (images.length > 0) {
+        for (const image of images) {
+          const storageRef = ref(storage, `products/${Date.now()}-${image.name}`);
+          const uploadTask = uploadBytesResumable(storageRef, image);
+          
+          // Wait for upload to complete
+          await new Promise((resolve, reject) => {
+            uploadTask.on(
+              'state_changed',
+              (snapshot) => {
+                const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                setUploadProgress(progress);
+              },
+              (error) => {
+                console.error("Upload error:", error);
+                reject(error);
+              },
+              async () => {
+                // Get download URL
+                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                imageUrls.push(downloadURL);
+                resolve();
+              }
+            );
+          });
         }
+      }
+      
+      // Prepare data for submission
+      const productData = {
+        name: formData.name,
+        description: formData.description,
+        price: parseFloat(formData.price),
+        stockQuantity: parseInt(formData.stockQuantity),
+        categoryId: formData.categoryId,
+        brandId: formData.brandId,
+        isFeatured: formData.isFeatured,
+        images: imageUrls
       };
       
       if (isEditMode) {
         // Update existing product
-        await axios.put(`http://localhost:5000/api/products/${id}`, productFormData, config);
+        await updateProduct(id, productData);
+        toast.success("Product updated successfully");
       } else {
         // Create new product
-        await axios.post('http://localhost:5000/api/products', productFormData, config);
+        await addProduct(productData);
+        toast.success("Product created successfully");
       }
       
       // Redirect to products list
       navigate('/admin/products');
     } catch (err) {
       console.error('Error submitting form:', err);
-      setSubmitError(err.response?.data?.message || 'An error occurred while saving the product');
+      toast.error(`Failed to save product: ${err.message}`);
+      setSubmitError('An error occurred while saving the product');
       setSubmitting(false);
       setUploadProgress(0);
     }
@@ -238,11 +279,7 @@ const ProductForm = () => {
       <div className="admin-card">
         <div className="admin-card-body">
           <form onSubmit={handleSubmit} className="admin-form">
-            {submitError && (
-              <div className="admin-form-error-message">
-                <i className="fas fa-exclamation-circle"></i> {submitError}
-              </div>
-            )}
+            {submitError && <div className="admin-error-alert">{submitError}</div>}
             
             <div className="admin-form-row">
               <div className="admin-form-group">
@@ -263,24 +300,22 @@ const ProductForm = () => {
               
               <div className="admin-form-group">
                 <label htmlFor="price" className="admin-label">
-                  Price <span className="required">*</span>
+                  Price ($) <span className="required">*</span>
                 </label>
                 <input
                   type="number"
                   id="price"
                   name="price"
-                  step="0.01"
-                  min="0"
                   className={`admin-input ${formErrors.price ? 'has-error' : ''}`}
                   value={formData.price}
                   onChange={handleInputChange}
-                  placeholder="Enter price"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
                 />
                 {formErrors.price && <div className="admin-error-msg">{formErrors.price}</div>}
               </div>
-            </div>
-            
-            <div className="admin-form-row">
+              
               <div className="admin-form-group">
                 <label htmlFor="stockQuantity" className="admin-label">
                   Stock Quantity <span className="required">*</span>
@@ -289,12 +324,11 @@ const ProductForm = () => {
                   type="number"
                   id="stockQuantity"
                   name="stockQuantity"
-                  min="0"
-                  step="1"
                   className={`admin-input ${formErrors.stockQuantity ? 'has-error' : ''}`}
                   value={formData.stockQuantity}
                   onChange={handleInputChange}
-                  placeholder="Enter stock quantity"
+                  placeholder="0"
+                  min="0"
                 />
                 {formErrors.stockQuantity && (
                   <div className="admin-error-msg">{formErrors.stockQuantity}</div>
@@ -391,17 +425,17 @@ const ProductForm = () => {
                 <div className="existing-images">
                   <p className="admin-form-help">Current Images:</p>
                   <div className="image-preview-container">
-                    {existingImages.map(image => (
-                      <div key={image.id} className="image-preview-item">
+                    {existingImages.map((imageUrl, index) => (
+                      <div key={index} className="image-preview-item">
                         <img
-                          src={`http://localhost:5000/${image.url}`}
+                          src={imageUrl}
                           alt="Product"
                           className="image-preview"
                         />
                         <button
                           type="button"
                           className="image-remove-btn"
-                          onClick={() => handleRemoveExistingImage(image.id)}
+                          onClick={() => handleRemoveExistingImage(imageUrl)}
                         >
                           <i className="fas fa-times"></i>
                         </button>

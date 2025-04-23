@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { toast } from 'react-toastify';
+import { 
+  getAllCategories, 
+  addCategory, 
+  updateCategory, 
+  deleteCategory 
+} from '../../services/firestoreService';
 
 const CategoryList = () => {
   // State for categories and form
@@ -8,7 +14,10 @@ const CategoryList = () => {
   const [error, setError] = useState(null);
   
   // Form state
-  const [newCategory, setNewCategory] = useState({ name: '', description: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    description: ''
+  });
   const [editingCategory, setEditingCategory] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   
@@ -24,19 +33,14 @@ const CategoryList = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
-      const response = await axios.get('http://localhost:5000/api/categories', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      setCategories(response.data.categories);
-      setLoading(false);
+      const categoriesData = await getAllCategories();
+      setCategories(categoriesData);
+      setError(null);
     } catch (err) {
       console.error('Error fetching categories:', err);
-      setError('Failed to load categories. Please try again.');
+      setError('Failed to load categories. Please try again later.');
+      toast.error('Failed to load categories. Please try again later.');
+    } finally {
       setLoading(false);
     }
   };
@@ -45,8 +49,10 @@ const CategoryList = () => {
   const validateForm = (data) => {
     const errors = {};
     
-    if (!data.name.trim()) {
+    if (!data.name || data.name.trim() === '') {
       errors.name = 'Category name is required';
+    } else if (data.name.length < 2) {
+      errors.name = 'Category name must be at least 2 characters';
     }
     
     setFormErrors(errors);
@@ -57,24 +63,17 @@ const CategoryList = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    if (editingCategory) {
-      setEditingCategory({
-        ...editingCategory,
-        [name]: value
-      });
-    } else {
-      setNewCategory({
-        ...newCategory,
-        [name]: value
-      });
-    }
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
     
-    // Clear error if user is correcting it
+    // Clear the specific error when user starts typing
     if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
+      setFormErrors(prevErrors => ({
+        ...prevErrors,
         [name]: null
-      });
+      }));
     }
   };
   
@@ -82,59 +81,61 @@ const CategoryList = () => {
   const handleAddCategory = async (e) => {
     e.preventDefault();
     
-    if (!validateForm(newCategory)) {
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
     
     try {
-      const token = localStorage.getItem('token');
+      setLoading(true);
+      const newCategory = await addCategory(formData);
       
-      await axios.post('http://localhost:5000/api/categories', newCategory, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      // Reset form and fetch updated categories
-      setNewCategory({ name: '', description: '' });
-      fetchCategories();
+      setCategories(prevCategories => [...prevCategories, newCategory]);
+      setFormData({ name: '', description: '' });
+      toast.success('Category added successfully!');
     } catch (err) {
       console.error('Error adding category:', err);
-      setError('Failed to add category. Please try again.');
+      toast.error('Failed to add category. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
   
   // Edit category
   const handleEditCategory = (category) => {
-    setEditingCategory(category);
-    setFormErrors({});
+    setEditingCategory(category.id);
+    setFormData({ name: category.name, description: category.description || '' });
   };
   
   // Update category
   const handleUpdateCategory = async (e) => {
     e.preventDefault();
     
-    if (!validateForm(editingCategory)) {
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
     
     try {
-      const token = localStorage.getItem('token');
+      setLoading(true);
+      const updatedCategory = await updateCategory(editingCategory, formData);
       
-      await axios.put(`http://localhost:5000/api/categories/${editingCategory.id}`, editingCategory, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
+      setCategories(prevCategories =>
+        prevCategories.map(cat =>
+          cat.id === editingCategory ? { ...cat, ...updatedCategory } : cat
+        )
+      );
       
-      // Reset editing state and fetch updated categories
+      setFormData({ name: '', description: '' });
       setEditingCategory(null);
-      fetchCategories();
+      toast.success('Category updated successfully!');
     } catch (err) {
       console.error('Error updating category:', err);
-      setError('Failed to update category. Please try again.');
+      toast.error('Failed to update category. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -147,28 +148,28 @@ const CategoryList = () => {
   // Delete category
   const handleDeleteCategory = async () => {
     try {
-      const token = localStorage.getItem('token');
+      setLoading(true);
+      await deleteCategory(categoryToDelete.id);
       
-      await axios.delete(`http://localhost:5000/api/categories/${categoryToDelete.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      setCategories(prevCategories =>
+        prevCategories.filter(cat => cat.id !== categoryToDelete.id)
+      );
       
-      // Close modal and fetch updated categories
       setShowDeleteModal(false);
       setCategoryToDelete(null);
-      fetchCategories();
+      toast.success('Category deleted successfully!');
     } catch (err) {
       console.error('Error deleting category:', err);
-      setError('Failed to delete category. Please try again.');
-      setShowDeleteModal(false);
+      toast.error('Failed to delete category. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
   
   // Cancel editing
   const handleCancelEdit = () => {
     setEditingCategory(null);
+    setFormData({ name: '', description: '' });
     setFormErrors({});
   };
   
@@ -182,71 +183,59 @@ const CategoryList = () => {
   }
   
   return (
-    <div className="admin-categories">
-      <div className="admin-section-header">
-        <h2 className="admin-section-title">Categories Management</h2>
-      </div>
+    <div className="admin-container">
+      <h2 className="admin-page-title">Manage Categories</h2>
       
-      {error && (
-        <div className="admin-alert admin-alert-danger">
-          <i className="fas fa-exclamation-circle"></i> {error}
-          <button
-            className="admin-alert-close"
-            onClick={() => setError(null)}
-          >
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-      )}
+      {error && <div className="admin-alert admin-alert-danger">{error}</div>}
       
       <div className="admin-grid">
         {/* Category Form */}
         <div className="admin-card">
           <div className="admin-card-header">
             <h3>{editingCategory ? 'Edit Category' : 'Add New Category'}</h3>
+            {editingCategory && (
+              <button
+                className="admin-btn admin-btn-link"
+                onClick={handleCancelEdit}
+              >
+                Cancel Edit
+              </button>
+            )}
           </div>
           <div className="admin-card-body">
             <form onSubmit={editingCategory ? handleUpdateCategory : handleAddCategory}>
               <div className="admin-form-group">
-                <label htmlFor="name" className="admin-label">
-                  Category Name <span className="required">*</span>
-                </label>
+                <label htmlFor="name">Category Name *</label>
                 <input
                   type="text"
                   id="name"
                   name="name"
-                  className={`admin-input ${formErrors.name ? 'has-error' : ''}`}
-                  value={editingCategory ? editingCategory.name : newCategory.name}
+                  value={formData.name}
                   onChange={handleInputChange}
-                  placeholder="Enter category name"
+                  className={`admin-form-control ${formErrors.name ? 'admin-is-invalid' : ''}`}
+                  disabled={loading}
                 />
-                {formErrors.name && <div className="admin-error-msg">{formErrors.name}</div>}
+                {formErrors.name && (
+                  <div className="admin-invalid-feedback">{formErrors.name}</div>
+                )}
               </div>
               
               <div className="admin-form-group">
-                <label htmlFor="description" className="admin-label">
-                  Description
-                </label>
+                <label htmlFor="description">Description</label>
                 <textarea
                   id="description"
                   name="description"
-                  className="admin-textarea"
-                  value={editingCategory ? editingCategory.description : newCategory.description}
+                  value={formData.description}
                   onChange={handleInputChange}
+                  className="admin-form-control"
                   rows="3"
-                  placeholder="Enter category description (optional)"
+                  disabled={loading}
                 ></textarea>
               </div>
               
-              <div className="admin-form-actions">
-                {editingCategory && (
-                  <button
-                    type="button"
-                    className="admin-btn admin-btn-secondary"
-                    onClick={handleCancelEdit}
-                  >
-                    Cancel
-                  </button>
+              <div className="admin-form-group">
+                {loading && (
+                  <div className="admin-spinner-border admin-spinner-border-sm"></div>
                 )}
                 <button type="submit" className="admin-btn admin-btn-primary">
                   {editingCategory ? 'Update Category' : 'Add Category'}

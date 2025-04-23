@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import { useEffect, useState } from 'react';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { auth, getCurrentUser, isUserAdmin } from './firebase/config';
+import { onAuthStateChanged } from 'firebase/auth';
 import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import HomePage from './pages/HomePage';
@@ -69,38 +71,31 @@ const AppLayout = ({ children }) => {
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
-    // Check if user is logged in with token
-    const token = localStorage.getItem('token');
-    const checkAuth = async () => {
-      if (token) {
-        try {
-          const response = await fetch('http://localhost:5000/api/users/profile', {
-            headers: {
-              'x-auth-token': token
-            }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            setIsLoggedIn(true);
-            
-            if (data.user && data.user.roles) {
-              setUserRole(data.user.roles);
-            }
-          } else {
-            // Invalid token, clear it
-            localStorage.removeItem('token');
-          }
-        } catch (error) {
-          console.error('Auth check error:', error);
-          localStorage.removeItem('token');
+    // Use Firebase Authentication to check login state
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        setIsLoggedIn(true);
+        
+        // Get user data including role
+        const userData = await getCurrentUser();
+        if (userData && userData.role) {
+          setUserRole(userData.role);
+          setIsAdmin(userData.role === 'admin');
         }
+      } else {
+        setIsLoggedIn(false);
+        setUserRole(null);
+        setIsAdmin(false);
       }
-    };
+      setLoading(false);
+    });
     
-    checkAuth();
+    // Cleanup subscription
+    return () => unsubscribe();
   }, []);
 
   // Load FontAwesome icons
@@ -116,13 +111,22 @@ function App() {
     };
   }, []);
 
+  // Show loading state while checking authentication
+  if (loading) {
+    return <div className="loading">Loading...</div>;
+  }
+
   return (
     <CartProvider>
       <WishlistProvider>
         <Router>
           <div className="app">
             <Routes>
-              <Route path="/admin/*" element={<AdminDashboard />} />
+              {/* Only allow admin routes for users with admin role */}
+              <Route 
+                path="/admin/*" 
+                element={isAdmin ? <AdminDashboard /> : <LoginPage setIsLoggedIn={setIsLoggedIn} />} 
+              />
               
               <Route path="/*" element={
                 <AppLayout>

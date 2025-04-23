@@ -1,5 +1,6 @@
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getAllServiceCategories, getServicesByCategory } from '../../data/services';
+import * as firestoreService from '../../services/firestoreService';
 import './ServicesSection.css';
 
 // SVG Icons components
@@ -59,34 +60,135 @@ const getServiceIcon = (serviceId) => {
   }
 };
 
+// Star rating component
+const ServiceRating = ({ rating }) => {
+  return (
+    <div className="service-rating">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <i 
+          key={star} 
+          className={`fas fa-star ${star <= rating ? 'filled' : ''}`}
+        ></i>
+      ))}
+      <span className="rating-number">{rating.toFixed(1)}</span>
+    </div>
+  );
+};
+
 const ServicesSection = () => {
-  const categories = getAllServiceCategories();
-  const allServices = categories.flatMap(category => getServicesByCategory(category));
-  const topServices = allServices.slice(0, 6); // Show top 6 services
+  const [services, setServices] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Get featured services from Firestore
+        const featuredServices = await firestoreService.getFeaturedServices(6);
+        
+        // Get all categories
+        const allCategories = await firestoreService.getAllCategories();
+        const categoryNames = allCategories.map(cat => cat.name);
+        
+        setServices(featuredServices);
+        setCategories(categoryNames);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching services:', err);
+        setError('Failed to load services');
+        setLoading(false);
+        
+        // Fallback to hardcoded data if Firestore fails
+        // This is temporary while we migrate to Firestore
+        import('../../data/services').then(module => {
+          const { getAllServiceCategories, getServicesByCategory } = module;
+          const cats = getAllServiceCategories();
+          const allServices = cats.flatMap(category => getServicesByCategory(category));
+          const topServices = allServices.slice(0, 6);
+          
+          setServices(topServices);
+          setCategories(cats);
+          setLoading(false);
+        });
+      }
+    };
+    
+    fetchData();
+  }, []);
   
   return (
     <section className="services-section">
+      <div className="services-bg-element"></div>
       <div className="container">
-        <h2 className="section-title">Our Repair Services</h2>
-        <div className="service-cards">
-          {topServices.map(service => (
-            <Link to={`/services/${service.id}`} className="service-card" key={service.id}>
-              <div className="service-icon-wrapper">
-                {getServiceIcon(service.id)}
-              </div>
-              <h3>{service.title}</h3>
-              <p>{service.shortDescription}</p>
-              <div className="service-price">{service.priceRange}</div>
-              <div className="service-link">
-                <span>View Details</span>
-                <i className="fas fa-arrow-right"></i>
-              </div>
-            </Link>
-          ))}
+        <div className="services-header">
+          <div className="section-heading">
+            <h2 className="section-title">Our Repair Services</h2>
+            <div className="title-underline"></div>
+            <p className="section-subtitle">Professional repair services for all your electronic and home appliance needs</p>
+          </div>
         </div>
-        <div className="text-center mt-4">
-          <Link to="/services" className="btn btn-primary">View All Services</Link>
-          <Link to="/book-service" className="btn btn-outline">Book a Service</Link>
+        
+        {loading ? (
+          <div className="services-loading">
+            <div className="spinner"></div>
+            <p>Loading services...</p>
+          </div>
+        ) : error ? (
+          <div className="services-error">
+            <i className="fas fa-exclamation-circle"></i>
+            <p>{error}</p>
+          </div>
+        ) : (
+          <div className="services-grid">
+            {services.map((service) => (
+              <div className="service-card" key={service.id}>
+                <div className="service-card-inner">
+                  <div className="service-image-container">
+                    <img 
+                      src={service.imageUrl} 
+                      alt={service.title} 
+                      className="service-image" 
+                    />
+                    <div className="service-category-tag">
+                      {service.category}
+                    </div>
+                  </div>
+                  
+                  <div className="service-content">
+                    <div className="service-icon-wrapper">
+                      {getServiceIcon(service.id)}
+                    </div>
+                    <h3 className="service-title">{service.title}</h3>
+                    <p className="service-description">{service.shortDescription}</p>
+                    
+                    <div className="service-meta">
+                      <div className="service-price">{service.priceRange}</div>
+                      <ServiceRating rating={service.rating || 4.5} />
+                    </div>
+                    
+                    <Link to={`/services/${service.id}`} className="service-learn-more">
+                      <span>Learn More</span>
+                      <i className="fas fa-arrow-right"></i>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        <div className="services-cta">
+          <Link to="/services" className="btn btn-primary">
+            <span>View All Services</span>
+            <i className="fas fa-arrow-right"></i>
+          </Link>
+          <Link to="/book-service" className="btn btn-outline">
+            <i className="fas fa-calendar-alt"></i>
+            <span>Book a Service</span>
+          </Link>
         </div>
       </div>
     </section>

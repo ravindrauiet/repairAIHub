@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import { 
+  getBrandById, 
+  updateBrand, 
+  addBrand 
+} from '../../services/firestoreService';
+import { storage } from '../../firebase/config';
+import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage';
+import { toast } from 'react-toastify';
 
 const BrandForm = () => {
   const { id } = useParams();
@@ -11,7 +18,6 @@ const BrandForm = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    image: null
   });
   
   // UI state
@@ -19,8 +25,10 @@ const BrandForm = () => {
   const [fetchLoading, setFetchLoading] = useState(isEditMode);
   const [error, setError] = useState(null);
   const [formErrors, setFormErrors] = useState({});
+  const [image, setImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   
   // Fetch brand data if in edit mode
   useEffect(() => {
@@ -28,23 +36,20 @@ const BrandForm = () => {
       const fetchBrand = async () => {
         try {
           setFetchLoading(true);
-          const token = localStorage.getItem('token');
           
-          const response = await axios.get(`http://localhost:5000/api/brands/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`
+          const brandData = await getBrandById(id);
+          
+          if (brandData) {
+            setFormData({
+              name: brandData.name || '',
+              description: brandData.description || '',
+            });
+            
+            if (brandData.imageUrl) {
+              setCurrentImage(brandData.imageUrl);
             }
-          });
-          
-          const brandData = response.data.brand;
-          setFormData({
-            name: brandData.name || '',
-            description: brandData.description || '',
-            image: null // We don't load the actual image file, just the URL
-          });
-          
-          if (brandData.image) {
-            setCurrentImage(`http://localhost:5000/${brandData.image}`);
+          } else {
+            setError('Brand not found');
           }
           
           setFetchLoading(false);
@@ -81,10 +86,7 @@ const BrandForm = () => {
     const file = e.target.files[0];
     
     if (file) {
-      setFormData(prevData => ({
-        ...prevData,
-        image: file
-      }));
+      setImage(file);
       
       // Create preview
       const reader = new FileReader();
@@ -105,10 +107,7 @@ const BrandForm = () => {
   
   // Remove selected image
   const handleRemoveImage = () => {
-    setFormData(prevData => ({
-      ...prevData,
-      image: null
-    }));
+    setImage(null);
     setPreviewImage(null);
   };
   
@@ -124,6 +123,38 @@ const BrandForm = () => {
     return Object.keys(errors).length === 0;
   };
   
+  // Upload image to Firebase Storage
+  const uploadImageToFirebase = async (file) => {
+    if (!file) return null;
+    
+    try {
+      const storageRef = ref(storage, `brands/${Date.now()}-${file.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      
+      return new Promise((resolve, reject) => {
+        uploadTask.on(
+          'state_changed',
+          (snapshot) => {
+            const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+            setUploadProgress(progress);
+          },
+          (error) => {
+            console.error('Upload error:', error);
+            reject(error);
+          },
+          async () => {
+            // Get download URL
+            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(downloadURL);
+          }
+        );
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  };
+  
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -136,48 +167,35 @@ const BrandForm = () => {
     setError(null);
     
     try {
-      const token = localStorage.getItem('token');
+      let imageUrl = currentImage;
       
-      // Create FormData object for file upload
-      const formDataObj = new FormData();
-      formDataObj.append('name', formData.name);
-      
-      if (formData.description) {
-        formDataObj.append('description', formData.description);
+      // Upload new image if selected
+      if (image) {
+        imageUrl = await uploadImageToFirebase(image);
       }
       
-      // Only append image if there's a new one
-      if (formData.image) {
-        formDataObj.append('image', formData.image);
-      }
+      // Prepare brand data
+      const brandData = {
+        ...formData,
+        imageUrl
+      };
       
       if (isEditMode) {
         // Update existing brand
-        await axios.put(`http://localhost:5000/api/brands/${id}`, formDataObj, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`
-          }
-        });
+        await updateBrand(id, brandData);
+        toast.success('Brand updated successfully');
       } else {
         // Create new brand
-        await axios.post('http://localhost:5000/api/brands', formDataObj, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`
-          }
-        });
+        await addBrand(brandData);
+        toast.success('Brand added successfully');
       }
       
       // Redirect to brands list
       navigate('/admin/brands');
     } catch (err) {
       console.error('Error saving brand:', err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('Failed to save brand. Please try again.');
-      }
+      setError('Failed to save brand. Please try again.');
+      toast.error('Failed to save brand');
       setLoading(false);
     }
   };
@@ -197,6 +215,9 @@ const BrandForm = () => {
         <h2 className="admin-section-title">
           {isEditMode ? 'Edit Brand' : 'Add New Brand'}
         </h2>
+        <Link to="/admin/brands" className="admin-btn admin-btn-secondary">
+          <i className="fas fa-arrow-left"></i> Back to Brands
+        </Link>
       </div>
       
       {error && (
@@ -251,30 +272,29 @@ const BrandForm = () => {
                       className="admin-btn admin-btn-danger admin-btn-sm"
                       onClick={handleRemoveImage}
                     >
-                      Remove
+                      <i className="fas fa-times"></i> Remove
                     </button>
                   </div>
                 )}
                 
                 <input
                   type="file"
-                  id="image"
-                  accept="image/*"
-                  onChange={handleImageChange}
+                  id="brandLogo"
+                  name="image"
                   className="admin-file-input"
+                  onChange={handleImageChange}
+                  accept="image/*"
                 />
-                
-                <label htmlFor="image" className="admin-file-label">
-                  {previewImage || currentImage 
-                    ? 'Change Logo' 
-                    : isEditMode 
-                      ? 'Upload New Logo' 
-                      : 'Upload Logo'}
+                <label htmlFor="brandLogo" className="admin-file-label">
+                  <i className="fas fa-upload"></i> Choose Logo
                 </label>
+                <span className="admin-file-name">
+                  {image ? image.name : 'No file chosen'}
+                </span>
               </div>
             </div>
             
-            <div className="admin-form-buttons">
+            <div className="admin-form-actions">
               <button
                 type="button"
                 className="admin-btn admin-btn-secondary"
@@ -283,19 +303,14 @@ const BrandForm = () => {
               >
                 Cancel
               </button>
-              
-              <button
-                type="submit"
-                className="admin-btn admin-btn-primary"
-                disabled={loading}
-              >
+              <button type="submit" className="admin-btn admin-btn-primary" disabled={loading}>
                 {loading ? (
                   <>
-                    <span className="spinner-small"></span>
-                    {isEditMode ? 'Updating...' : 'Creating...'}
+                    <div className="spinner-small"></div>
+                    {uploadProgress > 0 ? `Uploading ${uploadProgress}%` : 'Saving...'}
                   </>
                 ) : (
-                  isEditMode ? 'Update Brand' : 'Create Brand'
+                  <>{isEditMode ? 'Update' : 'Create'} Brand</>
                 )}
               </button>
             </div>

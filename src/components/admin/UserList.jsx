@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import * as firestoreService from '../../services/firestoreService';
+import { toast } from 'react-toastify';
 
 const UserList = () => {
   // State for users
   const [users, setUsers] = useState([]);
+  const [allUsers, setAllUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -32,47 +34,95 @@ const UserList = () => {
     { value: 'tech', label: 'Technician', color: 'success' }
   ];
   
-  // Fetch users on component mount and when filters change
+  // Fetch users on component mount
   useEffect(() => {
     fetchUsers();
-  }, [currentPage, roleFilter, sortBy, sortDirection, searchTerm]);
+  }, []);
+  
+  // Apply filtering, sorting, and pagination when these values change
+  useEffect(() => {
+    if (allUsers.length > 0) {
+      applyFiltersAndPagination();
+    }
+  }, [allUsers, currentPage, roleFilter, sortBy, sortDirection, searchTerm]);
   
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       
-      // Construct query parameters
-      const params = {
-        page: currentPage,
-        limit,
-        sortBy,
-        sortDirection,
-      };
+      // Fetch all users from Firestore
+      const fetchedUsers = await firestoreService.getAllUsers();
+      setAllUsers(fetchedUsers);
       
-      if (roleFilter !== 'all') {
-        params.role = roleFilter;
-      }
-      
-      if (searchTerm) {
-        params.search = searchTerm;
-      }
-      
-      const response = await axios.get('http://localhost:5000/api/admin/users', {
-        params,
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      
-      setUsers(response.data.users);
-      setTotalPages(Math.ceil(response.data.total / limit));
       setLoading(false);
     } catch (err) {
       console.error('Error fetching users:', err);
       setError('Failed to load users. Please try again.');
+      toast.error('Failed to load users from the database');
       setLoading(false);
     }
+  };
+  
+  // Apply client-side filtering, sorting, and pagination
+  const applyFiltersAndPagination = () => {
+    let filteredUsers = [...allUsers];
+    
+    // Apply role filter
+    if (roleFilter !== 'all') {
+      filteredUsers = filteredUsers.filter(user => user.role === roleFilter);
+    }
+    
+    // Apply search
+    if (searchTerm.trim() !== '') {
+      const searchLower = searchTerm.toLowerCase();
+      filteredUsers = filteredUsers.filter(user => 
+        (user.name && user.name.toLowerCase().includes(searchLower)) ||
+        (user.email && user.email.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Apply sorting
+    filteredUsers.sort((a, b) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+      
+      // Handle missing values
+      if (aValue === undefined) aValue = '';
+      if (bValue === undefined) bValue = '';
+      
+      // Handle date comparison for createdAt
+      if (sortBy === 'createdAt') {
+        const aDate = aValue ? new Date(aValue.toDate ? aValue.toDate() : aValue) : new Date(0);
+        const bDate = bValue ? new Date(bValue.toDate ? bValue.toDate() : bValue) : new Date(0);
+        return sortDirection === 'asc' ? aDate - bDate : bDate - aDate;
+      }
+      
+      // String comparison for other fields
+      const aString = String(aValue).toLowerCase();
+      const bString = String(bValue).toLowerCase();
+      
+      return sortDirection === 'asc' 
+        ? aString.localeCompare(bString)
+        : bString.localeCompare(aString);
+    });
+    
+    // Calculate total pages
+    const total = filteredUsers.length;
+    const calculatedTotalPages = Math.ceil(total / limit);
+    
+    // Ensure valid current page
+    if (currentPage > calculatedTotalPages && calculatedTotalPages > 0) {
+      setCurrentPage(1);
+      return;
+    }
+    
+    setTotalPages(calculatedTotalPages);
+    
+    // Apply pagination
+    const startIndex = (currentPage - 1) * limit;
+    const paginatedUsers = filteredUsers.slice(startIndex, startIndex + limit);
+    
+    setUsers(paginatedUsers);
   };
   
   // Handle pagination
@@ -136,11 +186,11 @@ const UserList = () => {
   const validateForm = () => {
     const errors = {};
     
-    if (!editingUser.name.trim()) {
+    if (!editingUser.name?.trim()) {
       errors.name = 'Name is required';
     }
     
-    if (!editingUser.email.trim()) {
+    if (!editingUser.email?.trim()) {
       errors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(editingUser.email)) {
       errors.email = 'Email is invalid';
@@ -164,7 +214,7 @@ const UserList = () => {
     }
     
     try {
-      const token = localStorage.getItem('token');
+      setLoading(true);
       
       // Create update data object (exclude password if empty)
       const updateData = {
@@ -173,24 +223,26 @@ const UserList = () => {
         role: editingUser.role
       };
       
-      if (editingUser.password) {
-        updateData.password = editingUser.password;
-      }
-      
-      await axios.put(`http://localhost:5000/api/admin/users/${editingUser.id}`, updateData, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Update user in Firestore
+      await firestoreService.updateUser(editingUser.id, updateData);
       
       // Close modal and refresh users
       setShowEditModal(false);
       setEditingUser(null);
-      fetchUsers();
+      
+      // Update local state
+      const updatedUsers = allUsers.map(user => 
+        user.id === editingUser.id ? { ...user, ...updateData } : user
+      );
+      setAllUsers(updatedUsers);
+      
+      toast.success('User updated successfully');
+      setLoading(false);
     } catch (err) {
       console.error('Error updating user:', err);
       setError('Failed to update user. Please try again.');
+      toast.error('Failed to update user in the database');
+      setLoading(false);
     }
   };
   
@@ -203,28 +255,42 @@ const UserList = () => {
   // Delete user
   const handleDeleteUser = async () => {
     try {
-      const token = localStorage.getItem('token');
+      setLoading(true);
       
-      await axios.delete(`http://localhost:5000/api/admin/users/${userToDelete.id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      // Delete user from Firestore using the specific function
+      await firestoreService.deleteUser(userToDelete.id);
       
-      // Close modal and refresh users
+      // Close modal and update local state
       setShowDeleteModal(false);
       setUserToDelete(null);
-      fetchUsers();
+      
+      // Remove from local state
+      const updatedUsers = allUsers.filter(user => user.id !== userToDelete.id);
+      setAllUsers(updatedUsers);
+      
+      toast.success('User deleted successfully');
+      setLoading(false);
     } catch (err) {
       console.error('Error deleting user:', err);
       setError('Failed to delete user. Please try again.');
+      toast.error('Failed to delete user from the database');
       setShowDeleteModal(false);
+      setLoading(false);
     }
   };
   
   // Format date
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
+  const formatDate = (dateValue) => {
+    if (!dateValue) return 'N/A';
+    
+    let date;
+    if (dateValue.toDate) {
+      // Convert Firestore Timestamp to JS Date
+      date = dateValue.toDate();
+    } else {
+      date = new Date(dateValue);
+    }
+    
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',

@@ -1,135 +1,86 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { 
+  getCategoryById, 
+  updateCategory, 
+  addCategory 
+} from '../../services/firestoreService';
+import { toast } from 'react-toastify';
+import './CategoryForm.css';
 
 const CategoryForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const isEditMode = Boolean(id);
+  const isEditing = !!id;
   
-  // Form state
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    image: null
+    name: ''
   });
   
-  // UI state
   const [loading, setLoading] = useState(false);
-  const [fetchLoading, setFetchLoading] = useState(isEditMode);
-  const [error, setError] = useState(null);
-  const [formErrors, setFormErrors] = useState({});
-  const [previewImage, setPreviewImage] = useState(null);
-  const [currentImage, setCurrentImage] = useState(null);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [errorMessage, setErrorMessage] = useState('');
   
-  // Fetch category data if in edit mode
+  // Fetch category details if editing
   useEffect(() => {
-    if (isEditMode) {
-      const fetchCategory = async () => {
-        try {
-          setFetchLoading(true);
-          const token = localStorage.getItem('token');
-          
-          const response = await axios.get(`http://localhost:5000/api/categories/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          });
-          
-          const categoryData = response.data.category;
-          setFormData({
-            name: categoryData.name || '',
-            description: categoryData.description || '',
-            image: null // We don't load the actual image file, just the URL
-          });
-          
-          if (categoryData.image) {
-            setCurrentImage(`http://localhost:5000/${categoryData.image}`);
-          }
-          
-          setFetchLoading(false);
-        } catch (err) {
-          console.error('Error fetching category:', err);
-          setError('Failed to load category data. Please try again.');
-          setFetchLoading(false);
-        }
-      };
+    const fetchCategoryDetails = async () => {
+      if (!isEditing) return;
       
-      fetchCategory();
-    }
-  }, [id, isEditMode]);
+      setLoading(true);
+      try {
+        const category = await getCategoryById(id);
+        
+        if (category) {
+          setFormData({
+            name: category.name || ''
+          });
+        } else {
+          setErrorMessage('Category not found');
+        }
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching category details:', err);
+        setErrorMessage('Failed to load category details from Firestore');
+        setLoading(false);
+      }
+    };
+    
+    fetchCategoryDetails();
+  }, [id, isEditing]);
   
-  // Handle input changes
+  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prevData => ({
-      ...prevData,
+    
+    setFormData({
+      ...formData,
       [name]: value
-    }));
+    });
     
-    // Clear error when field is edited
-    if (formErrors[name]) {
-      setFormErrors(prev => ({
-        ...prev,
-        [name]: null
-      }));
+    // Clear errors
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ''
+      });
     }
   };
   
-  // Handle file upload
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    
-    if (file) {
-      setFormData(prevData => ({
-        ...prevData,
-        image: file
-      }));
-      
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result);
-      };
-      reader.readAsDataURL(file);
-      
-      // Clear error
-      if (formErrors.image) {
-        setFormErrors(prev => ({
-          ...prev,
-          image: null
-        }));
-      }
-    }
-  };
-  
-  // Remove selected image
-  const handleRemoveImage = () => {
-    setFormData(prevData => ({
-      ...prevData,
-      image: null
-    }));
-    setPreviewImage(null);
-  };
-  
-  // Validate form
+  // Form validation
   const validateForm = () => {
-    const errors = {};
+    const newErrors = {};
     
     if (!formData.name.trim()) {
-      errors.name = 'Category name is required';
+      newErrors.name = 'Category name is required';
     }
     
-    // If not in edit mode or changing image, require an image
-    if (!isEditMode && !formData.image && !currentImage) {
-      errors.image = 'Category image is required';
-    }
-    
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
   
-  // Handle form submission
+  // Form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -137,73 +88,60 @@ const CategoryForm = () => {
       return;
     }
     
-    setLoading(true);
-    setError(null);
+    setSaveLoading(true);
     
     try {
-      const token = localStorage.getItem('token');
+      // Prepare category data
+      const categoryData = {
+        name: formData.name.trim()
+      };
       
-      // Create FormData object for file upload
-      const formDataObj = new FormData();
-      formDataObj.append('name', formData.name);
-      formDataObj.append('description', formData.description);
-      
-      // Only append image if there's a new one
-      if (formData.image) {
-        formDataObj.append('image', formData.image);
-      }
-      
-      if (isEditMode) {
+      if (isEditing) {
         // Update existing category
-        await axios.put(`http://localhost:5000/api/categories/${id}`, formDataObj, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`
-          }
-        });
+        await updateCategory(id, categoryData);
+        toast.success('Category updated successfully');
       } else {
         // Create new category
-        await axios.post('http://localhost:5000/api/categories', formDataObj, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`
-          }
-        });
+        await addCategory(categoryData);
+        toast.success('Category added successfully');
       }
       
-      // Redirect to categories list
+      setSaveLoading(false);
+      
+      // Redirect to categories list on success
       navigate('/admin/categories');
     } catch (err) {
       console.error('Error saving category:', err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError('Failed to save category. Please try again.');
-      }
-      setLoading(false);
+      setErrorMessage('Failed to save category to Firestore. Please try again.');
+      setSaveLoading(false);
+      toast.error('Failed to save category');
     }
   };
   
-  if (fetchLoading) {
+  if (loading) {
     return (
       <div className="admin-loading">
         <div className="spinner"></div>
-        <p>Loading category data...</p>
+        <p>Loading category details...</p>
       </div>
     );
   }
   
   return (
-    <div className="admin-form-container">
+    <div className="admin-category-form">
       <div className="admin-section-header">
-        <h2 className="admin-section-title">
-          {isEditMode ? 'Edit Category' : 'Add New Category'}
-        </h2>
+        <h2 className="admin-section-title">{isEditing ? 'Edit Category' : 'Add New Category'}</h2>
       </div>
       
-      {error && (
+      {errorMessage && (
         <div className="admin-alert admin-alert-danger">
-          {error}
+          <i className="fas fa-exclamation-circle"></i> {errorMessage}
+          <button
+            className="admin-alert-close"
+            onClick={() => setErrorMessage('')}
+          >
+            <i className="fas fa-times"></i>
+          </button>
         </div>
       )}
       
@@ -216,66 +154,12 @@ const CategoryForm = () => {
                 type="text"
                 id="name"
                 name="name"
-                className={`admin-input ${formErrors.name ? 'admin-input-error' : ''}`}
+                className={`admin-input ${errors.name ? 'is-invalid' : ''}`}
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Category Name"
+                placeholder="Enter category name"
               />
-              {formErrors.name && <div className="admin-form-error">{formErrors.name}</div>}
-            </div>
-            
-            <div className="admin-form-group">
-              <label htmlFor="description" className="admin-label">Description</label>
-              <textarea
-                id="description"
-                name="description"
-                className="admin-textarea"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Category Description"
-                rows="3"
-              ></textarea>
-            </div>
-            
-            <div className="admin-form-group">
-              <label className="admin-label">Category Image</label>
-              
-              <div className="admin-image-upload">
-                {(previewImage || currentImage) && (
-                  <div className="admin-image-preview">
-                    <img 
-                      src={previewImage || currentImage} 
-                      alt="Category Preview" 
-                      className="admin-preview-img"
-                    />
-                    <button
-                      type="button"
-                      className="admin-btn admin-btn-danger admin-btn-sm"
-                      onClick={handleRemoveImage}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                )}
-                
-                <input
-                  type="file"
-                  id="image"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className={`admin-file-input ${formErrors.image ? 'admin-input-error' : ''}`}
-                />
-                
-                <label htmlFor="image" className="admin-file-label">
-                  {previewImage || currentImage 
-                    ? 'Change Image' 
-                    : isEditMode 
-                      ? 'Upload New Image' 
-                      : 'Upload Image'}
-                </label>
-                
-                {formErrors.image && <div className="admin-form-error">{formErrors.image}</div>}
-              </div>
+              {errors.name && <div className="admin-error-msg">{errors.name}</div>}
             </div>
             
             <div className="admin-form-buttons">
@@ -283,23 +167,22 @@ const CategoryForm = () => {
                 type="button"
                 className="admin-btn admin-btn-secondary"
                 onClick={() => navigate('/admin/categories')}
-                disabled={loading}
+                disabled={saveLoading}
               >
                 Cancel
               </button>
-              
               <button
                 type="submit"
                 className="admin-btn admin-btn-primary"
-                disabled={loading}
+                disabled={saveLoading}
               >
-                {loading ? (
+                {saveLoading ? (
                   <>
-                    <span className="spinner-small"></span>
-                    {isEditMode ? 'Updating...' : 'Creating...'}
+                    <span className="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                    Saving...
                   </>
                 ) : (
-                  isEditMode ? 'Update Category' : 'Create Category'
+                  'Save Category'
                 )}
               </button>
             </div>
