@@ -661,4 +661,229 @@ p {
 .step-content p {
   margin: 0;
   color: #6c757d;
+}
+
+/* Booking Status Styles */
+.booking-status {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: white;
+}
+
+.status-pending {
+  background-color: #f0ad4e; /* Warning orange - same as getStatusColor */
+  color: #fff;
+}
+
+.status-confirmed {
+  background-color: #5bc0de; /* Info blue - same as getStatusColor */
+  color: #fff;
+}
+
+.status-in-progress {
+  background-color: #0275d8; /* Primary blue - same as getStatusColor */
+  color: #fff;
+}
+
+.status-completed {
+  background-color: #5cb85c; /* Success green - same as getStatusColor */
+  color: #fff;
+}
+
+.status-cancelled {
+  background-color: #d9534f; /* Danger red - same as getStatusColor */
+  color: #fff;
+}
+
+.status-failed {
+  background-color: #d9534f; /* Danger red - same as getStatusColor */
+  color: #fff;
+}
+
+.status-rescheduled {
+  background-color: #f0ad4e; /* Warning orange - same as getStatusColor */
+  color: #fff;
+}
+
+.status-on-hold {
+  background-color: #6c757d; /* Gray - same as getStatusColor */
+  color: #fff;
+}
+
+.status-active {
+  background-color: #0275d8; /* Primary blue - same as getStatusColor */
+  color: #fff;
+}
+
+/* Booking Card Styles */
+.booking-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.booking-header {
+  padding: 16px 20px;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.booking-service {
+  display: flex;
+  align-items: center;
+}
+
+.booking-service i {
+  font-size: 24px;
+  color: #007bff;
+  margin-right: 12px;
+}
+
+.booking-service h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.booking-details {
+  padding: 20px;
+}
+
+.booking-info-row {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.booking-info-row .label {
+  font-weight: 500;
+  color: #6c757d;
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.booking-info-row .value {
+  flex: 1;
+}
+
+.booking-info-row.discount {
+  color: #28a745;
+}
+
+.booking-info-row.total {
+  font-weight: bold;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e9ecef;
+}
+
+.booking-actions {
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #e9ecef;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.booking-price-info, .booking-codes, .booking-note {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+}
+
+.booking-codes h4, .booking-note h4 {
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.booking-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.booking-filter button {
+  padding: 8px 16px;
+  border: 1px solid #ced4da;
+  background-color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.booking-filter button:hover {
+  background-color: #f8f9fa;
+}
+
+.booking-filter button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.no-bookings {
+  text-align: center;
+  padding: 40px 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.no-bookings p {
+  margin-bottom: 20px;
+  color: #6c757d;
+}
+
+/* Button styles for booking actions */
+.btn-outline.cancel {
+  color: #d9534f;
+  border-color: #d9534f;
+}
+
+.btn-outline.cancel:hover {
+  background-color: #d9534f;
+  color: white;
+}
+
+.btn-outline.reschedule {
+  color: #0275d8;
+  border-color: #0275d8;
+}
+
+.btn-outline.reschedule:hover {
+  background-color: #0275d8;
+  color: white;
+}
+
+/* Note box in booking form */
+.note-box {
+  display: flex;
+  gap: 10px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-left: 4px solid #5bc0de;
+  border-radius: 4px;
+  margin-top: 15px;
+}
+
+.note-box i {
+  color: #5bc0de;
+  font-size: 18px;
+}
+
+.note-box p {
+  margin: 0;
+  color: #495057;
 } 

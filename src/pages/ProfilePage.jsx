@@ -472,6 +472,31 @@ const ProfilePage = () => {
     </div>
   );
   
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'pending':
+        return '#f0ad4e'; // Warning/orange
+      case 'confirmed':
+        return '#5bc0de'; // Info/blue
+      case 'in_progress':
+        return '#0275d8'; // Primary/darker blue
+      case 'completed':
+        return '#5cb85c'; // Success/green
+      case 'cancelled':
+        return '#d9534f'; // Danger/red
+      case 'failed':
+        return '#d9534f'; // Danger/red
+      case 'rescheduled':
+        return '#f0ad4e'; // Warning/orange
+      case 'on_hold':
+        return '#6c757d'; // Secondary/gray
+      case 'active':
+        return '#0275d8'; // Primary/darker blue
+      default:
+        return '#f0ad4e'; // Default to warning/orange
+    }
+  };
+  
   if (loading) {
     return (
       <div className="loading-container">
@@ -606,7 +631,7 @@ const ProfilePage = () => {
                             <div className="item-details">
                               <h4>{booking.service.title}</h4>
                               <p>{new Date(booking.date).toLocaleDateString()} | {booking.time}</p>
-                              <span className={`status-badge ${booking.status}`}>
+                              <span className="status-badge" style={{ backgroundColor: getStatusColor(booking.status) }}>
                                 {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                               </span>
                             </div>
@@ -706,7 +731,7 @@ const ProfilePage = () => {
                             </div>
                           </div>
                           <div className="booking-status-container">
-                            <span className={`status-badge ${booking.status}`}>
+                            <span className="status-badge" style={{ backgroundColor: getStatusColor(booking.status) }}>
                               {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                             </span>
                           </div>
@@ -762,17 +787,19 @@ const ProfilePage = () => {
                         <div className="booking-card-footer">
                           <div className="booking-timeline">
                             <div className={`timeline-step ${booking.status !== 'cancelled' ? 'completed' : ''}`}>
-                              <div className="step-icon"><i className="fas fa-clipboard-check"></i></div>
+                              <div className="step-icon" style={{ backgroundColor: booking.status !== 'cancelled' ? getStatusColor('completed') : '#6c757d' }}><i className="fas fa-clipboard-check"></i></div>
                               <div className="step-label">Booked</div>
                             </div>
-                            <div className={`timeline-connector ${booking.status === 'pending' || booking.status === 'active' || booking.status === 'completed' ? 'active' : ''}`}></div>
+                            <div className={`timeline-connector ${booking.status === 'pending' || booking.status === 'active' || booking.status === 'completed' ? 'active' : ''}`} 
+                                 style={{ backgroundColor: (booking.status === 'pending' || booking.status === 'active' || booking.status === 'completed') ? getStatusColor(booking.status) : '#e9ecef' }}></div>
                             <div className={`timeline-step ${booking.status === 'active' || booking.status === 'completed' ? 'completed' : ''}`}>
-                              <div className="step-icon"><i className="fas fa-tools"></i></div>
+                              <div className="step-icon" style={{ backgroundColor: (booking.status === 'active' || booking.status === 'completed') ? getStatusColor(booking.status) : '#6c757d' }}><i className="fas fa-tools"></i></div>
                               <div className="step-label">In Progress</div>
                             </div>
-                            <div className={`timeline-connector ${booking.status === 'completed' ? 'active' : ''}`}></div>
+                            <div className={`timeline-connector ${booking.status === 'completed' ? 'active' : ''}`}
+                                 style={{ backgroundColor: booking.status === 'completed' ? getStatusColor('completed') : '#e9ecef' }}></div>
                             <div className={`timeline-step ${booking.status === 'completed' ? 'completed' : ''}`}>
-                              <div className="step-icon"><i className="fas fa-check-circle"></i></div>
+                              <div className="step-icon" style={{ backgroundColor: booking.status === 'completed' ? getStatusColor('completed') : '#6c757d' }}><i className="fas fa-check-circle"></i></div>
                               <div className="step-label">Completed</div>
                             </div>
                           </div>
