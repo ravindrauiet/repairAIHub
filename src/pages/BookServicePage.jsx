@@ -14,6 +14,7 @@ import {
 import { auth, db } from '../firebase/config';
 import services from '../data/services';
 import BookingDeviceSelector from '../components/BookingDeviceSelector';
+import { getReferralByCode, getCouponByCode, isUserEligibleForCoupon, incrementReferralUse, incrementCouponUse } from '../services/firestoreService';
 
 const BookServicePage = () => {
   const navigate = useNavigate();
@@ -33,13 +34,24 @@ const BookServicePage = () => {
     pincode: '',
     preferredDate: '',
     preferredTime: '',
-    additionalInfo: ''
+    additionalInfo: '',
+    referralCode: '',
+    couponCode: ''
   });
   
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [bookingReference, setBookingReference] = useState('');
+  
+  // Pricing and discount state
+  const [basePrice, setBasePrice] = useState(0);
+  const [discountInfo, setDiscountInfo] = useState({
+    referral: { valid: false, code: '', percentage: 0, amount: 0, id: '' },
+    coupon: { valid: false, code: '', percentage: 0, amount: 0, id: '' }
+  });
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [isApplyingCode, setIsApplyingCode] = useState(false);
   
   // Check if user is logged in and get service from location state
   useEffect(() => {
@@ -75,6 +87,43 @@ const BookServicePage = () => {
     
     return () => unsubscribe();
   }, [location]);
+  
+  // Update price calculation when service or discounts change
+  useEffect(() => {
+    if (selectedService) {
+      const price = selectedService.price || 0;
+      setBasePrice(price);
+      
+      // Calculate discount amounts
+      const referralDiscount = discountInfo.referral.valid 
+        ? (price * discountInfo.referral.percentage / 100) 
+        : 0;
+        
+      const couponDiscount = discountInfo.coupon.valid 
+        ? (price * discountInfo.coupon.percentage / 100) 
+        : 0;
+      
+      // Update discount info with calculated amounts
+      setDiscountInfo(prev => ({
+        referral: {
+          ...prev.referral,
+          amount: referralDiscount
+        },
+        coupon: {
+          ...prev.coupon,
+          amount: couponDiscount
+        }
+      }));
+      
+      // Calculate total after discounts
+      const total = price - referralDiscount - couponDiscount;
+      setTotalPrice(Math.max(0, total));
+    } else {
+      setBasePrice(0);
+      setTotalPrice(0);
+    }
+  }, [selectedService, discountInfo.referral.valid, discountInfo.referral.percentage, 
+      discountInfo.coupon.valid, discountInfo.coupon.percentage]);
   
   // Get time slots for booking
   const getTimeSlots = () => {
@@ -119,6 +168,120 @@ const BookServicePage = () => {
         ...prev,
         deviceModel: model.name
       }));
+    }
+  };
+  
+  // Apply referral code
+  const handleApplyReferral = async () => {
+    const code = formData.referralCode.trim();
+    if (!code) {
+      setErrors(prev => ({
+        ...prev,
+        referralCode: 'Please enter a referral code'
+      }));
+      return;
+    }
+    
+    setIsApplyingCode(true);
+    setErrors(prev => ({ ...prev, referralCode: '' }));
+    
+    try {
+      const referral = await getReferralByCode(code);
+      
+      if (!referral || !referral.active) {
+        setErrors(prev => ({
+          ...prev,
+          referralCode: 'Please enter a valid code'
+        }));
+        setDiscountInfo(prev => ({
+          ...prev,
+          referral: { valid: false, code: '', percentage: 0, amount: 0, id: '' }
+        }));
+      } else {
+        // Referral is valid, apply the discount
+        setDiscountInfo(prev => ({
+          ...prev,
+          referral: {
+            valid: true,
+            code: referral.code,
+            percentage: referral.discountPercentage,
+            amount: basePrice * (referral.discountPercentage / 100),
+            id: referral.id
+          }
+        }));
+      }
+    } catch (err) {
+      console.error('Error validating referral code:', err);
+      setErrors(prev => ({
+        ...prev,
+        referralCode: 'Error validating code'
+      }));
+    } finally {
+      setIsApplyingCode(false);
+    }
+  };
+  
+  // Apply coupon code
+  const handleApplyCoupon = async () => {
+    const code = formData.couponCode.trim();
+    if (!code) {
+      setErrors(prev => ({
+        ...prev,
+        couponCode: 'Please enter a coupon code'
+      }));
+      return;
+    }
+    
+    setIsApplyingCode(true);
+    setErrors(prev => ({ ...prev, couponCode: '' }));
+    
+    try {
+      const coupon = await getCouponByCode(code);
+      
+      if (!coupon || !coupon.active) {
+        setErrors(prev => ({
+          ...prev,
+          couponCode: 'Please enter a valid coupon code'
+        }));
+        setDiscountInfo(prev => ({
+          ...prev,
+          coupon: { valid: false, code: '', percentage: 0, amount: 0, id: '' }
+        }));
+      } else {
+        // Check if user is eligible for this coupon
+        const isEligible = user ? await isUserEligibleForCoupon(coupon.id, user.id) : false;
+        
+        if (!isEligible && coupon.target === 'specific') {
+          setErrors(prev => ({
+            ...prev,
+            couponCode: 'This coupon is not applicable to your account'
+          }));
+          setDiscountInfo(prev => ({
+            ...prev,
+            coupon: { valid: false, code: '', percentage: 0, amount: 0, id: '' }
+          }));
+        } else {
+          // Coupon is valid and applicable, apply the discount
+          setDiscountInfo(prev => ({
+            ...prev,
+            coupon: {
+              valid: true,
+              code: coupon.code,
+              percentage: coupon.discountPercentage,
+              amount: basePrice * (coupon.discountPercentage / 100),
+              id: coupon.id
+            }
+          }));
+        }
+      }
+    } catch (err) {
+      console.error('Error validating coupon code:', err);
+      setErrors(prev => ({
+        ...prev,
+        couponCode: 'Error validating code'
+      }));
+    } finally {
+      setIsApplyingCode(false);
     }
   };
   
@@ -169,7 +332,7 @@ const BookServicePage = () => {
         // Get the selected service details
         const serviceDetails = services.find(service => service.id === formData.serviceType) || {};
         
-        // Create a new booking object
+        // Create a new booking object with discount information
         const bookingData = {
           ...formData,
           userId: user?.id || null,
@@ -180,6 +343,20 @@ const BookServicePage = () => {
             icon: serviceDetails.icon || '',
             price: serviceDetails.price || 0
           },
+          discounts: {
+            referral: discountInfo.referral.valid ? {
+              code: discountInfo.referral.code,
+              percentage: discountInfo.referral.percentage,
+              amount: discountInfo.referral.amount
+            } : null,
+            coupon: discountInfo.coupon.valid ? {
+              code: discountInfo.coupon.code,
+              percentage: discountInfo.coupon.percentage,
+              amount: discountInfo.coupon.amount
+            } : null
+          },
+          basePrice: basePrice,
+          totalPrice: totalPrice,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         };
@@ -196,6 +373,25 @@ const BookServicePage = () => {
         await updateDoc(doc(db, "bookings", bookingRef.id), {
           bookingId: bookingId
         });
+        
+        // Track discount usage if applicable
+        if (user && user.id) {
+          if (discountInfo.referral.valid) {
+            await incrementReferralUse(
+              discountInfo.referral.id, 
+              user.id, 
+              discountInfo.referral.amount
+            );
+          }
+          
+          if (discountInfo.coupon.valid) {
+            await incrementCouponUse(
+              discountInfo.coupon.id, 
+              user.id, 
+              discountInfo.coupon.amount
+            );
+          }
+        }
         
         // If user is logged in, update their profile with this booking reference
         if (user) {
@@ -248,7 +444,15 @@ const BookServicePage = () => {
           pincode: '',
           preferredDate: '',
           preferredTime: '',
-          additionalInfo: ''
+          additionalInfo: '',
+          referralCode: '',
+          couponCode: ''
+        });
+        
+        // Reset discounts
+        setDiscountInfo({
+          referral: { valid: false, code: '', percentage: 0, amount: 0, id: '' },
+          coupon: { valid: false, code: '', percentage: 0, amount: 0, id: '' }
         });
         
         // Redirect after 3 seconds
@@ -494,6 +698,106 @@ const BookServicePage = () => {
                 ></textarea>
               </div>
             </div>
+            
+            {basePrice > 0 && (
+              <div className="form-section pricing-section">
+                <h2>Service Pricing</h2>
+                
+                <div className="price-summary">
+                  <div className="price-row">
+                    <span className="price-label">Base Price:</span>
+                    <span className="price-value">₹{basePrice.toLocaleString()}</span>
+                  </div>
+                  
+                  {/* Discount fields */}
+                  <div className="discount-fields">
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="referralCode">Referral Code</label>
+                        <div className="code-input-group">
+                          <input 
+                            type="text" 
+                            id="referralCode" 
+                            name="referralCode" 
+                            value={formData.referralCode}
+                            onChange={handleChange}
+                            placeholder="Enter referral code (if you have one)"
+                            className={errors.referralCode ? 'error' : ''}
+                            disabled={discountInfo.referral.valid || isApplyingCode}
+                          />
+                          <button 
+                            type="button" 
+                            className="apply-code-btn"
+                            onClick={handleApplyReferral}
+                            disabled={!formData.referralCode || discountInfo.referral.valid || isApplyingCode}
+                          >
+                            {isApplyingCode && formData.referralCode ? 'Validating...' : 'Apply'}
+                          </button>
+                        </div>
+                        {errors.referralCode && <div className="error-message">{errors.referralCode}</div>}
+                        {discountInfo.referral.valid && (
+                          <div className="success-message">
+                            Referral applied: {discountInfo.referral.percentage}% off
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="couponCode">Coupon Code</label>
+                        <div className="code-input-group">
+                          <input 
+                            type="text" 
+                            id="couponCode" 
+                            name="couponCode" 
+                            value={formData.couponCode}
+                            onChange={handleChange}
+                            placeholder="Enter coupon code (if you have one)"
+                            className={errors.couponCode ? 'error' : ''}
+                            disabled={discountInfo.coupon.valid || isApplyingCode}
+                          />
+                          <button 
+                            type="button" 
+                            className="apply-code-btn"
+                            onClick={handleApplyCoupon}
+                            disabled={!formData.couponCode || discountInfo.coupon.valid || isApplyingCode}
+                          >
+                            {isApplyingCode && formData.couponCode ? 'Validating...' : 'Apply'}
+                          </button>
+                        </div>
+                        {errors.couponCode && <div className="error-message">{errors.couponCode}</div>}
+                        {discountInfo.coupon.valid && (
+                          <div className="success-message">
+                            Coupon applied: {discountInfo.coupon.percentage}% off
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Display discounts if applied */}
+                  {discountInfo.referral.valid && (
+                    <div className="price-row discount">
+                      <span className="price-label">Referral Discount:</span>
+                      <span className="price-value">-₹{discountInfo.referral.amount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  
+                  {discountInfo.coupon.valid && (
+                    <div className="price-row discount">
+                      <span className="price-label">Coupon Discount:</span>
+                      <span className="price-value">-₹{discountInfo.coupon.amount.toLocaleString()}</span>
+                    </div>
+                  )}
+                  
+                  <div className="price-row total">
+                    <span className="price-label">Total Price:</span>
+                    <span className="price-value">₹{totalPrice.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
             
             <div className="booking-terms">
               <p>By submitting this form, you agree to our <Link to="/terms">Terms of Service</Link> and <Link to="/privacy">Privacy Policy</Link>.</p>

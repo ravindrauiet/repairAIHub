@@ -306,4 +306,129 @@ export const setUserAsAdmin = async (userId) => {
 };
 export const removeUserAsAdmin = async (userId) => {
   return updateDocument('users', userId, { role: 'user' });
+};
+
+// Referrals
+export const getAllReferrals = () => getAllDocuments('referrals');
+export const getReferralById = (id) => getDocumentById('referrals', id);
+export const getReferralByCode = async (code) => {
+  const results = await queryDocuments('referrals', 'code', '==', code);
+  return results.length > 0 ? results[0] : null;
+};
+export const addReferral = (data) => addDocument('referrals', data);
+export const updateReferral = (id, data) => updateDocument('referrals', id, data);
+export const deleteReferral = (id) => deleteDocument('referrals', id);
+export const deactivateReferral = (id) => updateDocument('referrals', id, { active: false });
+export const activateReferral = (id) => updateDocument('referrals', id, { active: true });
+export const incrementReferralUse = async (id, userId, amount) => {
+  try {
+    const referral = await getReferralById(id);
+    if (!referral) throw new Error('Referral not found');
+    
+    const newUseCount = (referral.usageCount || 0) + 1;
+    const newTotalDiscount = (referral.totalDiscount || 0) + amount;
+    const newRevenue = (referral.revenue || 0) + (amount * (100 - referral.discountPercentage) / 100);
+    
+    // Add this user to the list of users who used this referral
+    const userEntry = {
+      userId,
+      usedAt: serverTimestamp(),
+      discountAmount: amount
+    };
+    
+    return updateDocument('referrals', id, {
+      usageCount: newUseCount,
+      totalDiscount: newTotalDiscount,
+      revenue: newRevenue,
+      usedBy: [...(referral.usedBy || []), userEntry]
+    });
+  } catch (error) {
+    console.error(`Error incrementing referral use for ${id}:`, error);
+    throw error;
+  }
+};
+
+// Coupons
+export const getAllCoupons = () => getAllDocuments('coupons');
+export const getCouponById = (id) => getDocumentById('coupons', id);
+export const getCouponByCode = async (code) => {
+  const results = await queryDocuments('coupons', 'code', '==', code);
+  return results.length > 0 ? results[0] : null;
+};
+export const addCoupon = (data) => addDocument('coupons', data);
+export const updateCoupon = (id, data) => updateDocument('coupons', id, data);
+export const deleteCoupon = (id) => deleteDocument('coupons', id);
+export const deactivateCoupon = (id) => updateDocument('coupons', id, { active: false });
+export const activateCoupon = (id) => updateDocument('coupons', id, { active: true });
+export const isUserEligibleForCoupon = async (couponId, userId) => {
+  try {
+    const coupon = await getCouponById(couponId);
+    if (!coupon) return false;
+    if (!coupon.active) return false;
+    
+    // If global coupon, any user is eligible
+    if (coupon.target === 'global') return true;
+    
+    // If specific users, check if this user is in the list
+    if (coupon.target === 'specific' && coupon.targetUsers) {
+      return coupon.targetUsers.includes(userId);
+    }
+    
+    return false;
+  } catch (error) {
+    console.error(`Error checking coupon eligibility for ${couponId}:`, error);
+    return false;
+  }
+};
+export const incrementCouponUse = async (id, userId, amount) => {
+  try {
+    const coupon = await getCouponById(id);
+    if (!coupon) throw new Error('Coupon not found');
+    
+    const newUseCount = (coupon.usageCount || 0) + 1;
+    const newTotalDiscount = (coupon.totalDiscount || 0) + amount;
+    const newRevenue = (coupon.revenue || 0) + (amount * (100 - coupon.discountPercentage) / 100);
+    
+    // Add this user to the list of users who used this coupon
+    const userEntry = {
+      userId,
+      usedAt: serverTimestamp(),
+      discountAmount: amount
+    };
+    
+    return updateDocument('coupons', id, {
+      usageCount: newUseCount,
+      totalDiscount: newTotalDiscount,
+      revenue: newRevenue,
+      usedBy: [...(coupon.usedBy || []), userEntry]
+    });
+  } catch (error) {
+    console.error(`Error incrementing coupon use for ${id}:`, error);
+    throw error;
+  }
+};
+export const getUserAvailableCoupons = async (userId) => {
+  try {
+    // Get all global coupons
+    const globalCoupons = await queryDocuments('coupons', 'target', '==', 'global');
+    
+    // Get all specific coupons for this user
+    const specificCouponsQuery = query(
+      collection(db, 'coupons'),
+      where('target', '==', 'specific'),
+      where('targetUsers', 'array-contains', userId)
+    );
+    
+    const specificCouponsSnapshot = await getDocs(specificCouponsQuery);
+    const specificCoupons = specificCouponsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    
+    // Combine and filter for active only
+    return [...globalCoupons, ...specificCoupons].filter(coupon => coupon.active);
+  } catch (error) {
+    console.error(`Error getting available coupons for user ${userId}:`, error);
+    return [];
+  }
 }; 

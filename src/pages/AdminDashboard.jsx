@@ -24,6 +24,10 @@ import OrderList from '../components/admin/OrderList';
 import BookingList from '../components/admin/BookingList';
 import UserList from '../components/admin/UserList';
 import ImportDataButton from '../components/admin/ImportDataButton';
+import ReferralsList from '../components/admin/ReferralsList';
+import ReferralForm from '../components/admin/ReferralForm';
+import CouponsList from '../components/admin/CouponsList';
+import CouponForm from '../components/admin/CouponForm';
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -290,6 +294,26 @@ const AdminDashboard = () => {
             </Link>
           </div>
           
+          <div className="admin-sidebar-item">
+            <Link
+              to="/admin/referrals"
+              className={`admin-sidebar-link ${isActiveRoute('/admin/referrals') ? 'active' : ''}`}
+            >
+              <i className="admin-sidebar-icon fas fa-share-alt"></i>
+              <span className="admin-sidebar-text">Referrals</span>
+            </Link>
+          </div>
+          
+          <div className="admin-sidebar-item">
+            <Link
+              to="/admin/coupons"
+              className={`admin-sidebar-link ${isActiveRoute('/admin/coupons') ? 'active' : ''}`}
+            >
+              <i className="admin-sidebar-icon fas fa-tag"></i>
+              <span className="admin-sidebar-text">Coupons</span>
+            </Link>
+          </div>
+          
           <div className="admin-divider"></div>
           
           <div className="admin-sidebar-item">
@@ -391,6 +415,16 @@ const AdminDashboard = () => {
             {/* Booking Routes */}
             <Route path="/bookings" element={<BookingList />} />
             <Route path="/bookings/:id" element={<BookingDetail />} />
+            
+            {/* Referral Routes */}
+            <Route path="/referrals" element={<ReferralsList />} />
+            <Route path="/referrals/add" element={<ReferralForm />} />
+            <Route path="/referrals/edit/:id" element={<ReferralForm />} />
+            
+            {/* Coupon Routes */}
+            <Route path="/coupons" element={<CouponsList />} />
+            <Route path="/coupons/add" element={<CouponForm />} />
+            <Route path="/coupons/edit/:id" element={<CouponForm />} />
             
             {/* Service Routes */}
             <Route path="/services" element={<ServicesList />} />

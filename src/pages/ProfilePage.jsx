@@ -15,6 +15,7 @@ import {
 import { auth, db } from '../firebase/config';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { getUserAvailableCoupons, getAllReferrals } from '../services/firestoreService';
 import '../styles/profile.css';
 
 const ProfilePage = () => {
@@ -28,6 +29,8 @@ const ProfilePage = () => {
   const [purchaseHistory, setPurchaseHistory] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [editFormData, setEditFormData] = useState({});
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [referralCodes, setReferralCodes] = useState([]);
   const { cartItems } = useCart();
   const { wishlist, removeFromWishlist } = useWishlist();
   
@@ -222,6 +225,28 @@ const ProfilePage = () => {
     }
   };
   
+  // Fetch available coupons and referral codes
+  useEffect(() => {
+    if (user && user.id) {
+      const fetchCouponsAndReferrals = async () => {
+        try {
+          // Get coupons available to this user
+          const coupons = await getUserAvailableCoupons(user.id);
+          setAvailableCoupons(coupons);
+          
+          // Get all active referral codes (typically, referrals are global)
+          const allReferrals = await getAllReferrals();
+          const activeReferrals = allReferrals.filter(ref => ref.active);
+          setReferralCodes(activeReferrals);
+        } catch (err) {
+          console.error('Error fetching coupons and referrals:', err);
+        }
+      };
+      
+      fetchCouponsAndReferrals();
+    }
+  }, [user]);
+  
   const handleLogout = () => {
     // Sign out from Firebase
     auth.signOut();
@@ -348,6 +373,105 @@ const ProfilePage = () => {
     </div>
   );
   
+  // Render referrals and coupons tab
+  const renderPromotionsTab = () => (
+    <div className="profile-tab-content">
+      <div className="profile-section">
+        <h2>Available Referral Codes</h2>
+        {referralCodes.length === 0 ? (
+          <p className="no-data">No referral codes available at the moment</p>
+        ) : (
+          <div className="promo-cards">
+            {referralCodes.map(referral => (
+              <div key={referral.id} className="promo-card">
+                <div className="promo-card-header">
+                  <h3>{referral.code}</h3>
+                  <span className="badge discount">{referral.discountPercentage}% OFF</span>
+                </div>
+                <p className="promo-description">{referral.description}</p>
+                <div className="promo-card-footer">
+                  <button 
+                    className="copy-code-btn"
+                    onClick={() => {
+                      navigator.clipboard.writeText(referral.code);
+                      alert(`Code ${referral.code} copied to clipboard!`);
+                    }}
+                  >
+                    <i className="fas fa-copy"></i> Copy Code
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      <div className="profile-section">
+        <h2>Your Coupons</h2>
+        {availableCoupons.length === 0 ? (
+          <p className="no-data">No coupons available at the moment</p>
+        ) : (
+          <div className="promo-cards">
+            {availableCoupons.map(coupon => (
+              <div key={coupon.id} className="promo-card">
+                <div className="promo-card-header">
+                  <h3>{coupon.code}</h3>
+                  <span className="badge discount">{coupon.discountPercentage}% OFF</span>
+                </div>
+                <p className="promo-description">{coupon.description}</p>
+                <div className="promo-card-footer">
+                  <button 
+                    className="copy-code-btn"
+                    onClick={() => {
+                      navigator.clipboard.writeText(coupon.code);
+                      alert(`Code ${coupon.code} copied to clipboard!`);
+                    }}
+                  >
+                    <i className="fas fa-copy"></i> Copy Code
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      <div className="profile-section">
+        <h2>How to Use Codes</h2>
+        <div className="how-to-use">
+          <div className="step">
+            <div className="step-number">1</div>
+            <div className="step-content">
+              <h3>Copy a Code</h3>
+              <p>Click on the "Copy Code" button next to any coupon or referral code.</p>
+            </div>
+          </div>
+          <div className="step">
+            <div className="step-number">2</div>
+            <div className="step-content">
+              <h3>Book a Service</h3>
+              <p>Navigate to the service booking page and select your desired service.</p>
+            </div>
+          </div>
+          <div className="step">
+            <div className="step-number">3</div>
+            <div className="step-content">
+              <h3>Apply the Code</h3>
+              <p>Paste your code in the referral or coupon field during checkout.</p>
+            </div>
+          </div>
+          <div className="step">
+            <div className="step-number">4</div>
+            <div className="step-content">
+              <h3>Enjoy the Discount</h3>
+              <p>The discount will be applied to your service booking.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+  
   if (loading) {
     return (
       <div className="loading-container">
@@ -410,6 +534,11 @@ const ProfilePage = () => {
               <li className={activeTab === 'settings' ? 'active' : ''}>
                 <button onClick={() => handleTabChange('settings')}>
                   <i className="fas fa-cog"></i> Settings
+                </button>
+              </li>
+              <li className={activeTab === 'promotions' ? 'active' : ''}>
+                <button onClick={() => handleTabChange('promotions')}>
+                  <i className="fas fa-tags"></i> Coupons & Referrals
                 </button>
               </li>
             </ul>
@@ -925,6 +1054,8 @@ const ProfilePage = () => {
                 </div>
               </div>
             )}
+
+            {activeTab === 'promotions' && renderPromotionsTab()}
           </div>
         </div>
       </div>
