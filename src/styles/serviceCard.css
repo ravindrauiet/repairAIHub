@@ -16,7 +16,7 @@
 }
 
 .service-card-image {
-  height: 180px;
+  height: 100px;
   overflow: hidden;
   position: relative;
 }
@@ -25,7 +25,7 @@
   width: 100%;
   height: 100%;
   object-fit: contain;
-  padding: 25px;
+  padding: 10px;
   transition: transform 0.5s ease;
 }
 
@@ -48,22 +48,22 @@
 .service-card-content {
   padding: 20px;
   display: flex;
-  flex-direction: column;
+  flex-direction: column-reverse;
   flex-grow: 1;
 }
 
 .service-card-content h3 {
-  margin: 0 0 10px;
-  font-size: 1.25rem;
-  font-weight: 600;
+  margin: 0 0 0px;
+  font-size: 18px;
+  font-weight: 500;
   color: #333;
 }
 
 .service-description {
   color: #666;
-  font-size: 0.95rem;
-  margin-bottom: 15px;
-  line-height: 1.5;
+  font-size: 12px;
+  margin-bottom: 5px;
+  line-height: 1.2;
   flex-grow: 1;
 }
 
@@ -71,7 +71,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 15px;
+  margin-bottom: 5px;
 }
 
 .service-price {
@@ -85,8 +85,8 @@
 }
 
 .price-amount {
-  font-size: 1.2rem;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: 400;
   color: #333;
 }
 
@@ -112,7 +112,7 @@
 .view-details-btn,
 .book-now-btn {
   flex: 1;
-  padding: 10px;
+  padding: 3px;
   text-align: center;
   border-radius: 5px;
   font-weight: 500;
@@ -148,7 +148,7 @@
   }
   
   .service-card-content h3 {
-    font-size: 1.1rem;
+    font-size: 14px;
   }
   
   .service-description {

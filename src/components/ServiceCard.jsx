@@ -19,7 +19,7 @@ const ServiceCard = ({ service }) => {
         <div className="service-meta">
           <div className="service-price">
             <span className="price-label">Starting at</span>
-            <span className="price-amount">₹{service.priceRange}</span>
+            <span className="price-amount">{service.priceRange}</span>
           </div>
           
           {/* <div className="service-rating">
