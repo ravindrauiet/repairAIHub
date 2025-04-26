@@ -7,6 +7,8 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
   const [models, setModels] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
+  const [customModel, setCustomModel] = useState('');
+  const [isOtherModelSelected, setIsOtherModelSelected] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -31,6 +33,8 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
         // Reset selections when category changes
         setSelectedBrand('');
         setSelectedModel('');
+        setCustomModel('');
+        setIsOtherModelSelected(false);
         
         setLoading(false);
       } catch (err) {
@@ -79,6 +83,10 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
     
     if (selectedBrand && category) {
       fetchModels();
+      // Reset model selection when brand changes
+      setSelectedModel('');
+      setCustomModel('');
+      setIsOtherModelSelected(false);
     }
   }, [selectedBrand, category]);
 
@@ -86,6 +94,8 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
     const brandId = e.target.value;
     setSelectedBrand(brandId);
     setSelectedModel('');
+    setCustomModel('');
+    setIsOtherModelSelected(false);
     
     // Find the selected brand object
     const selectedBrandObj = brands.find(b => b.id === brandId);
@@ -101,14 +111,50 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
     const modelId = e.target.value;
     setSelectedModel(modelId);
     
-    // Find the selected brand and model objects
-    const selectedBrandObj = brands.find(b => b.id === selectedBrand);
-    const selectedModelObj = models.find(m => m.id === modelId);
+    // Check if "other" option is selected
+    if (modelId === 'other') {
+      setIsOtherModelSelected(true);
+      setCustomModel('');
+      
+      // Find the selected brand object
+      const selectedBrandObj = brands.find(b => b.id === selectedBrand);
+      
+      if (onSelectionChange && selectedBrandObj) {
+        onSelectionChange({ 
+          brand: selectedBrandObj, 
+          model: null 
+        });
+      }
+    } else {
+      setIsOtherModelSelected(false);
+      
+      // Find the selected brand and model objects
+      const selectedBrandObj = brands.find(b => b.id === selectedBrand);
+      const selectedModelObj = models.find(m => m.id === modelId);
+      
+      if (onSelectionChange && selectedBrandObj && selectedModelObj) {
+        onSelectionChange({ 
+          brand: selectedBrandObj, 
+          model: selectedModelObj 
+        });
+      }
+    }
+  };
+  
+  const handleCustomModelChange = (e) => {
+    const modelName = e.target.value;
+    setCustomModel(modelName);
     
-    if (onSelectionChange && selectedBrandObj && selectedModelObj) {
+    // Find the selected brand object
+    const selectedBrandObj = brands.find(b => b.id === selectedBrand);
+    
+    if (onSelectionChange && selectedBrandObj && modelName.trim()) {
       onSelectionChange({ 
         brand: selectedBrandObj, 
-        model: selectedModelObj 
+        model: { 
+          id: 'custom', 
+          name: modelName.trim() 
+        } 
       });
     }
   };
@@ -162,18 +208,33 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
                 {model.name}
               </option>
             ))}
+            <option value="other">Other (not in list)</option>
           </select>
           {selectedBrand && models.length === 0 && !loading && !error && (
             <p className="help-text">No models available for this brand.</p>
           )}
         </div>
+        
+        {isOtherModelSelected && (
+          <div className="select-group custom-model-input">
+            <label htmlFor="customModel">Enter Your Model Name</label>
+            <input
+              type="text"
+              id="customModel"
+              value={customModel}
+              onChange={handleCustomModelChange}
+              placeholder="Type your device model name"
+              className="input-field"
+            />
+          </div>
+        )}
       </div>
 
-      {selectedBrand && selectedModel && (
+      {selectedBrand && (selectedModel || isOtherModelSelected && customModel) && (
         <div className="selected-info">
           <h4>Selected Device</h4>
           <p>Brand: {brands.find(b => b.id === selectedBrand)?.name}</p>
-          <p>Model: {models.find(m => m.id === selectedModel)?.name}</p>
+          <p>Model: {isOtherModelSelected ? customModel : models.find(m => m.id === selectedModel)?.name}</p>
         </div>
       )}
     </div>

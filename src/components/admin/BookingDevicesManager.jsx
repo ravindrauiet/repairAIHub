@@ -245,6 +245,45 @@ const BookingDevicesManager = () => {
     }
   };
   
+  // Handle adding a special "Other" option
+  const handleAddOtherOption = async () => {
+    try {
+      setSaving(true);
+      
+      // Check if the "Other" option already exists
+      const otherOption = models.find(model => model.id === 'other');
+      
+      if (otherOption) {
+        toast.info('An "Other" option already exists for this brand');
+        setSaving(false);
+        return;
+      }
+      
+      // Create the "Other" option model
+      const otherModel = { 
+        id: 'other', 
+        name: 'Other (not in list)',
+        isCustomOption: true 
+      };
+      
+      // Create updated models array with the Other option
+      const updatedModels = [...models, otherModel];
+      
+      // Update the booking device models document
+      await firestoreService.saveBookingDeviceModels(selectedServiceType, selectedBrand, updatedModels);
+      
+      // Reload models from Firestore to ensure we have the latest data
+      await fetchModelsForBrand(selectedServiceType, selectedBrand);
+      
+      toast.success('Other option added successfully');
+      setSaving(false);
+    } catch (err) {
+      console.error('Error adding Other option:', err);
+      toast.error('Failed to add Other option');
+      setSaving(false);
+    }
+  };
+  
   // Handle deleting a brand
   const handleDeleteBrand = async (brandId) => {
     if (window.confirm('Are you sure you want to delete this brand? All models associated with this brand will also be deleted.')) {
@@ -548,6 +587,21 @@ const BookingDevicesManager = () => {
                         >
                           {saving ? 'Adding...' : 'Add Model'}
                         </button>
+                      </div>
+                    </div>
+                    
+                    <div className="admin-form-row mt-3">
+                      <div className="admin-form-group">
+                        <button
+                          className="admin-btn admin-btn-secondary"
+                          onClick={handleAddOtherOption}
+                          disabled={saving || models.some(model => model.id === 'other')}
+                        >
+                          {saving ? 'Adding...' : 'Add "Other" Option'}
+                        </button>
+                        <small className="admin-help-text mt-1">
+                          This adds an "Other" option that allows users to enter custom model names
+                        </small>
                       </div>
                     </div>
                     
