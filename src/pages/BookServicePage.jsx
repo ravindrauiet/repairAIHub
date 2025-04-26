@@ -16,6 +16,7 @@ import services from '../data/services';
 import BookingDeviceSelector from '../components/BookingDeviceSelector';
 import { getReferralByCode, getCouponByCode, isUserEligibleForCoupon, incrementReferralUse, incrementCouponUse } from '../services/firestoreService';
 import * as firestoreService from '../services/firestoreService';
+import '../styles/bookServicePage.css';
 
 const BookServicePage = () => {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ const BookServicePage = () => {
   const [deviceSelection, setDeviceSelection] = useState({ brand: null, model: null });
   const [timesLoading, setTimesLoading] = useState(false);
   const [availableTimes, setAvailableTimes] = useState([]);
+  const [loading, setLoading] = useState(false);
   
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -163,22 +165,41 @@ const BookServicePage = () => {
   };
   
   // Handle brand and model selection
-  const handleDeviceSelect = ({ brand, model }) => {
-    if (brand) {
+  const handleDeviceSelect = (deviceInfo) => {
+    if (deviceInfo.brandName) {
       setFormData(prev => ({
         ...prev,
-        deviceBrand: brand.name
+        deviceBrand: deviceInfo.brandName
       }));
     }
-    if (model) {
+    
+    if (deviceInfo.modelName) {
       setFormData(prev => ({
         ...prev,
-        deviceModel: model.name
+        deviceModel: deviceInfo.modelName
       }));
     }
     
     // Update deviceSelection state
-    setDeviceSelection({ brand, model });
+    setDeviceSelection({
+      brand: {
+        id: deviceInfo.brandId,
+        name: deviceInfo.brandName
+      },
+      model: {
+        id: deviceInfo.modelId,
+        name: deviceInfo.modelName
+      }
+    });
+    
+    // Clear errors if they exist
+    if (errors.deviceBrand || errors.deviceModel) {
+      setErrors(prev => ({
+        ...prev,
+        deviceBrand: '',
+        deviceModel: ''
+      }));
+    }
   };
   
   // Apply referral code
@@ -628,9 +649,12 @@ const BookServicePage = () => {
                 <div className="device-selection-section">
                   <h3>Select Your Device</h3>
                   <BookingDeviceSelector 
-                    category={formData.serviceType} 
-                    onSelectionChange={handleDeviceSelect}
+                    serviceType={formData.serviceType}
+                    onDeviceSelect={handleDeviceSelect}
+                    showTitle={false}
                   />
+                  {errors.deviceBrand && <div className="error-message">{errors.deviceBrand}</div>}
+                  {errors.deviceModel && <div className="error-message">{errors.deviceModel}</div>}
                 </div>
               )}
               
@@ -914,7 +938,7 @@ const BookServicePage = () => {
             <div className="form-actions">
               <button 
                 type="submit" 
-                className="btn-primary book-btn" 
+                className="book-btn" 
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Processing...' : 'Book Service'}
