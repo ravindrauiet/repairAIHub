@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { bookingDevices } from '../data/products.jsx';
+import * as firestoreService from '../services/firestoreService';
 import '../styles/bookingDeviceSelector.css';
 
 const BookingDeviceSelector = ({ category, onSelectionChange }) => {
@@ -7,26 +7,78 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
   const [models, setModels] = useState([]);
   const [selectedBrand, setSelectedBrand] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
+  // Fetch brands for the selected category when component mounts or category changes
   useEffect(() => {
-    // Get brands for the selected category from bookingDevices
-    const categoryData = bookingDevices[category];
-    if (categoryData) {
-      setBrands(categoryData.brands);
-      setLoading(false);
-    } else {
-      console.error('No data found for category:', category);
-      setLoading(false);
+    const fetchBrands = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Get booking device data for this service category
+        const bookingDevice = await firestoreService.getBookingDevice(category);
+        
+        if (bookingDevice && bookingDevice.brands) {
+          setBrands(bookingDevice.brands);
+        } else {
+          // If no data is found, set empty array and show an error
+          setBrands([]);
+          setError(`No device data found for ${category}. Please contact support.`);
+        }
+        
+        // Reset selections when category changes
+        setSelectedBrand('');
+        setSelectedModel('');
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching brands:', err);
+        setError('Failed to load device brands. Please try again later.');
+        setBrands([]);
+        setLoading(false);
+      }
+    };
+    
+    if (category) {
+      fetchBrands();
     }
   }, [category]);
 
+  // Fetch models when a brand is selected
   useEffect(() => {
-    // Get models for the selected brand from bookingDevices
-    if (selectedBrand && bookingDevices[category]?.models[selectedBrand]) {
-      setModels(bookingDevices[category].models[selectedBrand]);
-    } else {
-      setModels([]);
+    const fetchModels = async () => {
+      if (!selectedBrand) {
+        setModels([]);
+        return;
+      }
+      
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Get models for this brand from Firestore
+        const modelsData = await firestoreService.getBookingDeviceModels(category, selectedBrand);
+        
+        if (modelsData) {
+          setModels(modelsData);
+        } else {
+          setModels([]);
+          setError(`No models found for ${selectedBrand}. Please try another brand.`);
+        }
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching models:', err);
+        setError('Failed to load device models. Please try again later.');
+        setModels([]);
+        setLoading(false);
+      }
+    };
+    
+    if (selectedBrand && category) {
+      fetchModels();
     }
   }, [selectedBrand, category]);
 
@@ -61,12 +113,18 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
     }
   };
 
-  if (loading) {
-    return <div className="loading">Loading...</div>;
+  if (loading && !brands.length) {
+    return <div className="loading-spinner">Loading device options...</div>;
   }
 
   return (
     <div className="booking-device-selector">
+      {error && (
+        <div className="error-message">
+          {error}
+        </div>
+      )}
+      
       <div className="selection-container">
         <div className="select-group">
           <label htmlFor="brand">Select Brand</label>
@@ -75,6 +133,7 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
             value={selectedBrand}
             onChange={handleBrandChange}
             className="select-input"
+            disabled={brands.length === 0}
           >
             <option value="">Choose a brand</option>
             {brands.map((brand) => (
@@ -83,6 +142,9 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
               </option>
             ))}
           </select>
+          {brands.length === 0 && !loading && !error && (
+            <p className="help-text">No brands available for this device type.</p>
+          )}
         </div>
 
         <div className="select-group">
@@ -92,7 +154,7 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
             value={selectedModel}
             onChange={handleModelChange}
             className="select-input"
-            disabled={!selectedBrand}
+            disabled={!selectedBrand || models.length === 0}
           >
             <option value="">Choose a model</option>
             {models.map((model) => (
@@ -101,6 +163,9 @@ const BookingDeviceSelector = ({ category, onSelectionChange }) => {
               </option>
             ))}
           </select>
+          {selectedBrand && models.length === 0 && !loading && !error && (
+            <p className="help-text">No models available for this brand.</p>
+          )}
         </div>
       </div>
 

@@ -15,6 +15,7 @@ import { auth, db } from '../firebase/config';
 import services from '../data/services';
 import BookingDeviceSelector from '../components/BookingDeviceSelector';
 import { getReferralByCode, getCouponByCode, isUserEligibleForCoupon, incrementReferralUse, incrementCouponUse } from '../services/firestoreService';
+import * as firestoreService from '../services/firestoreService';
 
 const BookServicePage = () => {
   const navigate = useNavigate();
@@ -38,6 +39,12 @@ const BookServicePage = () => {
     referralCode: '',
     couponCode: ''
   });
+  
+  // Add missing state variables
+  const [selectedDate, setSelectedDate] = useState('');
+  const [deviceSelection, setDeviceSelection] = useState({ brand: null, model: null });
+  const [timesLoading, setTimesLoading] = useState(false);
+  const [availableTimes, setAvailableTimes] = useState([]);
   
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -169,6 +176,9 @@ const BookServicePage = () => {
         deviceModel: model.name
       }));
     }
+    
+    // Update deviceSelection state
+    setDeviceSelection({ brand, model });
   };
   
   // Apply referral code
@@ -478,6 +488,94 @@ const BookServicePage = () => {
     return tomorrow.toISOString().split('T')[0];
   };
   
+  // Add this function to check if booking devices data exists and migrate it if needed
+  useEffect(() => {
+    const checkAndMigrateBookingDevices = async () => {
+      try {
+        if (selectedService && selectedService.id) {
+          const bookingDevice = await firestoreService.getBookingDevice(selectedService.id);
+          
+          // If booking devices data doesn't exist and we have static data, migrate it
+          if (!bookingDevice && window.confirm(
+            'Booking device data not found in database. Would you like to migrate it from static data?'
+          )) {
+            try {
+              setLoading(true);
+              await migrateBookingDevicesData(selectedService.id);
+              setLoading(false);
+              // Refresh the page to show the migrated data
+              window.location.reload();
+            } catch (err) {
+              console.error('Error migrating booking devices data:', err);
+              setLoading(false);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error checking booking devices data:', err);
+      }
+    };
+    
+    checkAndMigrateBookingDevices();
+  }, [selectedService]);
+
+  // Add this function to migrate data (only if needed)
+  const migrateBookingDevicesData = async (serviceType) => {
+    try {
+      // Import the static data
+      const { bookingDevices } = await import('../data/products.jsx');
+      
+      if (bookingDevices[serviceType]) {
+        // Save the booking device brands
+        await firestoreService.saveBookingDevice(serviceType, {
+          type: serviceType,
+          brands: bookingDevices[serviceType].brands
+        });
+        
+        // Save the models for each brand
+        for (const [brandId, models] of Object.entries(bookingDevices[serviceType].models)) {
+          await firestoreService.saveBookingDeviceModels(serviceType, brandId, models);
+        }
+        
+        return true;
+      } else {
+        console.error(`No static data found for ${serviceType}`);
+        return false;
+      }
+    } catch (err) {
+      console.error('Error migrating booking devices data:', err);
+      throw err;
+    }
+  };
+  
+  // Find the useEffect that handles available times
+  useEffect(() => {
+    // Only fetch available times when all required selections are made
+    if (selectedDate && selectedService && deviceSelection.brand && deviceSelection.model) {
+      setTimesLoading(true);
+      
+      // Mock API call to get available times
+      setTimeout(() => {
+        // In a real app, you would call your API here with the selected date and service
+        setAvailableTimes(generateTimeSlots());
+        setTimesLoading(false);
+      }, 500);
+    } else {
+      setAvailableTimes([]);
+    }
+  }, [selectedDate, selectedService, deviceSelection]);
+  
+  // Generate time slots for the day
+  const generateTimeSlots = () => {
+    // This is a mock function that would normally check availability from the server
+    const slots = [];
+    for (let hour = 9; hour <= 17; hour++) {
+      slots.push(`${hour}:00`);
+      slots.push(`${hour}:30`);
+    }
+    return slots;
+  };
+  
   return (
     <div className="book-service-page">
       <div className="container">
@@ -661,7 +759,10 @@ const BookServicePage = () => {
                     id="preferredDate" 
                     name="preferredDate" 
                     value={formData.preferredDate}
-                    onChange={handleChange}
+                    onChange={(e) => {
+                      handleChange(e);
+                      setSelectedDate(e.target.value);
+                    }}
                     min={getMinDate()}
                     className={errors.preferredDate ? 'error' : ''}
                   />
@@ -670,18 +771,25 @@ const BookServicePage = () => {
                 
                 <div className="form-group">
                   <label htmlFor="preferredTime">Preferred Time <span className="required">*</span></label>
-                  <select 
-                    id="preferredTime" 
-                    name="preferredTime" 
+                  <select
+                    id="preferredTime"
+                    name="preferredTime"
                     value={formData.preferredTime}
                     onChange={handleChange}
+                    disabled={!selectedDate || timesLoading || availableTimes.length === 0}
                     className={errors.preferredTime ? 'error' : ''}
                   >
-                    <option value="">Select Time Slot</option>
-                    {getTimeSlots().map(slot => (
-                      <option key={slot} value={slot}>{slot}</option>
+                    <option value="">Select Time</option>
+                    {availableTimes.map(time => (
+                      <option key={time} value={time}>
+                        {time}
+                      </option>
                     ))}
                   </select>
+                  {timesLoading && <div className="loading-indicator">Loading available times...</div>}
+                  {selectedDate && !timesLoading && availableTimes.length === 0 && (
+                    <div className="info-message">Please complete all required service details to see available times.</div>
+                  )}
                   {errors.preferredTime && <div className="error-message">{errors.preferredTime}</div>}
                 </div>
               </div>

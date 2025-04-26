@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import importServices from '../../scripts/importServices';
 import migrateProductsToFirestore from '../../scripts/migrateProductsToFirestore';
+import { bookingDevices } from '../../data/products.jsx';
 
 const ImportDataButton = () => {
   const [loading, setLoading] = useState(false);
@@ -57,6 +58,71 @@ const ImportDataButton = () => {
     }
   };
 
+  const handleMigrateBookingDevices = async () => {
+    if (window.confirm('Are you sure you want to migrate booking devices data from static files to Firestore? This should only be done once.')) {
+      setMigrationInProgress(true);
+      setMigrationStatus('Migrating booking devices... This may take a few minutes.');
+      
+      try {
+        const result = await migrateBookingDevicesToFirestore();
+        
+        if (result) {
+          setMigrationStatus('Booking devices data successfully migrated to Firestore!');
+        } else {
+          setMigrationStatus('Migration failed. Check console for details.');
+        }
+      } catch (error) {
+        console.error('Error during booking devices migration:', error);
+        setMigrationStatus('Migration error: ' + error.message);
+      } finally {
+        setMigrationInProgress(false);
+        setTimeout(() => {
+          setMigrationStatus(null);
+        }, 5000);
+      }
+    }
+  };
+
+  const migrateBookingDevicesToFirestore = async () => {
+    try {
+      // Import Firebase and Firestore
+      const { db } = await import('../../firebase/config');
+      const { collection, doc, setDoc } = await import('firebase/firestore');
+      
+      // Migrate booking devices
+      console.log("Migrating booking devices data...");
+      
+      for (const [serviceType, data] of Object.entries(bookingDevices)) {
+        // Store the service type and brands
+        const serviceTypeRef = doc(collection(db, "bookingDevices"), serviceType);
+        await setDoc(serviceTypeRef, {
+          type: serviceType,
+          brands: data.brands,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+        
+        // Store models for each brand
+        for (const [brandId, models] of Object.entries(data.models)) {
+          const brandModelsRef = doc(collection(db, "bookingDeviceModels"), `${serviceType}_${brandId}`);
+          await setDoc(brandModelsRef, {
+            serviceType,
+            brandId,
+            models,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          });
+        }
+      }
+      
+      console.log("Booking devices migrated successfully");
+      return true;
+    } catch (error) {
+      console.error("Error migrating booking devices to Firestore:", error);
+      return false;
+    }
+  };
+
   return (
     <div className="admin-data-tools">
       <div className="admin-card mb-4">
@@ -98,6 +164,30 @@ const ImportDataButton = () => {
             disabled={migrationInProgress}
           >
             {migrationInProgress ? 'Migrating...' : 'Migrate Products to Firestore'}
+          </button>
+          {migrationStatus && (
+            <div className="admin-status-message mt-3">
+              {migrationStatus}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="admin-card mb-4">
+        <div className="admin-card-header">
+          <h3 className="admin-card-title">Migrate Booking Devices to Firestore</h3>
+        </div>
+        <div className="admin-card-body">
+          <p className="mb-3">
+            Migrate only the booking devices data from static files to Firestore. This should only be 
+            run once when setting up the database or if booking devices data is missing.
+          </p>
+          <button 
+            className="admin-primary-btn"
+            onClick={handleMigrateBookingDevices}
+            disabled={migrationInProgress}
+          >
+            {migrationInProgress ? 'Migrating...' : 'Migrate Booking Devices'}
           </button>
           {migrationStatus && (
             <div className="admin-status-message mt-3">

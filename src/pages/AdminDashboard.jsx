@@ -28,6 +28,7 @@ import ReferralsList from '../components/admin/ReferralsList';
 import ReferralForm from '../components/admin/ReferralForm';
 import CouponsList from '../components/admin/CouponsList';
 import CouponForm from '../components/admin/CouponForm';
+import BookingDevicesManager from '../components/admin/BookingDevicesManager';
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -272,6 +273,16 @@ const AdminDashboard = () => {
             </Link>
           </div>
           
+          <div className="admin-sidebar-item">
+            <Link
+              to="/admin/booking-devices"
+              className={`admin-sidebar-link ${isActiveRoute('/admin/booking-devices') ? 'active' : ''}`}
+            >
+              <i className="admin-sidebar-icon fas fa-tools"></i>
+              <span className="admin-sidebar-text">Booking Devices</span>
+            </Link>
+          </div>
+          
           <div className="admin-divider"></div>
           
           <div className="admin-sidebar-item">
@@ -434,6 +445,9 @@ const AdminDashboard = () => {
             {/* User Routes */}
             <Route path="/users" element={<UserList />} />
             <Route path="/users/edit/:id" element={<UserForm />} />
+            
+            {/* Booking Devices Route */}
+            <Route path="/booking-devices" element={<BookingDevicesManager />} />
             
             {/* Data Tools Route */}
             <Route path="/data-tools" element={

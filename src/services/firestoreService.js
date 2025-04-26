@@ -12,7 +12,8 @@ import {
   orderBy,
   limit,
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  setDoc
 } from 'firebase/firestore';
 
 // Generic service functions for Firestore collections
@@ -445,5 +446,82 @@ export const checkDataMigrationNeeded = async () => {
     console.error('Error checking data migration status:', error);
     // If there's an error, assume migration is needed
     return true;
+  }
+};
+
+// Booking Device functions
+export const getBookingDevice = async (serviceType) => {
+  try {
+    return await getDocumentById('bookingDevices', serviceType);
+  } catch (error) {
+    console.error(`Error getting booking device for ${serviceType}:`, error);
+    throw error;
+  }
+};
+
+export const getBookingDeviceModels = async (serviceType, brandId) => {
+  try {
+    const docId = `${serviceType}_${brandId}`;
+    const models = await getDocumentById('bookingDeviceModels', docId);
+    return models?.models || [];
+  } catch (error) {
+    console.error(`Error getting booking device models for ${serviceType} and brand ${brandId}:`, error);
+    throw error;
+  }
+};
+
+export const saveBookingDevice = async (serviceType, brands) => {
+  try {
+    return await setDoc(doc(db, 'bookingDevices', serviceType), {
+      type: serviceType,
+      brands,
+      updatedAt: serverTimestamp()
+    });
+  } catch (error) {
+    console.error(`Error saving booking device for ${serviceType}:`, error);
+    throw error;
+  }
+};
+
+export const saveBookingDeviceModels = async (serviceType, brandId, models) => {
+  try {
+    const docId = `${serviceType}_${brandId}`;
+    return await setDoc(doc(db, 'bookingDeviceModels', docId), {
+      serviceType,
+      brandId,
+      models,
+      updatedAt: serverTimestamp()
+    });
+  } catch (error) {
+    console.error(`Error saving booking device models for ${serviceType} and brand ${brandId}:`, error);
+    throw error;
+  }
+};
+
+export const getAllBookingDevices = async () => {
+  try {
+    return await getAllDocuments('bookingDevices');
+  } catch (error) {
+    console.error('Error getting all booking devices:', error);
+    throw error;
+  }
+};
+
+export const deleteBookingDevice = async (serviceType) => {
+  try {
+    return await deleteDocument('bookingDevices', serviceType);
+  } catch (error) {
+    console.error(`Error deleting booking device ${serviceType}:`, error);
+    throw error;
+  }
+};
+
+export const deleteBookingDeviceModels = async (serviceType, brandId) => {
+  try {
+    const docId = `${serviceType}_${brandId}`;
+    return await deleteDocument('bookingDeviceModels', docId);
+  } catch (error) {
+    console.error(`Error deleting booking device models for ${serviceType} and brand ${brandId}:`, error);
+    throw error;
   }
 }; 
