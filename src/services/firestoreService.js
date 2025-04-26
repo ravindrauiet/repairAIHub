@@ -431,4 +431,19 @@ export const getUserAvailableCoupons = async (userId) => {
     console.error(`Error getting available coupons for user ${userId}:`, error);
     return [];
   }
+};
+
+// Check if data migration is needed
+export const checkDataMigrationNeeded = async () => {
+  try {
+    // Check if the products collection has any items
+    const products = await getAllProducts();
+    
+    // If there are no products in Firestore, migration is needed
+    return products.length === 0;
+  } catch (error) {
+    console.error('Error checking data migration status:', error);
+    // If there's an error, assume migration is needed
+    return true;
+  }
 }; 

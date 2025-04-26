@@ -1,245 +1,304 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import Hero from '../components/common/Hero';
-import { 
-  getAllProducts, 
-  getProductsByCategory, 
-  getProductsByBrand,
-  productCategories, 
-  brands,
-  getBrandsByCategory,
-  getModelsByBrand,
-  getProductsByModel
-} from '../data/products.jsx';
+import { Link } from 'react-router-dom';
+import * as productsService from '../services/productsService';
 import '../styles/products.css';
 
 const ProductsPage = () => {
-  const navigate = useNavigate();
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedBrand, setSelectedBrand] = useState(null);
-  const [selectedModel, setSelectedModel] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  
+  // Filters
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedBrand, setSelectedBrand] = useState('');
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 100000 });
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredBrands = selectedCategory ? getBrandsByCategory(selectedCategory) : [];
-  const filteredModels = selectedBrand ? getModelsByBrand(selectedBrand, selectedCategory) : [];
-
-  // Filter products based on selected filters and search query
+  // Fetch products, categories, and brands on component mount
   useEffect(() => {
-    setLoading(true);
-    let results = [];
-
-    if (selectedModel) {
-      results = getProductsByModel(selectedModel);
-    } else if (selectedBrand) {
-      results = getProductsByBrand(selectedBrand);
-    } else if (selectedCategory) {
-      results = getProductsByCategory(selectedCategory);
-    } else {
-      results = getAllProducts();
-    }
-
-    if (searchQuery.trim() !== '') {
-      const query = searchQuery.toLowerCase();
-      results = results.filter(product => 
-        product.title.toLowerCase().includes(query) || 
-        product.description.toLowerCase().includes(query)
-      );
-    }
-
-    setFilteredProducts(results);
-    setLoading(false);
-  }, [selectedCategory, selectedBrand, selectedModel, searchQuery]);
-
-  const handleCategorySelect = (category) => {
-    setSelectedCategory(category);
-    setSelectedBrand(null);
-    setSelectedModel(null);
-  };
-
-  const handleBrandSelect = (brandId) => {
-    setSelectedBrand(brandId);
-    setSelectedModel(null);
-  };
-
-  const handleModelSelect = (modelId) => {
-    setSelectedModel(modelId);
-  };
-
-  // Helper to get price range display
-  const getPriceDisplay = (product) => {
-    if (!product.price) return "Price on request";
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch products from Firestore
+        const productsData = await productsService.getAllProducts();
+        
+        // Fetch categories from Firestore
+        const categoriesData = await productsService.getAllCategories();
+        
+        // Fetch brands from Firestore
+        const brandsData = await productsService.getAllBrands();
+        
+        setProducts(productsData);
+        setCategories(categoriesData);
+        setBrands(brandsData);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching products data:', err);
+        setError('Failed to load products. Please try again later.');
+        setLoading(false);
+      }
+    };
     
-    const prices = Object.values(product.price);
-    if (prices.length === 1) return prices[0];
+    fetchData();
+  }, []);
+
+  // Fetch filtered products when category or brand changes
+  useEffect(() => {
+    const fetchFilteredProducts = async () => {
+      try {
+        setLoading(true);
+        
+        let filteredProducts = [];
+        
+        if (selectedCategory && selectedBrand) {
+          // If both category and brand are selected
+          filteredProducts = await productsService.getProductsByBrandAndCategory(selectedBrand, selectedCategory);
+        } else if (selectedCategory) {
+          // If only category is selected
+          filteredProducts = await productsService.getProductsByCategory(selectedCategory);
+        } else if (selectedBrand) {
+          // If only brand is selected
+          filteredProducts = await productsService.getProductsByBrand(selectedBrand);
+        } else {
+          // If no filters are applied
+          filteredProducts = await productsService.getAllProducts();
+        }
+        
+        setProducts(filteredProducts);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching filtered products:', err);
+        setError('Failed to apply filters. Please try again.');
+        setLoading(false);
+      }
+    };
     
-    // If multiple price options, show from lowest to highest
-    return prices[0];
+    // Only fetch if the component is mounted (not on initial render)
+    if (!loading || selectedCategory || selectedBrand) {
+      fetchFilteredProducts();
+    }
+  }, [selectedCategory, selectedBrand]);
+
+  // Filter products by search query
+  const filteredProducts = products.filter(product => {
+    // Filter by search query
+    const matchesSearch = searchQuery === '' || 
+      (product.title && product.title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    // Filter by price range
+    let matchesPrice = true;
+    if (product.price) {
+      // If price is an object with multiple options, check any price
+      if (typeof product.price === 'object') {
+        const prices = Object.values(product.price).map(p => {
+          // Extract number from string like '₹7,000 - ₹12,000'
+          if (typeof p === 'string' && p.includes('₹')) {
+            const matches = p.match(/₹([\d,]+)/g);
+            if (matches && matches.length > 0) {
+              // Use the first number in the range
+              return parseInt(matches[0].replace(/[₹,]/g, ''), 10);
+            }
+          }
+          return 0;
+        });
+        
+        // Use the minimum price for comparison
+        const minPrice = Math.min(...prices.filter(p => p > 0));
+        matchesPrice = minPrice >= priceRange.min && minPrice <= priceRange.max;
+      } else {
+        // If price is a direct number
+        matchesPrice = product.price >= priceRange.min && product.price <= priceRange.max;
+      }
+    }
+    
+    return matchesSearch && matchesPrice;
+  });
+
+  // Handle category filter change
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+  };
+
+  // Handle brand filter change
+  const handleBrandChange = (e) => {
+    setSelectedBrand(e.target.value);
+  };
+
+  // Handle price range change
+  const handlePriceChange = (e, type) => {
+    const value = parseInt(e.target.value, 10);
+    setPriceRange(prev => ({
+      ...prev,
+      [type]: value
+    }));
+  };
+
+  // Handle search query change
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSelectedCategory('');
+    setSelectedBrand('');
+    setPriceRange({ min: 0, max: 100000 });
+    setSearchQuery('');
   };
 
   return (
     <div className="products-page">
-      <Hero 
-        title="Repair Parts & Products" 
-        subtitle="Find genuine replacement parts for your devices"
-        backgroundImage="https://images.unsplash.com/photo-1581092921461-39b9d08ed889?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-      />
-
-      <section className="section">
+      <div className="products-banner">
         <div className="container">
-          <div className="products-filters">
-            <div className="search-bar">
-              <input
-                type="text"
-                placeholder="Search for parts or services..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-            </div>
-
-            <div className="filter-group">
-              <div className="category-filters">
-                <h4>Categories</h4>
-                <div className="filter-buttons">
-                  <button 
-                    className={`filter-button ${selectedCategory === null ? 'active' : ''}`}
-                    onClick={() => handleCategorySelect(null)}
-                  >
-                    All Categories
-                  </button>
-                  {productCategories.map(category => (
-                    <button 
-                      key={category.id}
-                      className={`filter-button ${selectedCategory === category.id ? 'active' : ''}`}
-                      onClick={() => handleCategorySelect(category.id)}
-                    >
-                      <i className={`fas ${category.icon}`}></i> {category.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {selectedCategory && (
-                <div className="brand-filters">
-                  <h4>Brands</h4>
-                  <div className="filter-buttons">
-                    <button 
-                      className={`filter-button ${selectedBrand === null ? 'active' : ''}`}
-                      onClick={() => handleBrandSelect(null)}
-                    >
-                      All Brands
-                    </button>
-                    {filteredBrands.map(brand => (
-                      <button 
-                        key={brand.id}
-                        className={`filter-button ${selectedBrand === brand.id ? 'active' : ''}`}
-                        onClick={() => handleBrandSelect(brand.id)}
-                      >
-                        {brand.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {selectedBrand && (
-                <div className="model-filters">
-                  <h4>Models</h4>
-                  <div className="filter-buttons">
-                    <button 
-                      className={`filter-button ${selectedModel === null ? 'active' : ''}`}
-                      onClick={() => handleModelSelect(null)}
-                    >
-                      All Models
-                    </button>
-                    {filteredModels.map(model => (
-                      <button 
-                        key={model.id}
-                        className={`filter-button ${selectedModel === model.id ? 'active' : ''}`}
-                        onClick={() => handleModelSelect(model.id)}
-                      >
-                        {model.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+          <h1>Our Products</h1>
+          <p>
+            Browse our wide range of repair products for various devices and home appliances.
+            We offer genuine replacement parts and accessories for all your repair needs.
+          </p>
+        </div>
+      </div>
+      
+      <div className="products-container container">
+        <div className="products-sidebar">
+          <div className="filter-section">
+            <h3>Filters</h3>
+            <button className="clear-filters-btn" onClick={clearFilters}>
+              Clear All
+            </button>
           </div>
-
-          {loading ? (
-            <div className="loading-container">
-              <div className="spinner"></div>
-              <p>Loading products...</p>
-            </div>
-          ) : (
-            <>
-              <div className="results-count">
-                <p>Showing {filteredProducts.length} products</p>
+          
+          <div className="filter-section">
+            <h4>Search</h4>
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              className="search-input"
+            />
+          </div>
+          
+          <div className="filter-section">
+            <h4>Categories</h4>
+            <select
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              className="filter-select"
+            >
+              <option value="">All Categories</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="filter-section">
+            <h4>Brands</h4>
+            <select
+              value={selectedBrand}
+              onChange={handleBrandChange}
+              className="filter-select"
+            >
+              <option value="">All Brands</option>
+              {brands.map(brand => (
+                <option key={brand.id} value={brand.id}>
+                  {brand.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="filter-section">
+            <h4>Price Range</h4>
+            <div className="price-inputs">
+              <div className="price-input">
+                <label>Min:</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100000"
+                  value={priceRange.min}
+                  onChange={(e) => handlePriceChange(e, 'min')}
+                />
               </div>
-
-              <div className="products-grid">
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map(product => (
-                    <Link to={`/products/${product.id}`} key={product.id} className="product-card">
-                      <div className="product-image">
-                        <img src={product.image || '/images/product-placeholder.jpg'} alt={product.title} />
-                        {!product.inStock && <span className="out-of-stock">Out of Stock</span>}
-                      </div>
-                      <div className="product-details">
-                        <h3>{product.title}</h3>
-                        <div className="product-meta">
-                          <span className="product-category">
-                            {productCategories.find(cat => cat.id === product.category)?.name}
-                          </span>
-                          <span className="product-rating">
-                            <i className="fas fa-star"></i> {product.rating} ({product.reviewCount})
-                          </span>
-                        </div>
-                        <p className="product-description">{product.description.substring(0, 100)}...</p>
-                        <div className="product-price">{getPriceDisplay(product)}</div>
-                        <div className="product-features">
-                          <ul>
-                            {product.features.slice(0, 2).map((feature, idx) => (
-                              <li key={idx}><i className="fas fa-check"></i> {feature}</li>
-                            ))}
-                          </ul>
-                        </div>
-                        <button className="product-btn">View Details</button>
-                      </div>
-                    </Link>
-                  ))
-                ) : (
-                  <div className="no-results">
-                    <i className="fas fa-search"></i>
-                    <h3>No products found</h3>
-                    <p>Try different search criteria or browse all categories</p>
-                    <button className="reset-btn" onClick={() => {
-                      setSelectedCategory(null);
-                      setSelectedBrand(null);
-                      setSelectedModel(null);
-                      setSearchQuery('');
-                    }}>Reset Filters</button>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-
-          <div className="service-cta">
-            <div className="cta-content">
-              <h2>Need professional repair service?</h2>
-              <p>Our trained technicians can fix your device at your home or office.</p>
-              <div className="cta-buttons">
-                <Link to="/book-service" className="btn-primary">Book a Repair</Link>
-                <Link to="/services" className="btn-secondary">View Services</Link>
+              <div className="price-input">
+                <label>Max:</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100000"
+                  value={priceRange.max}
+                  onChange={(e) => handlePriceChange(e, 'max')}
+                />
               </div>
             </div>
           </div>
         </div>
-      </section>
+        
+        <div className="products-content">
+          {loading ? (
+            <div className="loading-spinner">
+              <div className="spinner"></div>
+              <p>Loading products...</p>
+            </div>
+          ) : error ? (
+            <div className="error-message">
+              <p>{error}</p>
+              <button onClick={() => window.location.reload()}>Try Again</button>
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="no-products">
+              <p>No products found matching your filters.</p>
+              <button onClick={clearFilters}>Clear Filters</button>
+            </div>
+          ) : (
+            <div className="products-grid">
+              {filteredProducts.map(product => (
+                <div key={product.id} className="product-card">
+                  <Link to={`/products/${product.id}`}>
+                    <div className="product-image">
+                      <img 
+                        src={product.image || '/images/product-placeholder.png'} 
+                        alt={product.title} 
+                      />
+                    </div>
+                    <div className="product-info">
+                      <h3 className="product-title">{product.title}</h3>
+                      <div className="product-category">
+                        {categories.find(cat => cat.id === product.category)?.name || product.category}
+                      </div>
+                      <div className="product-price">
+                        {typeof product.price === 'object' 
+                          ? Object.values(product.price)[0] 
+                          : product.price}
+                      </div>
+                      <div className="product-rating">
+                        <div className="stars">
+                          {[1, 2, 3, 4, 5].map(star => (
+                            <i 
+                              key={star}
+                              className={`fas fa-star ${star <= product.rating ? 'filled' : ''}`}
+                            ></i>
+                          ))}
+                        </div>
+                        <div className="rating-count">
+                          {product.rating} ({product.reviewCount} reviews)
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

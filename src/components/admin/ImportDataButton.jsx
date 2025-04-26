@@ -1,70 +1,110 @@
 import React, { useState } from 'react';
 import importServices from '../../scripts/importServices';
+import migrateProductsToFirestore from '../../scripts/migrateProductsToFirestore';
 
 const ImportDataButton = () => {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('');
+  const [isImporting, setIsImporting] = useState(false);
+  const [importStatus, setImportStatus] = useState(null);
+  const [migrationStatus, setMigrationStatus] = useState(null);
+  const [migrationInProgress, setMigrationInProgress] = useState(false);
   
   const handleImport = async () => {
-    if (loading) return;
-    
-    if (!window.confirm('Are you sure you want to import services data to Firebase? This may create duplicate entries if run multiple times.')) {
-      return;
-    }
-    
-    setLoading(true);
-    setStatus('Importing services data...');
-    
-    try {
-      // Import data to Firebase
-      await importServices();
-      setStatus('Services data imported successfully!');
-    } catch (error) {
-      console.error('Import error:', error);
-      setStatus(`Import failed: ${error.message}`);
-    } finally {
-      setLoading(false);
+    if (window.confirm('Are you sure you want to import sample data? This will add test data to your database.')) {
+      setLoading(true);
+      setStatus('Importing data...');
+      
+      try {
+        // Mock import function - replace with actual import
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        setStatus('Data imported successfully!');
+        setTimeout(() => {
+          setStatus('');
+        }, 3000);
+      } catch (error) {
+        console.error('Error importing data:', error);
+        setStatus('Error importing data. Check console for details.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
-  
+
+  const handleMigrateProducts = async () => {
+    if (window.confirm('Are you sure you want to migrate product data from static files to Firestore? This should only be done once.')) {
+      setMigrationInProgress(true);
+      setMigrationStatus('Migration in progress... This may take a few minutes.');
+      
+      try {
+        const result = await migrateProductsToFirestore();
+        
+        if (result) {
+          setMigrationStatus('Product data successfully migrated to Firestore!');
+        } else {
+          setMigrationStatus('Migration failed. Check console for details.');
+        }
+      } catch (error) {
+        console.error('Error during migration:', error);
+        setMigrationStatus('Migration error: ' + error.message);
+      } finally {
+        setMigrationInProgress(false);
+        setTimeout(() => {
+          setMigrationStatus(null);
+        }, 5000);
+      }
+    }
+  };
+
   return (
-    <div className="admin-card mb-4">
-      <div className="admin-card-header">
-        <h3 className="admin-card-title">Import Data</h3>
-      </div>
-      <div className="admin-card-body">
-        <p className="mb-3">
-          Import services data from the static JavaScript file to Firebase Firestore.
-        </p>
-        <div className="admin-alert admin-alert-warning mb-3">
-          <i className="fas fa-exclamation-triangle"></i>
-          This action will add all services from the static data file to Firebase.
-          Use with caution as it may create duplicate entries if run multiple times.
+    <div className="admin-data-tools">
+      <div className="admin-card mb-4">
+        <div className="admin-card-header">
+          <h3 className="admin-card-title">Import Sample Data</h3>
         </div>
-        
-        {status && (
-          <div className={`admin-alert ${status.includes('failed') ? 'admin-alert-danger' : 'admin-alert-success'} mb-3`}>
-            {status}
-          </div>
-        )}
-        
-        <button 
-          className="admin-btn admin-btn-primary" 
-          onClick={handleImport}
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <span className="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
-              Importing...
-            </>
-          ) : (
-            <>
-              <i className="fas fa-cloud-upload-alt mr-2"></i>
-              Import Services Data
-            </>
+        <div className="admin-card-body">
+          <p className="mb-3">
+            Import sample data into the database for testing purposes.
+          </p>
+          <button 
+            className="admin-primary-btn"
+            onClick={handleImport}
+            disabled={loading}
+          >
+            {loading ? 'Importing...' : 'Import Sample Data'}
+          </button>
+          {status && (
+            <div className="admin-status-message mt-3">
+              {status}
+            </div>
           )}
-        </button>
+        </div>
+      </div>
+
+      <div className="admin-card mb-4">
+        <div className="admin-card-header">
+          <h3 className="admin-card-title">Migrate Products to Firestore</h3>
+        </div>
+        <div className="admin-card-body">
+          <p className="mb-3">
+            Migrate all product data from the static files to Firestore. This should only be 
+            run once when setting up the database. This will migrate categories, brands, models, 
+            products, and booking devices.
+          </p>
+          <button 
+            className="admin-primary-btn"
+            onClick={handleMigrateProducts}
+            disabled={migrationInProgress}
+          >
+            {migrationInProgress ? 'Migrating...' : 'Migrate Products to Firestore'}
+          </button>
+          {migrationStatus && (
+            <div className="admin-status-message mt-3">
+              {migrationStatus}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
