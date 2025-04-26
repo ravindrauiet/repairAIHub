@@ -29,6 +29,8 @@ import ReferralForm from '../components/admin/ReferralForm';
 import CouponsList from '../components/admin/CouponsList';
 import CouponForm from '../components/admin/CouponForm';
 import BookingDevicesManager from '../components/admin/BookingDevicesManager';
+import DataImporter from '../components/admin/DataImporter';
+import TestBookingData from '../components/admin/TestBookingData';
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -368,6 +370,26 @@ const AdminDashboard = () => {
               <span className="admin-sidebar-text">Data Tools</span>
             </Link>
           </div>
+          
+          <div className="admin-sidebar-item">
+            <Link 
+              to="/admin/data-importer"
+              className={`admin-sidebar-link ${isActiveRoute('/admin/data-importer') ? 'active' : ''}`}
+            >
+              <i className="admin-sidebar-icon fas fa-file-import"></i>
+              <span className="admin-sidebar-text">Data Importer</span>
+            </Link>
+          </div>
+          
+          <div className="admin-sidebar-item">
+            <Link 
+              to="/admin/test-booking-data"
+              className={`admin-sidebar-link ${isActiveRoute('/admin/test-booking-data') ? 'active' : ''}`}
+            >
+              <i className="admin-sidebar-icon fas fa-check-circle"></i>
+              <span className="admin-sidebar-text">Test Data</span>
+            </Link>
+          </div>
         </div>
       </div>
       
@@ -462,6 +484,12 @@ const AdminDashboard = () => {
                 </div>
               </div>
             } />
+            
+            {/* Data Importer Route */}
+            <Route path="/data-importer" element={<DataImporter />} />
+            
+            {/* Test Booking Data Route */}
+            <Route path="/test-booking-data" element={<TestBookingData />} />
             
             {/* Fallback to dashboard for undefined routes */}
             <Route path="*" element={<AdminStats stats={adminStats} />} />

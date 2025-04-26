@@ -3,8 +3,29 @@ import * as firestoreService from '../../services/firestoreService';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+// Add some styling for debug information
+const debugStyles = {
+  debugInfo: {
+    backgroundColor: '#f8f9fa',
+    border: '1px solid #ddd',
+    borderRadius: '4px',
+    padding: '10px',
+    maxHeight: '200px',
+    overflowY: 'auto',
+    fontSize: '12px',
+    whiteSpace: 'pre-wrap',
+    marginBottom: '15px'
+  },
+  debugSection: {
+    marginTop: '20px',
+    padding: '20px',
+    backgroundColor: '#f0f0f0',
+    borderRadius: '4px'
+  }
+};
+
 const BookingDevicesManager = () => {
-  // State variables
+  // State variables - same pattern as BookingDeviceSelector
   const [serviceTypes, setServiceTypes] = useState([]);
   const [selectedServiceType, setSelectedServiceType] = useState('mobile-repair'); // Default to mobile-repair
   const [brands, setBrands] = useState([]);
@@ -19,149 +40,116 @@ const BookingDevicesManager = () => {
   const [newBrand, setNewBrand] = useState({ id: '', name: '' });
   const [newModel, setNewModel] = useState({ id: '', name: '' });
   
-  // Fetch initial data when component mounts
+  // Load service types on mount
   useEffect(() => {
-    const fetchData = async () => {
+    const loadServiceTypes = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        
-        // Set initial service type to mobile-repair
-        setSelectedServiceType('mobile-repair');
-        
-        // Get booking device data for mobile-repair - exactly like BookingDeviceSelector
-        const bookingDevice = await firestoreService.getBookingDevice('mobile-repair');
-        
-        if (bookingDevice && bookingDevice.brands) {
-          setBrands(bookingDevice.brands);
-          
-          // If oppo-mobile exists, select it
-          const oppoBrand = bookingDevice.brands.find(b => b.id === 'oppo-mobile');
-          if (oppoBrand) {
-            setSelectedBrand('oppo-mobile');
-            
-            // Fetch models for oppo-mobile
-            const modelsData = await firestoreService.getBookingDeviceModels('mobile-repair', 'oppo-mobile');
-            if (modelsData) {
-              setModels(modelsData);
-            } else {
-              setModels([]);
-            }
-          }
-        } else {
-          // If no data is found, set empty arrays
-          setBrands([]);
-          setError(`No device data found for mobile-repair. Please import data using the Data Importer tool.`);
-        }
-        
-        // Load categories for service types dropdown
         const categories = await firestoreService.getAllCategories();
-        const serviceTypesList = categories
+        console.log(categories);
+        const types = categories
           .filter(cat => cat.id.includes('repair') || cat.name.toLowerCase().includes('repair'))
           .map(cat => ({
             id: cat.id,
             name: cat.name
           }));
         
-        // Make sure mobile-repair is included
-        if (!serviceTypesList.some(t => t.id === 'mobile-repair')) {
-          serviceTypesList.push({ id: 'mobile-repair', name: 'Mobile Repair' });
+        // Ensure mobile-repair is included
+        if (!types.some(t => t.id === 'mobile-repair')) {
+          types.push({ id: 'mobile-repair', name: 'Mobile Repair' });
         }
         
-        setServiceTypes(serviceTypesList);
+        setServiceTypes(types);
+      } catch (err) {
+        console.error('Error loading service types:', err);
+        // Add mobile-repair as fallback
+        setServiceTypes([{ id: 'mobile-repair', name: 'Mobile Repair' }]);
+      }
+    };
+    
+    loadServiceTypes();
+  }, []);
+  
+  // Fetch brands when service type changes - EXACTLY like BookingDeviceSelector
+  useEffect(() => {
+    const fetchBrands = async () => {
+      if (!selectedServiceType) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Get booking device data for this service category
+        const bookingDevice = await firestoreService.getBookingDevice(selectedServiceType);
+        
+        if (bookingDevice && bookingDevice.brands) {
+          setBrands(bookingDevice.brands);
+        } else {
+          // If no data is found, set empty array and show an error
+          setBrands([]);
+          setError(`No device data found for ${selectedServiceType}. Please try another service type.`);
+        }
+        
+        // Reset selections when service type changes
+        setSelectedBrand('');
+        setSelectedModel('');
+        setModels([]);
+        
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load data. Please try using the Data Importer first.');
+        console.error('Error fetching brands:', err);
+        setError('Failed to load device brands. Please try again later.');
+        setBrands([]);
         setLoading(false);
       }
     };
     
-    fetchData();
-  }, []);
-  
-  // Fetch brands when service type changes
-  useEffect(() => {
-    if (selectedServiceType) {
-      fetchBookingDevicesForServiceType(selectedServiceType);
-    }
+    fetchBrands();
   }, [selectedServiceType]);
   
-  // Fetch all booking devices for a service type
-  const fetchBookingDevicesForServiceType = async (serviceType) => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Get booking device data for this service category
-      const bookingDevice = await firestoreService.getBookingDevice(serviceType);
-      
-      if (bookingDevice && bookingDevice.brands) {
-        setBrands(bookingDevice.brands);
-      } else {
-        // If no data is found, set empty array and show an error
-        setBrands([]);
-        setError(`No device data found for ${serviceType}. Please try another service type or use the Data Importer.`);
-      }
-      
-      // Reset selections when service type changes
-      setSelectedBrand('');
-      setModels([]);
-      
-      setLoading(false);
-    } catch (err) {
-      console.error(`Error fetching booking devices for ${serviceType}:`, err);
-      setError(`Failed to load booking devices for ${serviceType}`);
-      setBrands([]);
-      setLoading(false);
-    }
-  };
-  
-  // Fetch models for a specific brand
-  const fetchModelsForBrand = async (serviceType, brandId) => {
-    if (!brandId) {
-      setModels([]);
-      return;
-    }
-    
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Get models for this brand from Firestore
-      const modelsData = await firestoreService.getBookingDeviceModels(serviceType, brandId);
-      
-      if (modelsData) {
-        setModels(modelsData);
-      } else {
+  // Fetch models when a brand is selected - EXACTLY like BookingDeviceSelector
+  useEffect(() => {
+    const fetchModels = async () => {
+      if (!selectedBrand || !selectedServiceType) {
         setModels([]);
-        setError(`No models found for ${brandId}. Please add some models.`);
+        return;
       }
       
-      setLoading(false);
-    } catch (err) {
-      console.error('Error fetching models:', err);
-      setError('Failed to load device models. Please try again later.');
-      setModels([]);
-      setLoading(false);
-    }
-  };
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Get models for this brand from Firestore
+        const modelsData = await firestoreService.getBookingDeviceModels(selectedServiceType, selectedBrand);
+        
+        if (modelsData) {
+          setModels(modelsData);
+        } else {
+          setModels([]);
+          setError(`No models found for ${selectedBrand}. Please try another brand.`);
+        }
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching models:', err);
+        setError('Failed to load device models. Please try again later.');
+        setModels([]);
+        setLoading(false);
+      }
+    };
+    
+    fetchModels();
+  }, [selectedBrand, selectedServiceType]);
   
   // Handle service type change
   const handleServiceTypeChange = (e) => {
     setSelectedServiceType(e.target.value);
   };
   
-  // Handle brand selection change
-  const handleBrandChange = async (e) => {
+  // Handle brand selection change - EXACTLY like BookingDeviceSelector
+  const handleBrandChange = (e) => {
     const brandId = e.target.value;
     setSelectedBrand(brandId);
-    
-    if (brandId) {
-      await fetchModelsForBrand(selectedServiceType, brandId);
-    } else {
-      setModels([]);
-    }
+    setSelectedModel('');
   };
   
   // Handle adding a new brand
@@ -198,7 +186,6 @@ const BookingDevicesManager = () => {
       
       // Initialize empty models for this brand
       await firestoreService.saveBookingDeviceModels(selectedServiceType, newBrand.id, []);
-      setModels([]);
       
       setSaving(false);
     } catch (err) {
@@ -230,10 +217,8 @@ const BookingDevicesManager = () => {
       // Update the booking device models document
       await firestoreService.saveBookingDeviceModels(selectedServiceType, selectedBrand, updatedModels);
       
-      // Reload models from Firestore to ensure we have the latest data
-      await fetchModelsForBrand(selectedServiceType, selectedBrand);
-      
-      // Reset new model form
+      // Update the local state
+      setModels(updatedModels);
       setNewModel({ id: '', name: '' });
       
       toast.success('Model added successfully');
@@ -266,15 +251,11 @@ const BookingDevicesManager = () => {
         // Update the local state
         setBrands(updatedBrands);
         
-        // If the deleted brand was selected, select another one if available
+        // If the deleted brand was selected, reset selection
         if (selectedBrand === brandId) {
-          if (updatedBrands.length > 0) {
-            setSelectedBrand(updatedBrands[0].id);
-            await fetchModelsForBrand(selectedServiceType, updatedBrands[0].id);
-          } else {
-            setSelectedBrand('');
-            setModels([]);
-          }
+          setSelectedBrand('');
+          setSelectedModel('');
+          setModels([]);
         }
         
         toast.success('Brand deleted successfully');
@@ -337,14 +318,6 @@ const BookingDevicesManager = () => {
         {error && (
           <div className="admin-alert admin-alert-danger mb-4">
             {error}
-            <div className="mt-2">
-              <button 
-                className="admin-btn admin-btn-primary"
-                onClick={() => window.location.href = '/admin/data-importer'}
-              >
-                Go to Data Importer
-              </button>
-            </div>
           </div>
         )}
         
@@ -355,40 +328,18 @@ const BookingDevicesManager = () => {
           <div className="admin-card-body">
             <div className="admin-form-group">
               <label>Service Type</label>
-              <div className="admin-form-row">
-                <select
-                  value={selectedServiceType}
-                  onChange={handleServiceTypeChange}
-                  className="admin-select"
-                  disabled={loading}
-                >
-                  {serviceTypes.length === 0 && (
-                    <option value="">No service types found</option>
-                  )}
-                  {serviceTypes.map(type => (
-                    <option key={type.id} value={type.id}>
-                      {type.name}
-                    </option>
-                  ))}
-                </select>
-                
-                <button
-                  className="admin-btn admin-btn-primary"
-                  onClick={() => {
-                    setSelectedServiceType('mobile-repair');
-                    fetchBookingDevicesForServiceType('mobile-repair');
-                  }}
-                  disabled={loading || saving}
-                >
-                  Use Mobile Repair
-                </button>
-              </div>
-              
-              {serviceTypes.length === 0 && (
-                <p className="admin-alert admin-alert-warning mt-2">
-                  No service types found. Make sure you have imported data using the Data Importer.
-                </p>
-              )}
+              <select
+                value={selectedServiceType}
+                onChange={handleServiceTypeChange}
+                className="admin-select"
+                disabled={loading}
+              >
+                {serviceTypes.map(type => (
+                  <option key={type.id} value={type.id}>
+                    {type.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
@@ -400,29 +351,31 @@ const BookingDevicesManager = () => {
                 <h3 className="admin-card-title">Manage Brands</h3>
               </div>
               <div className="admin-card-body">
-                <div className="admin-form-row">
-                  <div className="admin-form-group">
-                    <label>Select Brand</label>
-                    <select
-                      value={selectedBrand}
-                      onChange={handleBrandChange}
-                      className="admin-select"
-                      disabled={brands.length === 0 || loading}
-                    >
-                      <option value="">Choose a brand</option>
-                      {brands.map((brand) => (
-                        <option key={brand.id} value={brand.id}>
-                          {brand.name}
-                        </option>
-                      ))}
-                    </select>
-                    {brands.length === 0 && !loading && !error && (
-                      <p className="admin-help-text">No brands available for this service type.</p>
-                    )}
-                  </div>
+                {/* Brand selector - same as BookingDeviceSelector */}
+                <div className="admin-form-group mb-4">
+                  <label htmlFor="brandSelector">Select Brand</label>
+                  <select
+                    id="brandSelector"
+                    value={selectedBrand}
+                    onChange={handleBrandChange}
+                    className="admin-select"
+                    disabled={brands.length === 0 || loading}
+                  >
+                    <option value="">Choose a brand</option>
+                    {brands.map((brand) => (
+                      <option key={brand.id} value={brand.id}>
+                        {brand.name}
+                      </option>
+                    ))}
+                  </select>
+                  {brands.length === 0 && !loading && (
+                    <p className="admin-help-text">No brands available for this service type.</p>
+                  )}
                 </div>
-
-                <div className="admin-form-row mt-4">
+                
+                <div className="admin-form-divider">Add New Brand</div>
+                
+                <div className="admin-form-row">
                   <div className="admin-form-group">
                     <label>Brand ID</label>
                     <input
@@ -443,61 +396,51 @@ const BookingDevicesManager = () => {
                       className="admin-input"
                     />
                   </div>
-                  <div className="admin-form-group">
-                    <button
-                      className="admin-btn admin-btn-primary"
-                      onClick={handleAddBrand}
-                      disabled={saving}
-                    >
-                      {saving ? 'Adding...' : 'Add Brand'}
-                    </button>
-                  </div>
                 </div>
                 
-                <div className="admin-table-container mt-4">
-                  <table className="admin-table">
-                    <thead>
-                      <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {brands.length === 0 ? (
+                <div className="admin-form-row mt-2">
+                  <button
+                    className="admin-btn admin-btn-primary"
+                    onClick={handleAddBrand}
+                    disabled={saving || !newBrand.id || !newBrand.name}
+                  >
+                    {saving ? 'Adding...' : 'Add Brand'}
+                  </button>
+                </div>
+                
+                {brands.length > 0 && (
+                  <div className="admin-table-container mt-4">
+                    <div className="admin-form-divider">Brand List</div>
+                    <table className="admin-table">
+                      <thead>
                         <tr>
-                          <td colSpan="3" className="admin-no-data">
-                            No brands found. Add a brand to get started.
-                          </td>
+                          <th>ID</th>
+                          <th>Name</th>
+                          <th>Actions</th>
                         </tr>
-                      ) : (
-                        brands.map(brand => (
+                      </thead>
+                      <tbody>
+                        {brands.map(brand => (
                           <tr key={brand.id} className={selectedBrand === brand.id ? 'selected-row' : ''}>
                             <td>{brand.id}</td>
                             <td>{brand.name}</td>
                             <td>
                               <div className="admin-actions">
                                 <button
-                                  className="admin-btn admin-btn-sm admin-btn-secondary"
-                                  onClick={() => setSelectedBrand(brand.id) & fetchModelsForBrand(selectedServiceType, brand.id)}
-                                >
-                                  View Models
-                                </button>
-                                <button
                                   className="admin-btn admin-btn-sm admin-btn-danger"
                                   onClick={() => handleDeleteBrand(brand.id)}
                                   disabled={saving}
                                 >
-                                  <i className="fas fa-trash"></i>
+                                  <i className="fas fa-trash"></i> Delete
                                 </button>
                               </div>
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -519,6 +462,7 @@ const BookingDevicesManager = () => {
                   </div>
                 ) : (
                   <>
+                    <div className="admin-form-divider">Add New Model</div>
                     <div className="admin-form-row">
                       <div className="admin-form-group">
                         <label>Model ID</label>
@@ -540,35 +484,31 @@ const BookingDevicesManager = () => {
                           className="admin-input"
                         />
                       </div>
-                      <div className="admin-form-group">
-                        <button
-                          className="admin-btn admin-btn-primary"
-                          onClick={handleAddModel}
-                          disabled={saving}
-                        >
-                          {saving ? 'Adding...' : 'Add Model'}
-                        </button>
-                      </div>
                     </div>
                     
-                    <div className="admin-table-container mt-4">
-                      <table className="admin-table">
-                        <thead>
-                          <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {models.length === 0 ? (
+                    <div className="admin-form-row mt-2">
+                      <button
+                        className="admin-btn admin-btn-primary"
+                        onClick={handleAddModel}
+                        disabled={saving || !newModel.id || !newModel.name}
+                      >
+                        {saving ? 'Adding...' : 'Add Model'}
+                      </button>
+                    </div>
+                    
+                    {models.length > 0 ? (
+                      <div className="admin-table-container mt-4">
+                        <div className="admin-form-divider">Model List</div>
+                        <table className="admin-table">
+                          <thead>
                             <tr>
-                              <td colSpan="3" className="admin-no-data">
-                                No models found for this brand. Add a model to get started.
-                              </td>
+                              <th>ID</th>
+                              <th>Name</th>
+                              <th>Actions</th>
                             </tr>
-                          ) : (
-                            models.map(model => (
+                          </thead>
+                          <tbody>
+                            {models.map(model => (
                               <tr key={model.id}>
                                 <td>{model.id}</td>
                                 <td>{model.name}</td>
@@ -579,16 +519,20 @@ const BookingDevicesManager = () => {
                                       onClick={() => handleDeleteModel(model.id)}
                                       disabled={saving}
                                     >
-                                      <i className="fas fa-trash"></i>
+                                      <i className="fas fa-trash"></i> Delete
                                     </button>
                                   </div>
                                 </td>
                               </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="admin-alert admin-alert-info mt-4">
+                        No models found for this brand. Add a model to get started.
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -598,27 +542,35 @@ const BookingDevicesManager = () => {
         
         <div className="admin-card mb-4">
           <div className="admin-card-header">
-            <h3 className="admin-card-title">Import Tools</h3>
+            <h3 className="admin-card-title">Direct Actions</h3>
           </div>
           <div className="admin-card-body">
-            <p className="mb-3">
-              Having problems with data? Use these buttons to access data tools:
-            </p>
-            <div className="admin-form-row">
-              <button
-                className="admin-btn admin-btn-primary"
-                onClick={() => window.location.href = '/admin/data-importer'}
-              >
-                Go to Data Importer
-              </button>
-              
-              <button
-                className="admin-btn admin-btn-secondary ml-2"
-                onClick={() => window.location.href = '/admin/test-booking-data'}
-              >
-                Test Booking Data
-              </button>
-            </div>
+            <button
+              className="admin-btn admin-btn-primary"
+              onClick={() => {
+                setSelectedServiceType('mobile-repair');
+                // The useEffect will handle loading the brands
+              }}
+              disabled={loading || saving}
+            >
+              Load Mobile Repair
+            </button>
+            
+            <button
+              className="admin-btn admin-btn-secondary ml-2"
+              onClick={() => {
+                setSelectedServiceType('mobile-repair');
+                // The first useEffect will handle loading the brands
+                // Then we manually set the selected brand
+                setTimeout(() => {
+                  setSelectedBrand('oppo-mobile');
+                  // The second useEffect will handle loading the models
+                }, 500);
+              }}
+              disabled={loading || saving}
+            >
+              Load Oppo Mobile
+            </button>
           </div>
         </div>
       </div>
