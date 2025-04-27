@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   signInWithEmailAndPassword, 
   signInWithRedirect, 
+  signInWithPopup,
   getRedirectResult,
   onAuthStateChanged 
 } from 'firebase/auth';
@@ -21,23 +22,60 @@ const LoginPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [authAttempted, setAuthAttempted] = useState(false);
   
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Check if user is already logged in and handle redirect result
   useEffect(() => {
+    console.log('[LoginPage] Component mounted');
+    
+    // Add debug info to localStorage (survives refreshes)
+    localStorage.setItem('auth_debug_time', new Date().toString());
+    localStorage.setItem('auth_debug_location', location.pathname);
+    
+    // First, check if the user is already logged in
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      console.log('[LoginPage] User already logged in:', currentUser.uid);
+      localStorage.setItem('auth_debug_current_user', currentUser.uid);
+      
+      // Don't navigate if we're already handling a Google redirect
+      if (!localStorage.getItem('handling_google_redirect')) {
+        localStorage.setItem('auth_debug_action', 'direct_navigation_to_profile');
+        navigate('/profile');
+        return;
+      }
+    }
+    
     // Check for redirect result on page load
     const handleRedirectResult = async () => {
+      console.log('[LoginPage] Starting to handle redirect result');
+      localStorage.setItem('auth_debug_redirect_start', new Date().toString());
+      
       try {
+        // Set flag to indicate we're handling a redirect (using localStorage instead of sessionStorage)
+        console.log('[LoginPage] Setting handling_google_redirect flag in localStorage');
+        localStorage.setItem('handling_google_redirect', 'true');
+        
+        console.log('[LoginPage] Calling getRedirectResult()');
         const result = await getRedirectResult(auth);
+        localStorage.setItem('auth_debug_redirect_result', result ? 'success' : 'no_result');
+        console.log('[LoginPage] getRedirectResult returned:', result ? 'Result exists' : 'No result');
+        
         if (result?.user) {
-          console.log('Google sign in successful (redirect):', result.user);
+          console.log('[LoginPage] Google sign in successful (redirect):', result.user.uid);
+          localStorage.setItem('auth_debug_user_uid', result.user.uid);
+          localStorage.setItem('auth_debug_user_email', result.user.email);
           
           // Check if user exists in Firestore, if not create a new document
           const userRef = doc(db, "users", result.user.uid);
+          console.log('[LoginPage] Checking if user exists in Firestore');
           const userSnap = await getDoc(userRef);
           
           if (!userSnap.exists()) {
+            console.log('[LoginPage] User does not exist in Firestore, creating new document');
             // User doesn't exist in Firestore, create new document
             await setDoc(userRef, {
               uid: result.user.uid,
@@ -55,37 +93,84 @@ const LoginPage = () => {
               updatedAt: serverTimestamp(),
               lastLogin: serverTimestamp()
             });
-            console.log('New Google user data saved to Firestore');
+            console.log('[LoginPage] New Google user data saved to Firestore');
           } else {
+            console.log('[LoginPage] User exists in Firestore, updating last login time');
             // Update last login time
             await setDoc(userRef, {
               lastLogin: serverTimestamp(),
               updatedAt: serverTimestamp()
             }, { merge: true });
-            console.log('User login time updated in Firestore');
+            console.log('[LoginPage] User login time updated in Firestore');
           }
           
-          navigate('/profile');
+          // Set auth attempted flag to prevent onAuthStateChanged from redirecting again
+          setAuthAttempted(true);
+          
+          console.log('[LoginPage] Redirect successful, navigating to /profile');
+          localStorage.setItem('auth_debug_final_action', 'navigating_to_profile');
+          
+          // Small delay to ensure state is settled before navigation
+          setTimeout(() => {
+            localStorage.removeItem('handling_google_redirect');
+            navigate('/profile');
+            console.log('[LoginPage] Navigation to /profile initiated');
+          }, 500);
+        } else {
+          console.log('[LoginPage] No redirect result user found');
+          localStorage.setItem('auth_debug_no_user', 'true');
+          localStorage.removeItem('handling_google_redirect');
         }
       } catch (err) {
-        console.error('Google redirect sign in error:', err);
-        setLoginError(err.message);
+        // Remove the flag if there's an error
+        console.error('[LoginPage] Google redirect sign in error:', err);
+        localStorage.setItem('auth_debug_error', JSON.stringify({
+          code: err.code,
+          message: err.message
+        }));
+        
+        localStorage.removeItem('handling_google_redirect');
+        setLoginError('Google Sign-In Error: ' + err.message);
       }
     };
 
-    handleRedirectResult();
+    // Only attempt to handle redirect if we haven't just completed a redirect
+    if (!authAttempted) {
+      handleRedirectResult();
+    }
 
     // Check auth state
+    console.log('[LoginPage] Setting up auth state listener');
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // User is signed in
-        navigate('/profile');
+      console.log('[LoginPage] Auth state changed, user:', user ? user.uid : 'No user');
+      localStorage.setItem('auth_debug_auth_state', user ? 'logged_in' : 'logged_out');
+      
+      if (user && !authAttempted) {
+        console.log('[LoginPage] User is signed in, checking if we should navigate');
+        
+        // Don't navigate if we're already handling a redirect
+        const isHandlingRedirect = localStorage.getItem('handling_google_redirect');
+        console.log('[LoginPage] handling_google_redirect flag value:', isHandlingRedirect);
+        
+        if (!isHandlingRedirect) {
+          console.log('[LoginPage] Not handling redirect, navigating to /profile');
+          localStorage.setItem('auth_debug_navigation_reason', 'auth_state_changed');
+          navigate('/profile');
+          console.log('[LoginPage] Navigation to /profile initiated from auth state change');
+        } else {
+          console.log('[LoginPage] Currently handling redirect, skipping navigation');
+        }
+      } else {
+        console.log('[LoginPage] No user is signed in or auth was already attempted');
       }
     });
     
     // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, [navigate]);
+    return () => {
+      console.log('[LoginPage] Component unmounting, unsubscribing from auth');
+      unsubscribe();
+    };
+  }, [navigate, location, authAttempted]);
   
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -136,13 +221,15 @@ const LoginPage = () => {
       setIsSubmitting(true);
       
       try {
-        console.log('Attempting login with:', { email: formData.email });
+        console.log('[LoginPage] Attempting login with email:', formData.email);
         
         const userCredential = await signInWithEmailAndPassword(
           auth,
           formData.email,
           formData.password
         );
+        
+        console.log('[LoginPage] Email login successful, user:', userCredential.user.uid);
         
         // Update last login time in Firestore
         const userRef = doc(db, "users", userCredential.user.uid);
@@ -151,10 +238,17 @@ const LoginPage = () => {
           updatedAt: serverTimestamp()
         }, { merge: true });
         
-        console.log('Login successful, login time updated in Firestore');
+        console.log('[LoginPage] Login successful, login time updated in Firestore');
+        setAuthAttempted(true);
         navigate('/profile');
+        console.log('[LoginPage] Navigation to /profile initiated from email login');
       } catch (err) {
-        console.error('Login error:', err);
+        console.error('[LoginPage] Login error:', err);
+        localStorage.setItem('auth_debug_email_login_error', JSON.stringify({
+          code: err.code,
+          message: err.message
+        }));
+        
         const errorMessage = err.code === 'auth/invalid-credential' 
           ? 'Invalid email or password' 
           : err.message;
@@ -167,16 +261,98 @@ const LoginPage = () => {
   
   const handleGoogleSignIn = async () => {
     try {
+      console.log('[LoginPage] Starting Google sign in process');
       setIsSubmitting(true);
-      // Use redirect instead of popup
+      
+      // Clear any existing flags
+      console.log('[LoginPage] Clearing any existing redirect flags');
+      localStorage.removeItem('handling_google_redirect');
+      localStorage.setItem('auth_debug_google_signin_start', new Date().toString());
+      
+      // Try popup first (more reliable than redirect)
+      try {
+        console.log('[LoginPage] Trying signInWithPopup first');
+        const result = await signInWithPopup(auth, googleProvider);
+        console.log('[LoginPage] Google popup sign in successful');
+        localStorage.setItem('auth_debug_auth_method', 'popup_success');
+        
+        // Update Firestore
+        const userRef = doc(db, "users", result.user.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (!userSnap.exists()) {
+          await setDoc(userRef, {
+            uid: result.user.uid,
+            name: result.user.displayName || 'User',
+            email: result.user.email,
+            phone: result.user.phoneNumber || '',
+            address: {
+              street: '',
+              city: '',
+              state: '',
+              pincode: ''
+            },
+            photoURL: result.user.photoURL || '',
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp(),
+            lastLogin: serverTimestamp()
+          });
+        } else {
+          await setDoc(userRef, {
+            lastLogin: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+        }
+        
+        setAuthAttempted(true);
+        navigate('/profile');
+        return;
+      } catch (popupError) {
+        // If popup fails, fall back to redirect
+        console.log('[LoginPage] Popup sign in failed, falling back to redirect', popupError);
+        localStorage.setItem('auth_debug_popup_error', JSON.stringify({
+          code: popupError.code,
+          message: popupError.message
+        }));
+      }
+      
+      // Fall back to redirect method
+      console.log('[LoginPage] Initiating signInWithRedirect');
+      localStorage.setItem('auth_debug_auth_method', 'redirect_fallback');
       await signInWithRedirect(auth, googleProvider);
-      // No need to navigate here as the redirect will happen
-      // and we'll handle the result in useEffect
+      console.log('[LoginPage] signInWithRedirect called - this log may not appear due to redirect');
     } catch (err) {
-      console.error('Google sign in error:', err);
-      setLoginError(err.message);
+      console.error('[LoginPage] Google sign in error:', err);
+      localStorage.setItem('auth_debug_google_signin_error', JSON.stringify({
+        code: err.code,
+        message: err.message
+      }));
+      
+      setLoginError('Google Sign-In Error: ' + err.message);
       setIsSubmitting(false);
     }
+  };
+  
+  // Debug button to check localStorage
+  const checkDebugInfo = () => {
+    console.log('[LoginPage] === DEBUG INFO ===');
+    const debugKeys = Object.keys(localStorage).filter(key => key.startsWith('auth_debug_'));
+    debugKeys.forEach(key => {
+      console.log(`[LoginPage] ${key}: ${localStorage.getItem(key)}`);
+    });
+    console.log('[LoginPage] handling_google_redirect:', localStorage.getItem('handling_google_redirect'));
+    console.log('[LoginPage] Current User:', auth.currentUser ? auth.currentUser.uid : 'None');
+    console.log('[LoginPage] === END DEBUG INFO ===');
+  };
+  
+  // Clear all debug info
+  const clearDebugInfo = () => {
+    const debugKeys = Object.keys(localStorage).filter(key => key.startsWith('auth_debug_'));
+    debugKeys.forEach(key => {
+      localStorage.removeItem(key);
+    });
+    localStorage.removeItem('handling_google_redirect');
+    console.log('[LoginPage] All debug info cleared');
   };
   
   return (
@@ -185,6 +361,23 @@ const LoginPage = () => {
         <div className="auth-header">
           <h2 className="auth-title">Welcome Back</h2>
           <p className="auth-subtitle">Sign in to access your account</p>
+          {/* Debug buttons - remove in production */}
+          <div style={{display: 'flex', gap: '5px'}}>
+            <button 
+              type="button" 
+              onClick={checkDebugInfo} 
+              style={{fontSize: '10px', padding: '2px', margin: '2px', background: 'none', border: 'none'}}
+            >
+              Debug
+            </button>
+            <button 
+              type="button" 
+              onClick={clearDebugInfo} 
+              style={{fontSize: '10px', padding: '2px', margin: '2px', background: 'none', border: 'none'}}
+            >
+              Clear
+            </button>
+          </div>
         </div>
         
         <form className="auth-form" onSubmit={handleSubmit}>

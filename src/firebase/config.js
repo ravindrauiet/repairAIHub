@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
@@ -21,6 +21,19 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 const googleProvider = new GoogleAuthProvider();
+
+// Add additional scopes if needed for your app
+googleProvider.addScope('email');
+googleProvider.addScope('profile');
+
+// Set persistent auth state to maintain login across page refreshes
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("[Firebase] Auth persistence set to LOCAL");
+  })
+  .catch((error) => {
+    console.error("[Firebase] Error setting auth persistence:", error);
+  });
 
 // Check if user is an admin
 const checkUserRole = async (user) => {
