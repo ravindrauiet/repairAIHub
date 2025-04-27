@@ -37,14 +37,46 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   
   useEffect(() => {
+    // Check for mobile auth token in URL or localStorage
+    const urlParams = new URLSearchParams(window.location.search);
+    const authToken = urlParams.get('auth_token');
+    const localToken = localStorage.getItem('mobile_auth_token');
+    
+    if (authToken || localToken) {
+      // Clear URL without refreshing
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // If we came here with an auth token, it likely means we're authenticated
+      // but Firebase might not have caught up yet on mobile. Let's log this.
+      console.log('ProfilePage: Auth token detected, likely authenticated on mobile');
+      localStorage.setItem('profile_page_token_detected', 'true');
+      
+      // We'll continue with normal auth flow, but remember we had a token
+    }
+    
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       console.log('ProfilePage: Firebase auth state changed:', currentUser ? 'User logged in' : 'No user');
+      
+      // Added token-based fallback for mobile
+      if (!currentUser && (authToken || localToken)) {
+        console.log('ProfilePage: No user detected but auth token exists, forcing reload to restore session');
+        localStorage.setItem('force_auth_recovery', 'true');
+        
+        // Attempt to recover session by refreshing
+        window.location.reload();
+        return;
+      }
       
       if (!currentUser) {
         // Redirect to login if not logged in
         navigate('/login', { state: { from: '/profile' } });
         return;
       }
+      
+      // Clear any auth tokens now that we're confirmed logged in
+      localStorage.removeItem('mobile_auth_token');
+      localStorage.removeItem('handling_google_redirect');
+      localStorage.removeItem('force_auth_recovery');
       
       // Set basic user data from Firebase Auth
       setUser({

@@ -28,6 +28,25 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
+  // CRITICAL FIX: Check URL parameters for mobile auth token
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authToken = urlParams.get('auth_token');
+    
+    if (authToken) {
+      console.log('[LoginPage] Found auth_token in URL, attempting to restore session');
+      
+      // Clear the URL without refreshing the page
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Small delay before navigating to profile
+      setTimeout(() => {
+        console.log('[LoginPage] Redirecting to profile based on URL auth_token');
+        window.location.href = '/profile';
+      }, 1000);
+    }
+  }, []);
+  
   // Force check authentication state - especially helpful for mobile
   useEffect(() => {
     const forceCheckAuthState = async () => {
@@ -143,9 +162,18 @@ const LoginPage = () => {
           // Small delay to ensure state is settled before navigation
           setTimeout(() => {
             localStorage.removeItem('handling_google_redirect');
-            // On mobile, use reload to profile to ensure clean state
+            // On mobile, use enhanced auth navigation
             if (isMobile) {
-              window.location.href = '/profile';
+              const savedAuthToken = localStorage.getItem('mobile_auth_token');
+              if (savedAuthToken) {
+                localStorage.removeItem('mobile_auth_token'); // Clear it
+                window.location.href = '/profile';
+              } else {
+                // Generate a temporary token for future use
+                const tempAuthToken = Date.now().toString(36) + Math.random().toString(36).substr(2);
+                localStorage.setItem('mobile_auth_token', tempAuthToken);
+                window.location.href = '/profile';
+              }
             } else {
               navigate('/profile');
             }
@@ -191,9 +219,18 @@ const LoginPage = () => {
           console.log('[LoginPage] Not handling redirect, navigating to /profile');
           localStorage.setItem('auth_debug_navigation_reason', 'auth_state_changed');
           
-          // On mobile, use direct location change to ensure clean state
+          // On mobile, use enhanced auth navigation
           if (isMobile) {
-            window.location.href = '/profile';
+            const savedAuthToken = localStorage.getItem('mobile_auth_token');
+            if (savedAuthToken) {
+              localStorage.removeItem('mobile_auth_token'); // Clear it
+              window.location.href = '/profile';
+            } else {
+              // Generate a temporary token for future use
+              const tempAuthToken = Date.now().toString(36) + Math.random().toString(36).substr(2);
+              localStorage.setItem('mobile_auth_token', tempAuthToken);
+              window.location.href = '/profile';
+            }
           } else {
             navigate('/profile');
           }
@@ -290,9 +327,18 @@ const LoginPage = () => {
         console.log('[LoginPage] Login successful, login time updated in Firestore');
         setAuthAttempted(true);
         
-        // On mobile, use direct location change for more reliable navigation
+        // On mobile, use enhanced auth navigation
         if (isMobile) {
-          window.location.href = '/profile';
+          const savedAuthToken = localStorage.getItem('mobile_auth_token');
+          if (savedAuthToken) {
+            localStorage.removeItem('mobile_auth_token'); // Clear it
+            window.location.href = '/profile';
+          } else {
+            // Generate a temporary token for future use
+            const tempAuthToken = Date.now().toString(36) + Math.random().toString(36).substr(2);
+            localStorage.setItem('mobile_auth_token', tempAuthToken);
+            window.location.href = '/profile';
+          }
         } else {
           navigate('/profile');
         }
@@ -324,10 +370,22 @@ const LoginPage = () => {
       localStorage.removeItem('handling_google_redirect');
       localStorage.setItem('auth_debug_google_signin_start', new Date().toString());
       
-      // For mobile devices, always use redirect (popups often don't work well on mobile)
+      // Modify the signInWithRedirect in handleGoogleSignIn for mobile:
+      // Replace the mobile-specific redirect code with:
+      
       if (isMobile) {
-        console.log('[LoginPage] Mobile device detected, using signInWithRedirect directly');
-        localStorage.setItem('auth_debug_auth_method', 'mobile_redirect');
+        console.log('[LoginPage] Mobile device detected, using enhanced mobile auth approach');
+        localStorage.setItem('auth_debug_auth_method', 'enhanced_mobile_redirect');
+        
+        // Generate a temporary auth token and store in localStorage
+        const tempAuthToken = Date.now().toString(36) + Math.random().toString(36).substr(2);
+        localStorage.setItem('mobile_auth_token', tempAuthToken);
+        
+        // Set redirect URL with the token
+        googleProvider.setCustomParameters({
+          'redirect_uri': window.location.origin + '/login?auth_token=' + tempAuthToken
+        });
+        
         await signInWithRedirect(auth, googleProvider);
         return;
       }
