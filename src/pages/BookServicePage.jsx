@@ -134,15 +134,14 @@ const BookServicePage = () => {
   }, [selectedService, discountInfo.referral.valid, discountInfo.referral.percentage, 
       discountInfo.coupon.valid, discountInfo.coupon.percentage]);
   
-  // Get time slots for booking
-  const getTimeSlots = () => {
+  // Consistent function to generate properly formatted time slots
+  const generateTimeSlots = () => {
     const slots = [];
-    for (let i = 9; i <= 19; i++) {
-      const hour = i < 10 ? `0${i}` : `${i}`;
-      slots.push(`${hour}:00`);
-      if (i < 19) {
-        slots.push(`${hour}:30`);
-      }
+    for (let hour = 9; hour <= 17; hour++) {
+      // Add leading zero for consistent formatting
+      const formattedHour = hour < 10 ? `0${hour}` : `${hour}`;
+      slots.push(`${formattedHour}:00`);
+      slots.push(`${formattedHour}:30`);
     }
     return slots;
   };
@@ -569,33 +568,34 @@ const BookServicePage = () => {
     }
   };
   
-  // Find the useEffect that handles available times
+  // Updated useEffect to handle available times more efficiently
   useEffect(() => {
-    // Only fetch available times when all required selections are made
-    if (selectedDate && selectedService && deviceSelection.brand && deviceSelection.model) {
+    // Only fetch times when date changes and all required selections are made
+    if (selectedDate && 
+        formData.serviceType && 
+        formData.deviceBrand && 
+        formData.deviceModel) {
+      
       setTimesLoading(true);
       
-      // Mock API call to get available times
-      setTimeout(() => {
-        // In a real app, you would call your API here with the selected date and service
-        setAvailableTimes(generateTimeSlots());
+      // Use timeout to prevent rapid refreshes and simulate API call
+      const timeoutId = setTimeout(() => {
+        // In a real app, you would fetch available times from your API
+        // For now, we'll just generate static time slots
+        const slots = generateTimeSlots();
+        setAvailableTimes(slots);
         setTimesLoading(false);
-      }, 500);
+      }, 300);
+      
+      // Cleanup function to prevent memory leaks
+      return () => {
+        clearTimeout(timeoutId);
+      };
     } else {
+      // Reset available times if any required selection is missing
       setAvailableTimes([]);
     }
-  }, [selectedDate, selectedService, deviceSelection]);
-  
-  // Generate time slots for the day
-  const generateTimeSlots = () => {
-    // This is a mock function that would normally check availability from the server
-    const slots = [];
-    for (let hour = 9; hour <= 17; hour++) {
-      slots.push(`${hour}:00`);
-      slots.push(`${hour}:30`);
-    }
-    return slots;
-  };
+  }, [selectedDate, formData.serviceType, formData.deviceBrand, formData.deviceModel]);
   
   return (
     <div className="book-service-page">
@@ -800,7 +800,7 @@ const BookServicePage = () => {
                     name="preferredTime"
                     value={formData.preferredTime}
                     onChange={handleChange}
-                    disabled={!selectedDate || timesLoading || availableTimes.length === 0}
+                    disabled={!selectedDate || timesLoading || !formData.deviceBrand || !formData.deviceModel}
                     className={errors.preferredTime ? 'error' : ''}
                   >
                     <option value="">Select Time</option>
@@ -811,8 +811,11 @@ const BookServicePage = () => {
                     ))}
                   </select>
                   {timesLoading && <div className="loading-indicator">Loading available times...</div>}
-                  {selectedDate && !timesLoading && availableTimes.length === 0 && (
-                    <div className="info-message">Please complete all required service details to see available times.</div>
+                  {selectedDate && !timesLoading && availableTimes.length === 0 && formData.deviceBrand && formData.deviceModel && (
+                    <div className="info-message">No time slots available for the selected date.</div>
+                  )}
+                  {selectedDate && !formData.deviceBrand && !timesLoading && (
+                    <div className="info-message">Please select a device brand and model first.</div>
                   )}
                   {errors.preferredTime && <div className="error-message">{errors.preferredTime}</div>}
                 </div>
