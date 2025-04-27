@@ -8,7 +8,7 @@ import {
   onAuthStateChanged 
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db, googleProvider, isMobile } from '../firebase/config';
+import { auth, db, googleProvider, signInWithGoogle, isMobile } from '../firebase/config';
 import '../styles/auth.css';
 
 const LoginPage = () => {
@@ -370,78 +370,53 @@ const LoginPage = () => {
       localStorage.removeItem('handling_google_redirect');
       localStorage.setItem('auth_debug_google_signin_start', new Date().toString());
       
-      // Modify the signInWithRedirect in handleGoogleSignIn for mobile:
-      // Replace the mobile-specific redirect code with:
+      // Use the signInWithGoogle helper instead of direct implementation
+      console.log('[LoginPage] Calling signInWithGoogle helper');
+      localStorage.setItem('auth_debug_auth_method', isMobile ? 'redirect' : 'popup');
       
-      if (isMobile) {
-        console.log('[LoginPage] Mobile device detected, using enhanced mobile auth approach');
-        localStorage.setItem('auth_debug_auth_method', 'enhanced_mobile_redirect');
-        
-        // Generate a temporary auth token and store in localStorage
-        const tempAuthToken = Date.now().toString(36) + Math.random().toString(36).substr(2);
-        localStorage.setItem('mobile_auth_token', tempAuthToken);
-        
-        // Set redirect URL with the token
-        googleProvider.setCustomParameters({
-          'redirect_uri': window.location.origin + '/login?auth_token=' + tempAuthToken
-        });
-        
-        await signInWithRedirect(auth, googleProvider);
-        return;
-      }
+      // Use the signInWithGoogle helper from config
+      await signInWithGoogle();
       
-      // Desktop flow - try popup first
-      try {
-        console.log('[LoginPage] Desktop device, trying signInWithPopup first');
-        const result = await signInWithPopup(auth, googleProvider);
+      // If we reach here on mobile, the redirect has already happened
+      // If we reach here on desktop, it means popup was successful
+      if (!isMobile) {
         console.log('[LoginPage] Google popup sign in successful');
-        localStorage.setItem('auth_debug_auth_method', 'popup_success');
         
-        // Update Firestore
-        const userRef = doc(db, "users", result.user.uid);
-        const userSnap = await getDoc(userRef);
-        
-        if (!userSnap.exists()) {
-          await setDoc(userRef, {
-            uid: result.user.uid,
-            name: result.user.displayName || 'User',
-            email: result.user.email,
-            phone: result.user.phoneNumber || '',
-            address: {
-              street: '',
-              city: '',
-              state: '',
-              pincode: ''
-            },
-            photoURL: result.user.photoURL || '',
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp(),
-            lastLogin: serverTimestamp()
-          });
-        } else {
-          await setDoc(userRef, {
-            lastLogin: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          }, { merge: true });
+        // Get current user after popup
+        const user = auth.currentUser;
+        if (user) {
+          // Update Firestore
+          const userRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userRef);
+          
+          if (!userSnap.exists()) {
+            await setDoc(userRef, {
+              uid: user.uid,
+              name: user.displayName || 'User',
+              email: user.email,
+              phone: user.phoneNumber || '',
+              address: {
+                street: '',
+                city: '',
+                state: '',
+                pincode: ''
+              },
+              photoURL: user.photoURL || '',
+              createdAt: serverTimestamp(),
+              updatedAt: serverTimestamp(),
+              lastLogin: serverTimestamp()
+            });
+          } else {
+            await setDoc(userRef, {
+              lastLogin: serverTimestamp(),
+              updatedAt: serverTimestamp()
+            }, { merge: true });
+          }
+          
+          setAuthAttempted(true);
+          navigate('/profile');
         }
-        
-        setAuthAttempted(true);
-        navigate('/profile');
-        return;
-      } catch (popupError) {
-        // If popup fails, fall back to redirect
-        console.log('[LoginPage] Popup sign in failed, falling back to redirect', popupError);
-        localStorage.setItem('auth_debug_popup_error', JSON.stringify({
-          code: popupError.code,
-          message: popupError.message
-        }));
       }
-      
-      // Fall back to redirect method
-      console.log('[LoginPage] Initiating signInWithRedirect');
-      localStorage.setItem('auth_debug_auth_method', 'redirect_fallback');
-      await signInWithRedirect(auth, googleProvider);
-      console.log('[LoginPage] signInWithRedirect called - this log may not appear due to redirect');
     } catch (err) {
       console.error('[LoginPage] Google sign in error:', err);
       localStorage.setItem('auth_debug_google_signin_error', JSON.stringify({

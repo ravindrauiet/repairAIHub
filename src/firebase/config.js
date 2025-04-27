@@ -1,6 +1,15 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence, indexedDBLocalPersistence } from "firebase/auth";
+import { 
+  getAuth, 
+  GoogleAuthProvider, 
+  onAuthStateChanged, 
+  setPersistence, 
+  browserLocalPersistence, 
+  indexedDBLocalPersistence,
+  signInWithPopup,
+  signInWithRedirect
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
@@ -20,11 +29,18 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+
+// Create Google provider
 const googleProvider = new GoogleAuthProvider();
 
 // Add additional scopes if needed for your app
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
+
+// Set custom parameters to always prompt user to select account
+googleProvider.setCustomParameters({
+  prompt: 'select_account'
+});
 
 // Detect if user is on a mobile device
 const isMobile = /iPhone|iPad|iPod|Android/i.test(
@@ -41,6 +57,23 @@ setPersistence(auth, isMobile ? indexedDBLocalPersistence : browserLocalPersiste
   .catch((error) => {
     console.error("[Firebase] Error setting auth persistence:", error);
   });
+
+// Helper function for Google sign-in (restore from previous code)
+const signInWithGoogle = async () => {
+  try {
+    // On mobile devices, use signInWithRedirect to avoid popup issues
+    if (isMobile) {
+      console.log('[Auth] Using redirect for mobile device');
+      return signInWithRedirect(auth, googleProvider);
+    } else {
+      console.log('[Auth] Using popup for desktop device');
+      return signInWithPopup(auth, googleProvider);
+    }
+  } catch (error) {
+    console.error('[Auth] Google sign-in error:', error);
+    throw error;
+  }
+};
 
 // Check if user is an admin
 const checkUserRole = async (user) => {
@@ -99,5 +132,5 @@ const getCurrentUser = () => {
   });
 };
 
-export { auth, db, storage, googleProvider, checkUserRole, isUserAdmin, getCurrentUser, isMobile };
+export { auth, db, storage, googleProvider, signInWithGoogle, checkUserRole, isUserAdmin, getCurrentUser, isMobile };
 export default app; 
