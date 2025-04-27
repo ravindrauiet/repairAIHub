@@ -17,7 +17,7 @@ import { getStorage } from "firebase/storage";
 // Replace these with your actual Firebase project configuration
 const firebaseConfig = {
   apiKey: "AIzaSyB67O_TSQwnxtMj5XO-Ecbgem61uzQIh5k",
-  authDomain: "repairhub-80333.firebaseapp.com",
+  authDomain: "callmibro.com",
   projectId: "repairhub-80333",
   storageBucket: "repairhub-80333.firebasestorage.app",
   messagingSenderId: "955262673047",
@@ -38,6 +38,7 @@ googleProvider.addScope('email');
 googleProvider.addScope('profile');
 
 // Set custom parameters to always prompt user to select account
+// and use the custom domain for authentication
 googleProvider.setCustomParameters({
   prompt: 'select_account'
 });

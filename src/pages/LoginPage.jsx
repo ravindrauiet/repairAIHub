@@ -31,7 +31,8 @@ const LoginPage = () => {
     const handleRedirectResult = async () => {
       try {
         console.log('[LoginPage] Checking for redirect result');
-        // This is the key part - just call getRedirectResult() and handle the result
+        
+        // Check for redirect result (crucial for mobile authentication)
         const result = await getRedirectResult(auth);
         
         if (result?.user) {
@@ -51,15 +52,19 @@ const LoginPage = () => {
               createdAt: serverTimestamp(),
               lastLogin: serverTimestamp()
             });
+            console.log('[LoginPage] Created new user document in Firestore');
           } else {
             // Update last login
             await setDoc(userRef, {
               lastLogin: serverTimestamp()
             }, { merge: true });
+            console.log('[LoginPage] Updated user last login in Firestore');
           }
           
-          // Navigate to profile
-          navigate('/profile');
+          // Navigate to profile or intended destination
+          const destination = location.state?.from || '/profile';
+          console.log('[LoginPage] Navigating to:', destination);
+          navigate(destination, { replace: true });
         } else {
           console.log('[LoginPage] No redirect result found');
         }
@@ -71,7 +76,7 @@ const LoginPage = () => {
 
     // Always check for redirect results on mount
     handleRedirectResult();
-  }, [navigate]);
+  }, [navigate, location.state]);
   
   // Check if user is already logged in
   useEffect(() => {
@@ -79,13 +84,14 @@ const LoginPage = () => {
       onAuthStateChanged(auth, (user) => {
         if (user && !authAttempted) {
           console.log('[LoginPage] User already signed in:', user.uid);
-          navigate('/profile');
+          const destination = location.state?.from || '/profile';
+          navigate(destination, { replace: true });
         }
       });
     };
     
     checkAuth();
-  }, [navigate, authAttempted]);
+  }, [navigate, authAttempted, location.state]);
   
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -163,7 +169,10 @@ const LoginPage = () => {
         
         console.log('[LoginPage] Login successful, login time updated in Firestore');
         setAuthAttempted(true);
-        navigate('/profile');
+        
+        // Navigate to profile or intended destination
+        const destination = location.state?.from || '/profile';
+        navigate(destination, { replace: true });
       } catch (err) {
         console.error('[LoginPage] Login error:', err);
         
@@ -192,7 +201,8 @@ const LoginPage = () => {
         if (user) {
           console.log('[LoginPage] Google sign in successful (popup)');
           setAuthAttempted(true);
-          navigate('/profile');
+          const destination = location.state?.from || '/profile';
+          navigate(destination, { replace: true });
         }
       } else {
         // On mobile, the page will redirect and we'll handle in useEffect
