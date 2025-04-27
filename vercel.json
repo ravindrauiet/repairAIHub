@@ -4,6 +4,6 @@
       { "handle": "filesystem" },
       { "src": "/(.*)", "dest": "/index.html" }
     ],
-    "buildCommand": "npm run build",
+    "buildCommand": "npm install && mkdir -p public && touch public/favicon.ico && mkdir -p public/images && npm run build",
     "outputDirectory": "dist"
   }

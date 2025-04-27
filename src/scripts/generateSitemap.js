@@ -2,8 +2,13 @@
 // Run this script during the build process to generate a dynamic sitemap.xml
 // Usage: node src/scripts/generateSitemap.js
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get current file's directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Import service and product data
 // Note: This is a simplified version. For a real implementation, you might need 
@@ -12,8 +17,12 @@ let services = [];
 let products = [];
 
 try {
-  services = require('../data/services').default;
-  products = require('../data/products').default.products;
+  // Dynamic imports for ESM
+  const servicesModule = await import('../data/services.js');
+  const productsModule = await import('../data/products.jsx');
+  
+  services = servicesModule.default;
+  products = productsModule.default.products;
 } catch (error) {
   console.error('Warning: Unable to import services or products data. Using empty arrays instead.');
   console.error(error);

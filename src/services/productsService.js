@@ -215,4 +215,37 @@ export const getFeaturedProducts = async (limit = 6) => {
     console.error(`Error getting featured products:`, error);
     throw error;
   }
+};
+
+// Get products by brand and category
+export const getProductsByBrandAndCategory = async (brandId, category) => {
+  try {
+    // Map service IDs to product categories if needed
+    const serviceToProductMap = {
+      'tv-repair': 'tv',
+      'mobile-repair': 'mobile',
+      'laptop-repair': 'laptop',
+      'ac-repair': 'ac',
+      'refrigerator-repair': 'refrigerator',
+      'washing-machine-repair': 'washing-machine',
+      'water-purifier-repair': 'water-purifier'
+    };
+    
+    const productCategory = serviceToProductMap[category] || category;
+    
+    const q = query(
+      collection(db, 'products'),
+      where('category', '==', productCategory),
+      where('compatibleBrands', 'array-contains', brandId)
+    );
+    
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error(`Error getting products by brand ${brandId} and category ${category}:`, error);
+    throw error;
+  }
 }; 
