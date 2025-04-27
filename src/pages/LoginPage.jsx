@@ -3,10 +3,12 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { 
   signInWithEmailAndPassword, 
   getRedirectResult,
-  onAuthStateChanged 
+  onAuthStateChanged,
+  signInWithCredential,
+  GoogleAuthProvider
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db, signInWithGoogle, isMobile } from '../firebase/config';
+import { auth, db, signInWithGoogleDirect, isMobile } from '../firebase/config';
 import '../styles/auth.css';
 
 const LoginPage = () => {
@@ -26,17 +28,82 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Handle redirect result when component mounts
+  // Handle token from direct Google OAuth redirect
+  useEffect(() => {
+    const handleTokenFromUrl = async () => {
+      // Check if URL has a token in the hash fragment
+      if (window.location.hash.includes('access_token=')) {
+        try {
+          console.log('[LoginPage] Found access token in URL hash');
+          setIsSubmitting(true);
+          
+          const params = new URLSearchParams(window.location.hash.substring(1));
+          const token = params.get('access_token');
+          
+          if (token) {
+            console.log('[LoginPage] Extracted token from redirect URL');
+            
+            // Create credential with the token
+            const credential = GoogleAuthProvider.credential(null, token);
+            
+            // Sign in with credential
+            const result = await signInWithCredential(auth, credential);
+            console.log('[LoginPage] Successfully signed in with credential');
+            
+            // Check if user exists in Firestore
+            const userRef = doc(db, "users", result.user.uid);
+            const userSnap = await getDoc(userRef);
+            
+            // Create or update user document
+            if (!userSnap.exists()) {
+              // Create user document
+              await setDoc(userRef, {
+                uid: result.user.uid,
+                name: result.user.displayName || 'User',
+                email: result.user.email,
+                photoURL: result.user.photoURL || '',
+                createdAt: serverTimestamp(),
+                lastLogin: serverTimestamp()
+              });
+              console.log('[LoginPage] Created new user document in Firestore');
+            } else {
+              // Update last login
+              await setDoc(userRef, {
+                lastLogin: serverTimestamp()
+              }, { merge: true });
+              console.log('[LoginPage] Updated user last login in Firestore');
+            }
+            
+            // Clear URL hash without reloading page
+            window.history.replaceState(null, null, window.location.pathname);
+            
+            // Navigate to intended destination
+            const destination = location.state?.from || '/profile';
+            console.log('[LoginPage] Navigating to:', destination);
+            navigate(destination, { replace: true });
+          }
+        } catch (error) {
+          console.error('[LoginPage] Error handling token from URL:', error);
+          setLoginError('Error signing in with Google: ' + error.message);
+          setIsSubmitting(false);
+        }
+      }
+    };
+    
+    handleTokenFromUrl();
+  }, [navigate, location.state]);
+  
+  // Handle redirect result when component mounts (for Firebase redirect flow)
   useEffect(() => {
     const handleRedirectResult = async () => {
       try {
-        console.log('[LoginPage] Checking for redirect result');
+        console.log('[LoginPage] Checking for Firebase redirect result');
         
         // Check for redirect result (crucial for mobile authentication)
         const result = await getRedirectResult(auth);
         
         if (result?.user) {
-          console.log('[LoginPage] Redirect successful, user:', result.user.uid);
+          console.log('[LoginPage] Firebase redirect successful, user:', result.user.uid);
           
           // Update Firestore if needed
           const userRef = doc(db, "users", result.user.uid);
@@ -66,15 +133,15 @@ const LoginPage = () => {
           console.log('[LoginPage] Navigating to:', destination);
           navigate(destination, { replace: true });
         } else {
-          console.log('[LoginPage] No redirect result found');
+          console.log('[LoginPage] No Firebase redirect result found');
         }
       } catch (error) {
-        console.error('[LoginPage] Redirect error:', error);
+        console.error('[LoginPage] Firebase redirect error:', error);
         setLoginError('Authentication error: ' + error.message);
       }
     };
 
-    // Always check for redirect results on mount
+    // Check for Firebase redirect results
     handleRedirectResult();
   }, [navigate, location.state]);
   
@@ -188,15 +255,14 @@ const LoginPage = () => {
   
   const handleGoogleSignIn = async () => {
     try {
-      console.log('[LoginPage] Starting Google sign in process');
+      console.log('[LoginPage] Starting Google sign in process with direct URL');
       setIsSubmitting(true);
       setLoginError('');
       
-      // Use the signInWithGoogle helper from config
-      console.log('[LoginPage] Using redirect flow for Google authentication');
-      await signInWithGoogle();
+      // Use the direct Google OAuth URL approach
+      await signInWithGoogleDirect();
       
-      // The page will redirect and we'll handle the result when it returns
+      // The page will redirect to Google auth - we'll handle the result in useEffect
       console.log('[LoginPage] Redirecting to Google account selector...');
       
     } catch (err) {

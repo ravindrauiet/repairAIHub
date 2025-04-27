@@ -47,7 +47,11 @@ googleProvider.addScope('profile');
 googleProvider.setCustomParameters({
   prompt: 'select_account',
   access_type: 'offline',
-  include_granted_scopes: true
+  include_granted_scopes: true,
+  response_type: 'token',
+  state: 'firebase',
+  service: 'lso',
+  flowName: 'GeneralOAuthFlow'
 });
 
 // Detect if user is on a mobile device
@@ -79,12 +83,34 @@ const signInWithGoogle = async () => {
       prompt: 'select_account',
       // Add these additional parameters to force Google to show the account picker
       access_type: 'offline',
-      include_granted_scopes: true
+      include_granted_scopes: true,
+      response_type: 'token',
+      state: 'firebase',
+      service: 'lso',
+      flowName: 'GeneralOAuthFlow'
     });
     
     return signInWithRedirect(auth, googleProvider);
   } catch (error) {
     console.error('[Auth] Google sign-in error:', error);
+    throw error;
+  }
+};
+
+// Direct Google sign-in function that bypasses Firebase's handler
+const signInWithGoogleDirect = async () => {
+  try {
+    console.log('[Auth] Using direct Google OAuth URL');
+    const redirectUrl = 'https://www.callmibro.com/login';
+    const clientId = '955262673047-ldm0ln3tvas6ckkki7tgfrs6rkd8o1rh.apps.googleusercontent.com';
+    
+    // Construct URL that works
+    const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUrl)}&scope=${encodeURIComponent('email profile')}&response_type=token&state=firebase&prompt=select_account&service=lso&flowName=GeneralOAuthFlow`;
+    
+    // Redirect browser
+    window.location.href = authUrl;
+  } catch (error) {
+    console.error('[Auth] Direct Google sign-in error:', error);
     throw error;
   }
 };
@@ -146,5 +172,5 @@ const getCurrentUser = () => {
   });
 };
 
-export { auth, db, storage, googleProvider, signInWithGoogle, checkUserRole, isUserAdmin, getCurrentUser, isMobile };
+export { auth, db, storage, googleProvider, signInWithGoogle, signInWithGoogleDirect, checkUserRole, isUserAdmin, getCurrentUser, isMobile };
 export default app; 
