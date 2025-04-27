@@ -3,100 +3,713 @@
   <!-- Main Pages -->
   <url>
     <loc>https://www.callmibro.com/</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/services</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/products</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/contact</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/technicians</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/careers</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/book-service</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/about-us</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/faq</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 
   <!-- Service Category Pages -->
   <url>
     <loc>https://www.callmibro.com/services/category/mobile-repair</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/services/category/tv-repair</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/services/category/laptop-repair</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/services/category/ac-repair</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/services/category/refrigerator-repair</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/services/category/washing-machine-repair</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/services/category/water-purifier-repair</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+
+  <!-- Individual Service Pages -->
+  <url>
+    <loc>https://www.callmibro.com/services/mobile-screen-replacement</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/services/mobile-battery-replacement</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/services/tv-display-repair</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/services/laptop-keyboard-replacement</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/services/ac-installation</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/services/refrigerator-cooling-issue</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 
   <!-- Brand Pages -->
   <url>
     <loc>https://www.callmibro.com/brands</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/samsung</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/lg</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/apple</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/sony</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 
   <!-- DIY Guides -->
   <url>
     <loc>https://www.callmibro.com/diy-guides</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/diy-guides/phone-troubleshooting</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/diy-guides/ac-maintenance</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/diy-guides/laptop-cleaning</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Blog Posts -->
+  <url>
+    <loc>https://www.callmibro.com/blog</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/blog/common-smartphone-issues</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/blog/extend-appliance-life</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/blog/repair-vs-replace</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Location Pages -->
+  <url>
+    <loc>https://www.callmibro.com/locations</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/locations/mumbai</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/locations/delhi</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/locations/bangalore</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/locations/hyderabad</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Legal Pages -->
+  <url>
+    <loc>https://www.callmibro.com/terms-of-service</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/privacy-policy</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/warranty-policy</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/refund-policy</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
   </url>
 
   <!-- Auth Pages -->
   <url>
     <loc>https://www.callmibro.com/login</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://www.callmibro.com/signup</loc>
+    <lastmod>2023-11-10</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
+  </url>
+
+  <!-- Brand Pages by Category -->
+  <url>
+    <loc>https://www.callmibro.com/brands</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- TV Brands -->
+  <url>
+    <loc>https://www.callmibro.com/brands/category/tv</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/samsung/tv</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/lg/tv</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/sony/tv</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/mi/tv</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/oneplus/tv</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/vu/tv</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/tcl/tv</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Mobile Brands -->
+  <url>
+    <loc>https://www.callmibro.com/brands/category/mobile</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/samsung/mobile</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/apple/mobile</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/mi/mobile</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/oneplus/mobile</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/sony/mobile</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/nokia/mobile</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/oppo/mobile</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/vivo/mobile</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/realme/mobile</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/motorola/mobile</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Laptop Brands -->
+  <url>
+    <loc>https://www.callmibro.com/brands/category/laptop</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/hp/laptop</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/dell/laptop</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/apple/laptop</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/lenovo/laptop</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/asus/laptop</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/acer/laptop</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- AC Brands -->
+  <url>
+    <loc>https://www.callmibro.com/brands/category/ac</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/daikin/ac</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/voltas/ac</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/lg/ac</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/samsung/ac</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/hitachi/ac</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/carrier/ac</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/bluestar/ac</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/brands/haier/ac</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Model Pages -->
+  <!-- Mobile Models -->
+  <url>
+    <loc>https://www.callmibro.com/models/samsung/galaxy-s24-ultra</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/samsung/galaxy-s24-plus</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/samsung/galaxy-s24</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/samsung/galaxy-z-fold5</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/samsung/galaxy-z-flip5</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.callmibro.com/models/apple/iphone-15-pro-max</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/apple/iphone-15-pro</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/apple/iphone-15-plus</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/apple/iphone-15</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/apple/iphone-14-pro-max</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>https://www.callmibro.com/models/mi/redmi-note-13-pro-plus</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/mi/redmi-note-13-pro</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/mi/redmi-note-13-5g</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- TV Models -->
+  <url>
+    <loc>https://www.callmibro.com/models/samsung/neo-qled-8k</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/samsung/neo-qled-4k</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/samsung/crystal-uhd</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/lg/oled-c3</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/lg/oled-g3</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Laptop Models -->
+  <url>
+    <loc>https://www.callmibro.com/models/dell/xps-15</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/dell/xps-13</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/hp/spectre-x360</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/hp/envy-x360</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/acer/predator-helios-neo-14</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- AC Models -->
+  <url>
+    <loc>https://www.callmibro.com/models/voltas/split-inv-1.5t-5-star</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/daikin/ftht-inv-1.5t</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/models/lg/ks-q18ynza</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Product Pages -->
+  <url>
+    <loc>https://www.callmibro.com/products/tv-screen-replacement</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/products/tv-power-supply</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/products/tv-main-board</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.callmibro.com/products/tv-backlight</loc>
+    <lastmod>2023-11-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset> 
