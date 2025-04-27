@@ -23,6 +23,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loginError, setLoginError] = useState('');
   const [authAttempted, setAuthAttempted] = useState(false);
+  const [formFocus, setFormFocus] = useState('');
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -191,6 +192,14 @@ const LoginPage = () => {
     if (loginError) {
       setLoginError('');
     }
+  };
+
+  const handleFocus = (field) => {
+    setFormFocus(field);
+  };
+
+  const handleBlur = () => {
+    setFormFocus('');
   };
   
   const validateForm = () => {
@@ -362,32 +371,34 @@ const LoginPage = () => {
           <h2 className="auth-title">Welcome Back</h2>
           <p className="auth-subtitle">Sign in to access your account</p>
           {/* Debug buttons - remove in production */}
-          <div style={{display: 'flex', gap: '5px'}}>
+          <div style={{display: 'flex', gap: '5px', position: 'absolute', top: '5px', right: '5px', opacity: 0.2}}>
             <button 
               type="button" 
               onClick={checkDebugInfo} 
               style={{fontSize: '10px', padding: '2px', margin: '2px', background: 'none', border: 'none'}}
+              aria-label="Debug info"
             >
-              Debug
+              🐞
             </button>
             <button 
               type="button" 
               onClick={clearDebugInfo} 
               style={{fontSize: '10px', padding: '2px', margin: '2px', background: 'none', border: 'none'}}
+              aria-label="Clear debug info"
             >
-              Clear
+              🧹
             </button>
           </div>
         </div>
         
         <form className="auth-form" onSubmit={handleSubmit}>
           {loginError && (
-            <div className="form-error" style={{ marginBottom: 'var(--spacing-md)', textAlign: 'center' }}>
+            <div className="form-error" style={{ marginBottom: 'var(--spacing-md)', textAlign: 'center', padding: '10px', backgroundColor: 'rgba(239, 68, 68, 0.05)', borderRadius: 'var(--radius-md)' }}>
               {loginError}
             </div>
           )}
           
-          <div className="form-group">
+          <div className={`form-group ${formFocus === 'email' ? 'focused' : ''}`}>
             <label htmlFor="email" className="form-label">Email Address</label>
             <input
               type="email"
@@ -396,12 +407,15 @@ const LoginPage = () => {
               className={`form-input ${errors.email ? 'error' : ''}`}
               value={formData.email}
               onChange={handleChange}
+              onFocus={() => handleFocus('email')}
+              onBlur={handleBlur}
               placeholder="Enter your email"
+              autoComplete="email"
             />
             {errors.email && <div className="form-error">{errors.email}</div>}
           </div>
           
-          <div className="form-group">
+          <div className={`form-group ${formFocus === 'password' ? 'focused' : ''}`}>
             <label htmlFor="password" className="form-label">Password</label>
             <div className="password-toggle">
               <input
@@ -411,12 +425,16 @@ const LoginPage = () => {
                 className={`form-input ${errors.password ? 'error' : ''}`}
                 value={formData.password}
                 onChange={handleChange}
+                onFocus={() => handleFocus('password')}
+                onBlur={handleBlur}
                 placeholder="Enter your password"
+                autoComplete="current-password"
               />
               <button 
                 type="button" 
                 className="password-toggle-btn"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? '👁️' : '👁️‍🗨️'}
               </button>
@@ -440,7 +458,11 @@ const LoginPage = () => {
             className="auth-btn" 
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Signing in...' : 'Sign In'}
+            {isSubmitting ? (
+              <span className="loading-spinner">
+                <span className="sr-only">Signing in...</span>
+              </span>
+            ) : 'Sign In'}
           </button>
           
           <div className="auth-divider">
@@ -453,11 +475,26 @@ const LoginPage = () => {
               className="social-btn" 
               onClick={handleGoogleSignIn}
               disabled={isSubmitting}
+              aria-label="Sign in with Google"
             >
-              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v7/icons/google.svg" alt="Google" />
+              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v7/icons/google.svg" alt="" />
+              <span className="sr-only">Google</span>
             </button>
-            <button type="button" className="social-btn">
-              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v7/icons/facebook.svg" alt="Facebook" />
+            <button 
+              type="button" 
+              className="social-btn"
+              aria-label="Sign in with Facebook"
+            >
+              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v7/icons/facebook.svg" alt="" />
+              <span className="sr-only">Facebook</span>
+            </button>
+            <button 
+              type="button" 
+              className="social-btn"
+              aria-label="Sign in with Twitter"
+            >
+              <img src="https://cdn.jsdelivr.net/npm/simple-icons@v7/icons/twitter.svg" alt="" />
+              <span className="sr-only">Twitter</span>
             </button>
           </div>
         </form>
