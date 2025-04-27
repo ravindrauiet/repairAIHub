@@ -5,6 +5,8 @@ import FAQ from '../components/common/FAQ';
 import BrandModelSelector from '../components/BrandModelSelector';
 import { getProductsByCategory, productCategories } from '../data/products.jsx';
 import { useWishlist } from '../context/WishlistContext';
+import SEO from '../components/common/SEO';
+import { generateServiceSchema, generateFAQSchema } from '../utils/schemaGenerator';
 import '../styles/serviceDetail.css';
 import '../styles/brandModelSelector.css';
 
@@ -89,6 +91,15 @@ const ServiceDetailPage = () => {
     );
   }
 
+  // Create schemas for structured data
+  const serviceSchema = generateServiceSchema(service);
+  
+  // Create FAQ schema if service has FAQs
+  const faqSchema = service.faqs ? generateFAQSchema(service.faqs) : null;
+  
+  // Combine schemas
+  const schemas = faqSchema ? [serviceSchema, faqSchema] : serviceSchema;
+
   // Service Promotion component - shows for category pages
   const ServicePromotion = () => (
     <section className="service-promotion">
@@ -170,6 +181,16 @@ const ServiceDetailPage = () => {
 
   return (
     <div className="service-detail-page">
+      <SEO 
+        title={`${service.title} - CallMiBro Repair Services`}
+        description={service.shortDescription || `Professional ${service.title.toLowerCase()} repairs with CallMiBro expert technicians, genuine parts, and warranty.`}
+        keywords={`${service.title.toLowerCase()}, repair service, professional repair, CallMiBro, ${service.tags?.join(', ')}`}
+        canonicalUrl={`/services/${serviceId}`}
+        ogType="product"
+        ogImage={service.imageUrl || '/images/service-placeholder.jpg'}
+        schema={schemas}
+      />
+      
       <div className="service-hero" style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${service.imageUrl})` }}>
         <div className="container">
           <div className="service-hero-content">

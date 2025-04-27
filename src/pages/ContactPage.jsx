@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Hero from '../components/common/Hero';
 import ClickableContact from '../components/common/ClickableContact';
+import ContactForm from '../components/common/ContactForm';
+import SEO from '../components/common/SEO';
+import { generateLocalBusinessSchema } from '../utils/schemaGenerator';
+import '../styles/contact.css';
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +18,16 @@ const ContactPage = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  
+  const [contactInfo, setContactInfo] = useState({
+    address: '123 Repair Street, Mumbai, India 400001',
+    phone: '+91 1234567890',
+    email: 'support@callmibro.com',
+    hours: 'Monday to Friday: 9am - 6pm, Saturday: 10am - 5pm'
+  });
+  
+  // Generate business schema for structured data
+  const businessSchema = generateLocalBusinessSchema();
   
   // Handle form input changes
   const handleChange = (e) => {
@@ -91,6 +105,14 @@ const ContactPage = () => {
   
   return (
     <div className="contact-page">
+      <SEO 
+        title="Contact Us - CallMiBro Repair Services"
+        description="Contact CallMiBro for all your repair service needs. Reach out through phone, email, or visit us in-store for professional device and appliance repairs."
+        keywords="contact, support, repair services contact, tech support, help, phone number"
+        canonicalUrl="/contact"
+        schema={businessSchema}
+      />
+      
       <Hero 
         title="Contact Us" 
         subtitle="Get in touch with our team for inquiries, support, or feedback"
@@ -110,8 +132,7 @@ const ContactPage = () => {
                 </div>
                 <div className="contact-details">
                   <h3>Our Location</h3>
-                  <p>123 Repair Street, Tech Hub</p>
-                  <p>Mumbai, Maharashtra 400001</p>
+                  <p>{contactInfo.address}</p>
                 </div>
               </div>
               
@@ -121,8 +142,7 @@ const ContactPage = () => {
                 </div>
                 <div className="contact-details">
                   <h3>Call Us</h3>
-                  <p><ClickableContact type="phone" value="+91 98765 43210" /></p>
-                  <p><ClickableContact type="phone" value="+91 87654 32109" /></p>
+                  <p><ClickableContact type="phone" value={contactInfo.phone} /></p>
                 </div>
               </div>
               
@@ -132,8 +152,7 @@ const ContactPage = () => {
                 </div>
                 <div className="contact-details">
                   <h3>Email Us</h3>
-                  <p><ClickableContact type="email" value="info@repairaihub.com" /></p>
-                  <p><ClickableContact type="email" value="support@repairaihub.com" /></p>
+                  <p><ClickableContact type="email" value={contactInfo.email} /></p>
                 </div>
               </div>
               
@@ -143,8 +162,7 @@ const ContactPage = () => {
                 </div>
                 <div className="contact-details">
                   <h3>Business Hours</h3>
-                  <p>Monday - Saturday: 9:00 AM - 8:00 PM</p>
-                  <p>Sunday: 10:00 AM - 5:00 PM</p>
+                  <p>{contactInfo.hours}</p>
                 </div>
               </div>
               

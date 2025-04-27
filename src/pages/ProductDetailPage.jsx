@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { getProductById, getProductsByCategory, productCategories, brands } from '../data/products.jsx';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import SEO from '../components/common/SEO';
+import { generateProductSchema } from '../utils/schemaGenerator';
 import '../styles/productDetail.css';
 import Breadcrumb from '../components/common/Breadcrumb';
 
@@ -280,8 +282,21 @@ const ProductDetailPage = () => {
     { label: product.title, path: '' }
   ];
   
+  // Generate product schema for structured data
+  const productSchema = generateProductSchema(product);
+  
   return (
     <div className="product-detail-page">
+      <SEO 
+        title={`${product.title} - ${product.brand || 'CallMiBro'} Parts & Accessories`}
+        description={product.description?.substring(0, 160) || `Buy ${product.title} - genuine parts and accessories for your device repair needs from CallMiBro.`}
+        keywords={`${product.title}, ${product.brand || ''}, repair parts, accessories, ${product.category || ''}`}
+        canonicalUrl={`/products/${productId}`}
+        ogType="product"
+        ogImage={product.image || '/images/product-placeholder.jpg'}
+        schema={productSchema}
+      />
+      
       <div className="container">
         <Breadcrumb items={breadcrumbItems} />
         

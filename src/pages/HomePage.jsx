@@ -5,6 +5,8 @@ import products from '../data/products';
 import { getBrandsByCategory } from '../data/products';
 import Hero from '../components/Hero';
 import ServiceCard from '../components/ServiceCard';
+import SEO from '../components/common/SEO';
+import { generateOrganizationSchema, generateLocalBusinessSchema } from '../utils/schemaGenerator';
 import '../styles/homePage.css';
 
 const HomePage = () => {
@@ -13,6 +15,11 @@ const HomePage = () => {
   const [serviceAreas, setServiceAreas] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   const [diyVideos, setDiyVideos] = useState([]);
+  
+  // Create schemas for structured data
+  const organizationSchema = generateOrganizationSchema();
+  const localBusinessSchema = generateLocalBusinessSchema();
+  const combinedSchema = [organizationSchema, localBusinessSchema];
   
   // Refs for sliders
   const servicesSliderRef = useRef(null);
@@ -121,6 +128,14 @@ const HomePage = () => {
 
   return (
     <div className="home-page">
+      <SEO 
+        title="Professional Repair Services - TV, Mobile, AC & More"
+        description="CallMiBro - Professional repair services for TV, mobile, AC, refrigerator, washing machine, and water purifier. Expert technicians, genuine parts, and warranty on all repairs."
+        keywords="repair services, TV repair, mobile repair, AC repair, refrigerator repair, washing machine repair, water purifier repair, home appliance repair"
+        canonicalUrl="/"
+        schema={combinedSchema}
+      />
+      
       {/* Hero Section */}
       <Hero />
       

@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { HelmetProvider } from 'react-helmet-async';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { auth, getCurrentUser, isUserAdmin } from './firebase/config';
@@ -117,46 +118,48 @@ function App() {
   }
 
   return (
-    <CartProvider>
-      <WishlistProvider>
-        <Router>
-          <div className="app">
-            <Routes>
-              {/* Only allow admin routes for users with admin role */}
-              <Route 
-                path="/admin/*" 
-                element={isAdmin ? <AdminDashboard /> : <LoginPage setIsLoggedIn={setIsLoggedIn} />} 
-              />
-              
-              <Route path="/*" element={
-                <AppLayout>
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/services" element={<ServicesPage />} />
-                    <Route path="/services/:category/:brandId/:modelId" element={<ModelServicePage />} />
-                    <Route path="/services/category/:category" element={<ServiceCategoryPage />} />
-                    <Route path="/services/:serviceId" element={<ServiceDetailPage />} />
-                    <Route path="/products" element={<ProductsPage />} />
-                    <Route path="/products/:productId" element={<ProductDetailPage />} />
-                    <Route path="/products/model/:modelId" element={<ModelProducts />} />
-                    <Route path="/contact" element={<ContactPage />} />
-                    <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
-                    <Route path="/signup" element={<SignupPage />} />
-                    <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/book-service" element={<BookServicePage />} />
-                    <Route path="/cart" element={<CartPage />} />
-                    <Route path="/technicians" element={<TechniciansPage />} />
-                    <Route path="/careers" element={<CareersPage />} />
-                    <Route path="/brands" element={<BrandsPage />} />
-                    <Route path="/diy-guides" element={<DiyGuidesPage />} />
-                  </Routes>
-                </AppLayout>
-              } />
-            </Routes>
-          </div>
-        </Router>
-      </WishlistProvider>
-    </CartProvider>
+    <HelmetProvider>
+      <CartProvider>
+        <WishlistProvider>
+          <Router>
+            <div className="app">
+              <Routes>
+                {/* Only allow admin routes for users with admin role */}
+                <Route 
+                  path="/admin/*" 
+                  element={isAdmin ? <AdminDashboard /> : <LoginPage setIsLoggedIn={setIsLoggedIn} />} 
+                />
+                
+                <Route path="/*" element={
+                  <AppLayout>
+                    <Routes>
+                      <Route path="/" element={<HomePage />} />
+                      <Route path="/services" element={<ServicesPage />} />
+                      <Route path="/services/:category/:brandId/:modelId" element={<ModelServicePage />} />
+                      <Route path="/services/category/:category" element={<ServiceCategoryPage />} />
+                      <Route path="/services/:serviceId" element={<ServiceDetailPage />} />
+                      <Route path="/products" element={<ProductsPage />} />
+                      <Route path="/products/:productId" element={<ProductDetailPage />} />
+                      <Route path="/products/model/:modelId" element={<ModelProducts />} />
+                      <Route path="/contact" element={<ContactPage />} />
+                      <Route path="/login" element={<LoginPage setIsLoggedIn={setIsLoggedIn} />} />
+                      <Route path="/signup" element={<SignupPage />} />
+                      <Route path="/profile" element={<ProfilePage />} />
+                      <Route path="/book-service" element={<BookServicePage />} />
+                      <Route path="/cart" element={<CartPage />} />
+                      <Route path="/technicians" element={<TechniciansPage />} />
+                      <Route path="/careers" element={<CareersPage />} />
+                      <Route path="/brands" element={<BrandsPage />} />
+                      <Route path="/diy-guides" element={<DiyGuidesPage />} />
+                    </Routes>
+                  </AppLayout>
+                } />
+              </Routes>
+            </div>
+          </Router>
+        </WishlistProvider>
+      </CartProvider>
+    </HelmetProvider>
   );
 }
 
