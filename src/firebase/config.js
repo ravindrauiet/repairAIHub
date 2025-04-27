@@ -13,11 +13,16 @@ import {
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
+// Enable Firebase Auth debugging
+if (typeof window !== 'undefined') {
+  window.FIREBASE_AUTHUI_DEBUG = true;
+}
+
 // Your Firebase configuration
 // Replace these with your actual Firebase project configuration
 const firebaseConfig = {
   apiKey: "AIzaSyB67O_TSQwnxtMj5XO-Ecbgem61uzQIh5k",
-  authDomain: "callmibro.com",
+  authDomain: "www.callmibro.com", // Using custom domain instead of Firebase default domain
   projectId: "repairhub-80333",
   storageBucket: "repairhub-80333.firebasestorage.app",
   messagingSenderId: "955262673047",
@@ -40,7 +45,9 @@ googleProvider.addScope('profile');
 // Set custom parameters to always prompt user to select account
 // and use the custom domain for authentication
 googleProvider.setCustomParameters({
-  prompt: 'select_account'
+  prompt: 'select_account',
+  access_type: 'offline',
+  include_granted_scopes: true
 });
 
 // Detect if user is on a mobile device
@@ -59,19 +66,23 @@ setPersistence(auth, isMobile ? indexedDBLocalPersistence : browserLocalPersiste
     console.error("[Firebase] Error setting auth persistence:", error);
   });
 
-// Simplified Google sign-in function
+// Modified Google sign-in function to always use redirect flow
 const signInWithGoogle = async () => {
   try {
-    // ALWAYS use redirect flow on mobile - no exceptions
-    if (isMobile) {
-      console.log('[Auth] Using redirect for mobile device');
-      // Force clear any pending redirects
-      sessionStorage.removeItem('firebase:redirectUser');
-      return signInWithRedirect(auth, googleProvider);
-    } else {
-      console.log('[Auth] Using popup for desktop device');
-      return signInWithPopup(auth, googleProvider);
-    }
+    // ALWAYS use redirect flow for both mobile and desktop for consistent behavior
+    console.log('[Auth] Using redirect for authentication');
+    // Force clear any pending redirects
+    sessionStorage.removeItem('firebase:redirectUser');
+    
+    // Force the provider to use select_account every time
+    googleProvider.setCustomParameters({
+      prompt: 'select_account',
+      // Add these additional parameters to force Google to show the account picker
+      access_type: 'offline',
+      include_granted_scopes: true
+    });
+    
+    return signInWithRedirect(auth, googleProvider);
   } catch (error) {
     console.error('[Auth] Google sign-in error:', error);
     throw error;

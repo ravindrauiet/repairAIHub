@@ -193,21 +193,12 @@ const LoginPage = () => {
       setLoginError('');
       
       // Use the signInWithGoogle helper from config
+      console.log('[LoginPage] Using redirect flow for Google authentication');
       await signInWithGoogle();
       
-      // On desktop, handle success directly
-      if (!isMobile) {
-        const user = auth.currentUser;
-        if (user) {
-          console.log('[LoginPage] Google sign in successful (popup)');
-          setAuthAttempted(true);
-          const destination = location.state?.from || '/profile';
-          navigate(destination, { replace: true });
-        }
-      } else {
-        // On mobile, the page will redirect and we'll handle in useEffect
-        console.log('[LoginPage] Redirecting for mobile Google auth...');
-      }
+      // The page will redirect and we'll handle the result when it returns
+      console.log('[LoginPage] Redirecting to Google account selector...');
+      
     } catch (err) {
       console.error('[LoginPage] Google sign in error:', err);
       setLoginError('Google Sign-In Error: ' + err.message);
