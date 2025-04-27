@@ -8,7 +8,7 @@ import {
   onAuthStateChanged 
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { auth, db, googleProvider } from '../firebase/config';
+import { auth, db, googleProvider, isMobile } from '../firebase/config';
 import '../styles/auth.css';
 
 const LoginPage = () => {
@@ -28,13 +28,42 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
+  // Force check authentication state - especially helpful for mobile
+  useEffect(() => {
+    const forceCheckAuthState = async () => {
+      try {
+        // Small delay to ensure Firebase has initialized
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const currentUser = auth.currentUser;
+        
+        if (currentUser) {
+          console.log("[LoginPage] Force-checked auth state: User is logged in", currentUser.uid);
+          localStorage.setItem('auth_debug_force_check', 'user_found');
+          
+          if (!localStorage.getItem('handling_google_redirect')) {
+            navigate('/profile');
+          }
+        } else {
+          console.log("[LoginPage] Force-checked auth state: No user found");
+          localStorage.setItem('auth_debug_force_check', 'no_user');
+        }
+      } catch (error) {
+        console.error("[LoginPage] Force auth check error:", error);
+        localStorage.setItem('auth_debug_force_check_error', error.message);
+      }
+    };
+    
+    forceCheckAuthState();
+  }, [navigate]);
+  
   // Check if user is already logged in and handle redirect result
   useEffect(() => {
-    console.log('[LoginPage] Component mounted');
+    console.log('[LoginPage] Component mounted, device type:', isMobile ? 'Mobile' : 'Desktop');
     
     // Add debug info to localStorage (survives refreshes)
     localStorage.setItem('auth_debug_time', new Date().toString());
     localStorage.setItem('auth_debug_location', location.pathname);
+    localStorage.setItem('auth_debug_device', isMobile ? 'mobile' : 'desktop');
     
     // First, check if the user is already logged in
     const currentUser = auth.currentUser;
@@ -114,7 +143,12 @@ const LoginPage = () => {
           // Small delay to ensure state is settled before navigation
           setTimeout(() => {
             localStorage.removeItem('handling_google_redirect');
-            navigate('/profile');
+            // On mobile, use reload to profile to ensure clean state
+            if (isMobile) {
+              window.location.href = '/profile';
+            } else {
+              navigate('/profile');
+            }
             console.log('[LoginPage] Navigation to /profile initiated');
           }, 500);
         } else {
@@ -156,7 +190,13 @@ const LoginPage = () => {
         if (!isHandlingRedirect) {
           console.log('[LoginPage] Not handling redirect, navigating to /profile');
           localStorage.setItem('auth_debug_navigation_reason', 'auth_state_changed');
-          navigate('/profile');
+          
+          // On mobile, use direct location change to ensure clean state
+          if (isMobile) {
+            window.location.href = '/profile';
+          } else {
+            navigate('/profile');
+          }
           console.log('[LoginPage] Navigation to /profile initiated from auth state change');
         } else {
           console.log('[LoginPage] Currently handling redirect, skipping navigation');
@@ -249,7 +289,13 @@ const LoginPage = () => {
         
         console.log('[LoginPage] Login successful, login time updated in Firestore');
         setAuthAttempted(true);
-        navigate('/profile');
+        
+        // On mobile, use direct location change for more reliable navigation
+        if (isMobile) {
+          window.location.href = '/profile';
+        } else {
+          navigate('/profile');
+        }
         console.log('[LoginPage] Navigation to /profile initiated from email login');
       } catch (err) {
         console.error('[LoginPage] Login error:', err);
@@ -278,9 +324,17 @@ const LoginPage = () => {
       localStorage.removeItem('handling_google_redirect');
       localStorage.setItem('auth_debug_google_signin_start', new Date().toString());
       
-      // Try popup first (more reliable than redirect)
+      // For mobile devices, always use redirect (popups often don't work well on mobile)
+      if (isMobile) {
+        console.log('[LoginPage] Mobile device detected, using signInWithRedirect directly');
+        localStorage.setItem('auth_debug_auth_method', 'mobile_redirect');
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+      
+      // Desktop flow - try popup first
       try {
-        console.log('[LoginPage] Trying signInWithPopup first');
+        console.log('[LoginPage] Desktop device, trying signInWithPopup first');
         const result = await signInWithPopup(auth, googleProvider);
         console.log('[LoginPage] Google popup sign in successful');
         localStorage.setItem('auth_debug_auth_method', 'popup_success');
@@ -351,6 +405,7 @@ const LoginPage = () => {
     });
     console.log('[LoginPage] handling_google_redirect:', localStorage.getItem('handling_google_redirect'));
     console.log('[LoginPage] Current User:', auth.currentUser ? auth.currentUser.uid : 'None');
+    console.log('[LoginPage] Device Type:', isMobile ? 'Mobile' : 'Desktop');
     console.log('[LoginPage] === END DEBUG INFO ===');
   };
   

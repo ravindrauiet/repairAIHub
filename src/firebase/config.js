@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, onAuthStateChanged, setPersistence, browserLocalPersistence, indexedDBLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
@@ -26,10 +26,17 @@ const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
 
+// Detect if user is on a mobile device
+const isMobile = /iPhone|iPad|iPod|Android/i.test(
+  typeof navigator !== 'undefined' ? navigator.userAgent : ''
+);
+
 // Set persistent auth state to maintain login across page refreshes
-setPersistence(auth, browserLocalPersistence)
+// Use stronger persistence for mobile devices
+setPersistence(auth, isMobile ? indexedDBLocalPersistence : browserLocalPersistence)
   .then(() => {
-    console.log("[Firebase] Auth persistence set to LOCAL");
+    console.log(`[Firebase] Auth persistence set to ${isMobile ? 'INDEXED_DB_LOCAL' : 'LOCAL'}`);
+    console.log(`[Firebase] Device detected as: ${isMobile ? 'Mobile' : 'Desktop'}`);
   })
   .catch((error) => {
     console.error("[Firebase] Error setting auth persistence:", error);
@@ -92,5 +99,5 @@ const getCurrentUser = () => {
   });
 };
 
-export { auth, db, storage, googleProvider, checkUserRole, isUserAdmin, getCurrentUser };
+export { auth, db, storage, googleProvider, checkUserRole, isUserAdmin, getCurrentUser, isMobile };
 export default app; 
