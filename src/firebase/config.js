@@ -58,12 +58,14 @@ setPersistence(auth, isMobile ? indexedDBLocalPersistence : browserLocalPersiste
     console.error("[Firebase] Error setting auth persistence:", error);
   });
 
-// Helper function for Google sign-in (restore from previous code)
+// Simplified Google sign-in function
 const signInWithGoogle = async () => {
   try {
-    // On mobile devices, use signInWithRedirect to avoid popup issues
+    // ALWAYS use redirect flow on mobile - no exceptions
     if (isMobile) {
       console.log('[Auth] Using redirect for mobile device');
+      // Force clear any pending redirects
+      sessionStorage.removeItem('firebase:redirectUser');
       return signInWithRedirect(auth, googleProvider);
     } else {
       console.log('[Auth] Using popup for desktop device');
