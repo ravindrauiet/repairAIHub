@@ -1,6 +1,281 @@
 .home-page {
   display: flex;
   flex-direction: column;
+  background: #fafbfc;
+}
+
+.home-page > * {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+/* Banner Row */
+.banner-row {
+  display: flex;
+  gap: 16px;
+  margin: 32px 0 24px 0;
+  padding: 0 24px;
+  align-items: stretch;
+  position: relative;
+}
+.banner-card {
+  flex: 1 1 0;
+  min-width: 320px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  height: 160px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+.banner-content {
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+  padding: 20px 18px 18px 18px;
+  border-radius: 0 0 16px 16px;
+  width: 100%;
+}
+.banner-content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+.banner-content p {
+  font-size: 1rem;
+  margin: 0 0 10px 0;
+}
+.banner-cta {
+  background: #fff;
+  color: #222;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+.banner-cta:hover {
+  background: #f2f2f2;
+}
+.banner-arrow {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 1.3rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  cursor: pointer;
+  z-index: 2;
+}
+
+/* Section Header */
+.section-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 0 18px 0;
+  padding: 0 24px;
+}
+.section-header-row h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0;
+  color: #222;
+}
+.section-header-row a {
+  color: #4f46e5;
+  font-weight: 500;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.2s;
+}
+.section-header-row a:hover {
+  color: #222;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+/* Horizontal Scroll */
+.horizontal-scroll {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  padding: 0 24px 8px 24px;
+  scroll-snap-type: x mandatory;
+  align-items: stretch;
+  position: relative;
+}
+.horizontal-scroll::-webkit-scrollbar {
+  display: none;
+}
+.scroll-arrow {
+  min-width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  font-size: 1.3rem;
+  color: #222;
+  align-self: center;
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+/* Noteworthy Card */
+.noteworthy-card {
+  min-width: 140px;
+  max-width: 140px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px 10px 8px;
+  position: relative;
+  scroll-snap-align: start;
+}
+.noteworthy-card img {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.noteworthy-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #222;
+  text-align: center;
+}
+.noteworthy-tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #e11d48;
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 2px 8px;
+  z-index: 1;
+}
+
+/* Service Card (Most Booked, Home Repair) */
+.service-card {
+  min-width: 200px;
+  max-width: 200px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0 0 10px 0;
+  scroll-snap-align: start;
+  overflow: hidden;
+}
+.service-card img {
+  width: 100%;
+  height: 110px;
+  object-fit: cover;
+  border-radius: 12px 12px 0 0;
+}
+.service-info {
+  padding: 10px 12px 0 12px;
+  width: 100%;
+}
+.service-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 4px;
+}
+.service-rating {
+  font-size: 0.95rem;
+  color: #f59e42;
+  margin-bottom: 2px;
+}
+.service-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #222;
+}
+
+/* Category Card (Cleaning, Appliance) */
+.category-card {
+  min-width: 160px;
+  max-width: 160px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 0 10px 0;
+  scroll-snap-align: start;
+  overflow: hidden;
+}
+.category-card img {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 12px 12px 0 0;
+}
+.category-title {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #222;
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* Responsive Styles */
+@media (max-width: 900px) {
+  .banner-row {
+    flex-direction: column;
+    height: auto;
+    gap: 12px;
+  }
+  .banner-card {
+    min-width: 0;
+    height: 120px;
+  }
+  .horizontal-scroll {
+    padding: 0 10px 8px 10px;
+    gap: 10px;
+  }
+}
+@media (max-width: 600px) {
+  .banner-row {
+    padding: 0 6px;
+  }
+  .section-header-row {
+    padding: 0 8px;
+  }
+  .horizontal-scroll {
+    padding: 0 6px 8px 6px;
+  }
+  .noteworthy-card, .category-card, .service-card {
+    min-width: 120px;
+    max-width: 120px;
+  }
+  .service-card img, .category-card img, .noteworthy-card img {
+    height: 70px;
+  }
 }
 
 /* Hero Section in ./components/common/Hero.css */
@@ -412,4 +687,13 @@
   .cta-section h2 {
     font-size: 2rem;
   }
+}
+
+.banner-row-wrapper,
+.noteworthy-wrapper,
+.mostbooked-wrapper {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 } 

@@ -1,0 +1,61 @@
+.bannerRowWrapper {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.bannerRow {
+  width: 100%;
+}
+
+.bannerSlider {
+  width: 100%;
+}
+
+.bannerCard {
+  min-width: 320px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  height: 160px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+.bannerContent {
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+  padding: 20px 18px 18px 18px;
+  border-radius: 0 0 16px 16px;
+  width: 100%;
+}
+
+.bannerContent h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.bannerContent p {
+  font-size: 1rem;
+  margin: 0 0 10px 0;
+}
+
+.bannerCta {
+  background: #fff;
+  color: #222;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: background 0.2s;
+}
+
+.bannerCta:hover {
+  background: #f2f2f2;
+} 
