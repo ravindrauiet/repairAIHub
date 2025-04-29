@@ -5,11 +5,11 @@ import 'slick-carousel/slick/slick-theme.css';
 import styles from './MostBookedServices.module.css';
 
 const mostBooked = [
-  { title: 'Foam-jet AC service', rating: 4.79, reviews: '1.4M', price: '₹599', image: '/images/mostbooked-ac.jpg' },
-  { title: 'At-home consultation', rating: 4.80, reviews: '3K', price: '₹49', image: '/images/mostbooked-consult.jpg' },
-  { title: 'Pest control (includes utensil removal)', rating: 4.79, reviews: '104K', price: '₹1,098', image: '/images/mostbooked-pest.jpg' },
-  { title: 'Apartment pest control (includes utensil removal)', rating: 4.80, reviews: '34K', price: '₹1,498', image: '/images/mostbooked-apartmentpest.jpg' },
-  { title: 'Apartment termite control', rating: 4.83, reviews: '15K', price: '₹3,999', image: '/images/mostbooked-termite.jpg' },
+  { title: 'AC Service & Repair', rating: 4.79, reviews: '1.4M', price: '₹599', image: '/images/products/ac-gas.jpeg' },
+  { title: 'Mobile Screen Replacement', rating: 4.80, reviews: '3K', price: '₹2,499', image: '/images/products/mobile-screen.jpeg' },
+  { title: 'Laptop Keyboard Repair', rating: 4.79, reviews: '104K', price: '₹1,098', image: '/images/products/laptop-keyboard-replacement.jpeg' },
+  { title: 'TV Screen Repair', rating: 4.80, reviews: '34K', price: '₹1,498', image: '/images/products/tv-screen.jpeg' },
+  { title: 'Washing Machine Motor Repair', rating: 4.83, reviews: '15K', price: '₹3,999', image: '/images/products/washing-motor.jpeg' },
 ];
 
 const MostBookedServices = () => {

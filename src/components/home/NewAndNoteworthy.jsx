@@ -5,11 +5,11 @@ import 'slick-carousel/slick/slick-theme.css';
 import styles from './NewAndNoteworthy.module.css';
 
 const noteworthy = [
-  { title: 'Insta Help', image: '/images/noteworthy-instahelp.jpg', tag: 'NEW' },
-  { title: 'Wall Panels', image: '/images/noteworthy-wallpanel.jpg' },
-  { title: 'Native Water Purifier', image: '/images/noteworthy-water.jpg' },
-  { title: 'Native Smart Locks', image: '/images/noteworthy-lock.jpg' },
-  { title: 'Kitchen Cleaning', image: '/images/noteworthy-kitchen.jpg' },
+  { title: 'AC Service & Repair', image: '/images/products/ac-gas.jpeg', tag: 'NEW' },
+  { title: 'Laptop Repair', image: '/images/products/laptop-keyboard-replacement.jpeg' },
+  { title: 'Mobile Screen Repair', image: '/images/products/mobile-screen.jpeg' },
+  { title: 'TV Repair', image: '/images/products/tv-screen.jpeg' },
+  { title: 'Washing Machine Repair', image: '/images/products/washing-motor.jpeg' },
 ];
 
 const NewAndNoteworthy = () => {

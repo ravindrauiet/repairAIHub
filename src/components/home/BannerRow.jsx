@@ -7,24 +7,25 @@ import styles from './BannerRow.module.css';
 
 const banners = [
   {
-    title: 'Deep clean with foam-jet AC service',
-    subtitle: 'AC service & repair',
+    title: 'Expert AC Service & Repair',
+    subtitle: 'Professional AC maintenance and repair',
     cta: 'Book now',
-    image: '/images/banner-ac.jpg',
+    image: '/images/products/ac-gas.jpeg',
     link: '/services/ac-repair',
   },
   {
-    title: 'Transform your space with wall panels',
-    subtitle: 'Starts at ₹9,999 only',
+    title: 'Professional TV Screen Repair',
+    subtitle: 'Expert technicians, genuine parts',
     cta: 'Book now',
-    image: '/images/banner-wallpanel.jpg',
-    link: '/services/wall-panels',
+    image: '/images/products/tv-screen.jpeg',
+    link: '/services/tv-repair',
   },
   {
-    title: 'Camera. Doorbell connect. All in one.',
-    cta: 'Buy now',
-    image: '/images/banner-doorbell.jpg',
-    link: '/products/smart-locks',
+    title: 'Mobile Screen Replacement',
+    subtitle: 'Quick and reliable service',
+    cta: 'Book now',
+    image: '/images/products/mobile-screen.jpeg',
+    link: '/services/mobile-repair',
   },
 ];
 

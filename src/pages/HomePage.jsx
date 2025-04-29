@@ -42,35 +42,35 @@ const noteworthy = [
 ];
 
 const mostBooked = [
-  { title: 'Foam-jet AC service', rating: 4.79, reviews: '1.4M', price: '₹599', image: '/images/mostbooked-ac.jpg' },
-  { title: 'At-home consultation', rating: 4.80, reviews: '3K', price: '₹49', image: '/images/mostbooked-consult.jpg' },
-  { title: 'Pest control (includes utensil removal)', rating: 4.79, reviews: '104K', price: '₹1,098', image: '/images/mostbooked-pest.jpg' },
-  { title: 'Apartment pest control (includes utensil removal)', rating: 4.80, reviews: '34K', price: '₹1,498', image: '/images/mostbooked-apartmentpest.jpg' },
-  { title: 'Apartment termite control', rating: 4.83, reviews: '15K', price: '₹3,999', image: '/images/mostbooked-termite.jpg' },
+  { title: 'Foam-jet AC service', rating: 4.79, reviews: '1.4M', price: '₹599', image: '/images/products/ac-gas.jpeg' },
+  { title: 'At-home consultation', rating: 4.80, reviews: '3K', price: '₹49', image: '/images/products/water-damage.jpeg' },
+  { title: 'Pest control (includes utensil removal)', rating: 4.79, reviews: '104K', price: '₹1,098', image: '/images/products/water-damage.jpeg' },
+  { title: 'Apartment pest control (includes utensil removal)', rating: 4.80, reviews: '34K', price: '₹1,498', image: '/images/products/water-damage.jpeg' },
+  { title: 'Apartment termite control', rating: 4.83, reviews: '15K', price: '₹3,999', image: '/images/products/water-damage.jpeg' },
 ];
 
 const cleaning = [
-  { title: 'Full Home Cleaning', image: '/images/cleaning-home.jpg' },
-  { title: 'Sofa & Carpet Cleaning', image: '/images/cleaning-sofa.jpg' },
-  { title: 'Cockroach, Ant & General Pest Control', image: '/images/cleaning-pest.jpg' },
-  { title: 'Bathroom Cleaning', image: '/images/cleaning-bathroom.jpg' },
-  { title: 'Kitchen Cleaning', image: '/images/cleaning-kitchen.jpg' },
+  { title: 'Full Home Cleaning', image: '/images/products/water-damage.jpeg' },
+  { title: 'Sofa & Carpet Cleaning', image: '/images/products/water-damage.jpeg' },
+  { title: 'Cockroach, Ant & General Pest Control', image: '/images/products/water-damage.jpeg' },
+  { title: 'Bathroom Cleaning', image: '/images/products/water-damage.jpeg' },
+  { title: 'Kitchen Cleaning', image: '/images/products/water-damage.jpeg' },
 ];
 
 const appliance = [
-  { title: 'AC Service & Repair', image: '/images/appliance-ac.jpg' },
-  { title: 'Washing Machine', image: '/images/appliance-wm.jpg' },
-  { title: 'Television', image: '/images/appliance-tv.jpg' },
-  { title: 'Laptop', image: '/images/appliance-laptop.jpg' },
-  { title: 'Geyser', image: '/images/appliance-geyser.jpg' },
+  { title: 'AC Service & Repair', image: '/images/products/ac-gas.jpeg' },
+  { title: 'Washing Machine', image: '/images/products/washing-motor.jpeg' },
+  { title: 'Television', image: '/images/products/tv-screen.jpeg' },
+  { title: 'Laptop', image: '/images/products/laptop-keyboard-replacement.jpeg' },
+  { title: 'Geyser', image: '/images/products/water-damage.jpeg' },
 ];
 
 const homeRepair = [
-  { title: 'Drill & hang (wall decor)', rating: 4.87, reviews: '10.6K', price: '₹129', image: '/images/repair-drill.jpg' },
-  { title: 'Cupboard hinge installation', rating: 4.84, reviews: '6K', price: '₹199', image: '/images/repair-hinge.jpg' },
-  { title: 'Door lock repair', rating: 4.85, reviews: '440', price: '₹259', image: '/images/repair-lock.jpg' },
-  { title: 'Fan repair (ceiling/exhaust/wall)', rating: 4.82, reviews: '1.1K', price: '₹199', image: '/images/repair-fan.jpg' },
-  { title: 'Switch/socket replacement', rating: 4.86, reviews: '610', price: '₹109', image: '/images/repair-switch.jpg' },
+  { title: 'Drill & hang (wall decor)', rating: 4.87, reviews: '10.6K', price: '₹129', image: '/images/products/water-damage.jpeg' },
+  { title: 'Cupboard hinge installation', rating: 4.84, reviews: '6K', price: '₹199', image: '/images/products/water-damage.jpeg' },
+  { title: 'Door lock repair', rating: 4.85, reviews: '440', price: '₹259', image: '/images/products/water-damage.jpeg' },
+  { title: 'Fan repair (ceiling/exhaust/wall)', rating: 4.82, reviews: '1.1K', price: '₹199', image: '/images/products/water-damage.jpeg' },
+  { title: 'Switch/socket replacement', rating: 4.86, reviews: '610', price: '₹109', image: '/images/products/water-damage.jpeg' },
 ];
 
 const SectionHeader = ({ title, right, children }) => (
