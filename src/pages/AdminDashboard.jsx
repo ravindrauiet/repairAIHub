@@ -34,6 +34,7 @@ import TestBookingData from '../components/admin/TestBookingData';
 
 const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileSidebarVisible, setIsMobileSidebarVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [adminStats, setAdminStats] = useState(null);
@@ -164,6 +165,24 @@ const AdminDashboard = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
   
+  // Toggle mobile sidebar
+  const toggleMobileSidebar = () => {
+    setIsMobileSidebarVisible(!isMobileSidebarVisible);
+    document.body.classList.toggle('menu-open');
+  };
+
+  // Close mobile sidebar when clicking overlay
+  const handleOverlayClick = () => {
+    setIsMobileSidebarVisible(false);
+    document.body.classList.remove('menu-open');
+  };
+
+  // Close mobile sidebar when route changes
+  useEffect(() => {
+    setIsMobileSidebarVisible(false);
+    document.body.classList.remove('menu-open');
+  }, [location.pathname]);
+  
   // Handle logout
   const handleLogout = () => {
     console.log('AdminDashboard: Logging out');
@@ -210,13 +229,29 @@ const AdminDashboard = () => {
   
   return (
     <div className="admin-dashboard">
+      {/* Mobile Sidebar Overlay */}
+      <div 
+        className={`admin-sidebar-overlay ${isMobileSidebarVisible ? 'visible' : ''}`}
+        onClick={handleOverlayClick}
+      />
+
+      {/* Mobile Sidebar Toggle */}
+      <button
+        className="admin-sidebar-toggle"
+        onClick={toggleMobileSidebar}
+        aria-label="Toggle Sidebar"
+      >
+        <i className={`fas fa-${isMobileSidebarVisible ? 'times' : 'bars'}`}></i>
+      </button>
+
       {/* Sidebar */}
-      <div className={`admin-sidebar ${isSidebarCollapsed ? 'collapsed' : ''}`}>
+      <div className={`admin-sidebar ${isSidebarCollapsed ? 'collapsed' : ''} ${isMobileSidebarVisible ? 'visible' : ''}`}>
         <div className="admin-sidebar-header">
           <div className="admin-sidebar-title">Admin Panel</div>
           <button
             className="admin-toggle-btn"
             onClick={toggleSidebar}
+            aria-label="Toggle Sidebar Collapse"
           >
             <i className={`fas fa-${isSidebarCollapsed ? 'chevron-right' : 'chevron-left'}`}></i>
           </button>
@@ -227,6 +262,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin"
               className={`admin-sidebar-link ${isActiveRoute('/admin') && location.pathname === '/admin' ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-tachometer-alt"></i>
               <span className="admin-sidebar-text">Dashboard</span>
@@ -239,6 +275,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/products"
               className={`admin-sidebar-link ${isActiveRoute('/admin/products') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-box"></i>
               <span className="admin-sidebar-text">Products</span>
@@ -249,6 +286,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/categories"
               className={`admin-sidebar-link ${isActiveRoute('/admin/categories') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-folder"></i>
               <span className="admin-sidebar-text">Categories</span>
@@ -259,6 +297,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/brands"
               className={`admin-sidebar-link ${isActiveRoute('/admin/brands') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-building"></i>
               <span className="admin-sidebar-text">Brands</span>
@@ -269,6 +308,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/models"
               className={`admin-sidebar-link ${isActiveRoute('/admin/models') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-mobile-alt"></i>
               <span className="admin-sidebar-text">Device Models</span>
@@ -279,6 +319,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/booking-devices"
               className={`admin-sidebar-link ${isActiveRoute('/admin/booking-devices') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-tools"></i>
               <span className="admin-sidebar-text">Booking Devices</span>
@@ -291,6 +332,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/orders"
               className={`admin-sidebar-link ${isActiveRoute('/admin/orders') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-shopping-cart"></i>
               <span className="admin-sidebar-text">Orders</span>
@@ -301,6 +343,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/bookings"
               className={`admin-sidebar-link ${isActiveRoute('/admin/bookings') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-calendar-alt"></i>
               <span className="admin-sidebar-text">Bookings</span>
@@ -311,6 +354,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/referrals"
               className={`admin-sidebar-link ${isActiveRoute('/admin/referrals') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-share-alt"></i>
               <span className="admin-sidebar-text">Referrals</span>
@@ -321,6 +365,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/coupons"
               className={`admin-sidebar-link ${isActiveRoute('/admin/coupons') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-tag"></i>
               <span className="admin-sidebar-text">Coupons</span>
@@ -333,6 +378,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/services"
               className={`admin-sidebar-link ${isActiveRoute('/admin/services') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-tools"></i>
               <span className="admin-sidebar-text">Services</span>
@@ -343,6 +389,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/users"
               className={`admin-sidebar-link ${isActiveRoute('/admin/users') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-users"></i>
               <span className="admin-sidebar-text">Users</span>
@@ -355,6 +402,7 @@ const AdminDashboard = () => {
             <Link
               to="/admin/settings"
               className={`admin-sidebar-link ${isActiveRoute('/admin/settings') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-cog"></i>
               <span className="admin-sidebar-text">Settings</span>
@@ -365,6 +413,7 @@ const AdminDashboard = () => {
             <Link 
               to="/admin/data-tools"
               className={`admin-sidebar-link ${isActiveRoute('/admin/data-tools') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-database"></i>
               <span className="admin-sidebar-text">Data Tools</span>
@@ -375,6 +424,7 @@ const AdminDashboard = () => {
             <Link 
               to="/admin/data-importer"
               className={`admin-sidebar-link ${isActiveRoute('/admin/data-importer') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-file-import"></i>
               <span className="admin-sidebar-text">Data Importer</span>
@@ -385,6 +435,7 @@ const AdminDashboard = () => {
             <Link 
               to="/admin/test-booking-data"
               className={`admin-sidebar-link ${isActiveRoute('/admin/test-booking-data') ? 'active' : ''}`}
+              onClick={() => setIsMobileSidebarVisible(false)}
             >
               <i className="admin-sidebar-icon fas fa-check-circle"></i>
               <span className="admin-sidebar-text">Test Data</span>
