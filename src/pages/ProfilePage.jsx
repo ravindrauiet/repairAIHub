@@ -21,6 +21,7 @@ import '../styles/profile.css';
 const ProfilePage = () => {
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -100,6 +101,9 @@ const ProfilePage = () => {
           // Set detailed user profile from Firestore
           setUserProfile(userData);
           
+          // Check if user is admin
+          setIsAdmin(userData.role === 'admin');
+          
           // Update edit form data with current user values
           setEditFormData({
             name: userData.name || currentUser.displayName || '',
@@ -128,6 +132,7 @@ const ProfilePage = () => {
               pincode: ''
             },
             photoURL: currentUser.photoURL || '',
+            role: 'user',
             bookings: [],
             createdAt: serverTimestamp(),
             updatedAt: serverTimestamp()
@@ -136,6 +141,7 @@ const ProfilePage = () => {
           // Use setDoc instead of updateDoc to create the document
           await setDoc(userRef, newUserData);
           setUserProfile(newUserData);
+          setIsAdmin(false);
           
           // Set edit form with basic data
           setEditFormData({
@@ -552,9 +558,16 @@ const ProfilePage = () => {
               <p>Member since {new Date(user.createdAt).toLocaleDateString()}</p>
             </div>
           </div>
-          <button onClick={handleLogout} className="logout-btn">
-            <i className="fas fa-sign-out-alt"></i> Logout
-          </button>
+          <div className="profile-actions">
+            {isAdmin && (
+              <Link to="/admin" className="admin-btn">
+                <i className="fas fa-cog"></i> Admin Dashboard
+              </Link>
+            )}
+            <button onClick={handleLogout} className="logout-btn">
+              <i className="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </div>
         </div>
         
         <div className="profile-content">

@@ -11,6 +11,11 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   padding: 2rem;
   margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .profile-header-content {
@@ -30,6 +35,7 @@
   justify-content: center;
   font-size: 2rem;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .profile-info h1 {
@@ -41,6 +47,33 @@
 .profile-info p {
   margin: 0;
   color: #666;
+}
+
+.profile-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.admin-btn:hover {
+  background-color: var(--primary-dark);
+  color: white;
+  text-decoration: none;
 }
 
 .logout-btn {
@@ -55,7 +88,7 @@
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-left: auto;
+  white-space: nowrap;
 }
 
 .logout-btn:hover {
@@ -923,13 +956,29 @@
 }
 
 @media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    padding: 1.5rem;
+  }
+
   .profile-header-content {
     flex-direction: column;
+    align-items: center;
     text-align: center;
   }
-  
+
+  .profile-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+
+  .admin-btn,
   .logout-btn {
-    margin: 1.5rem auto 0;
+    width: 100%;
+    justify-content: center;
   }
   
   .dashboard-summary {
