@@ -256,8 +256,9 @@ section {
 }
 
 .steps-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  display: flex ;
+  flex-wrap: nowrap;
+  overflow-x: scroll;
   gap: 30px;
 }
 
@@ -306,8 +307,9 @@ section {
 }
 
 .areas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: scroll;
   gap: 20px;
 }
 

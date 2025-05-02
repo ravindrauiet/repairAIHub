@@ -637,6 +637,7 @@ p {
 .step {
   display: flex;
   margin-bottom: 20px;
+  flex-direction: column;
 }
 
 .step-number {
