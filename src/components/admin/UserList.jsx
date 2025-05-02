@@ -457,7 +457,7 @@ const UserList = () => {
             </div>
           ) : (
             <>
-              <div className="admin-table-responsive">
+              <div className="admin-table-container">
                 <table className="admin-table">
                   <thead>
                     <tr>

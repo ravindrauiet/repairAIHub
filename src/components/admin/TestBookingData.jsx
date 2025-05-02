@@ -110,7 +110,7 @@ const TestBookingData = () => {
               <div className="admin-card-header">
                 <h3 className="admin-card-title">Available Booking Devices</h3>
               </div>
-              <div className="admin-card-body">
+              <div className="admin-table-container">
                 <table className="admin-table">
                   <thead>
                     <tr>

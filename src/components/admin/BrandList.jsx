@@ -132,7 +132,7 @@ const BrandList = () => {
       ) : (
         <div className="admin-card">
           <div className="admin-card-body">
-            <div className="admin-table-responsive">
+            <div className="admin-table-container">
               <table className="admin-table">
                 <thead>
                   <tr>

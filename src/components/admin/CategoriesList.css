@@ -79,12 +79,12 @@
 }
 
 .admin-btn-danger {
-  background-color: #e74c3c;
+  background-color: #000000;
   color: white;
 }
 
 .admin-btn-danger:hover:not(:disabled) {
-  background-color: #d73c2c;
+  background-color: #000000;
 }
 
 .admin-btn-icon {
@@ -115,7 +115,7 @@
 }
 
 .admin-btn-danger {
-  color: #e74c3c;
+  color: #ffffff;
 }
 
 .admin-btn-success {
