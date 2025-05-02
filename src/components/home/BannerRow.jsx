@@ -39,8 +39,33 @@ const BannerRow = () => {
     arrows: true,
     responsive: [
       {
+        breakpoint: 1200,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+          dots: true,
+        }
+      },
+      {
         breakpoint: 900,
-        settings: { slidesToShow: 1 }
+        settings: {
+          slidesToShow: 1.2,
+          slidesToScroll: 1,
+          arrows: false,
+          dots: true,
+          centerMode: true,
+          centerPadding: '40px',
+        }
+      },
+      {
+        breakpoint: 600,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1,
+          arrows: false,
+          dots: true,
+          centerMode: false,
+        }
       }
     ]
   };

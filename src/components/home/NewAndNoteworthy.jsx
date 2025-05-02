@@ -22,12 +22,38 @@ const NewAndNoteworthy = () => {
     arrows: true,
     responsive: [
       {
+        breakpoint: 1400,
+        settings: {
+          slidesToShow: 4,
+          slidesToScroll: 1,
+        }
+      },
+      {
+        breakpoint: 1200,
+        settings: {
+          slidesToShow: 3,
+          slidesToScroll: 1,
+        }
+      },
+      {
         breakpoint: 900,
-        settings: { slidesToShow: 2 }
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+          arrows: true,
+          dots: true,
+        }
       },
       {
         breakpoint: 600,
-        settings: { slidesToShow: 1 }
+        settings: {
+          slidesToShow: 1.2,
+          slidesToScroll: 1,
+          arrows: false,
+          dots: true,
+          centerMode: true,
+          centerPadding: '40px',
+        }
       }
     ]
   };
