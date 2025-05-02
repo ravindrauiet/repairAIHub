@@ -111,8 +111,14 @@ const Header = () => {
           RepAIrHub
         </Link>
 
-        <button className="mobile-menu-toggle" onClick={toggleMobileMenu} aria-label="Toggle menu">
-          <i className={mobileMenuOpen ? "fas fa-times" : "fas fa-bars"}></i>
+        <button 
+          className={`mobile-menu-toggle ${mobileMenuOpen ? 'active' : ''}`} 
+          onClick={toggleMobileMenu} 
+          aria-label="Toggle menu"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
         </button>
 
         <nav>

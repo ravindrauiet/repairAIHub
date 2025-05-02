@@ -410,11 +410,52 @@ a[href^="mailto:"].clickable-contact::before {
 
 .mobile-menu-toggle {
   display: none;
-  font-size: 1.5rem;
   background: none;
   border: none;
   color: var(--text-primary);
   cursor: pointer;
+  width: 30px;
+  height: 30px;
+  position: relative;
+  padding: 0;
+}
+
+/* Hamburger Icon */
+.mobile-menu-toggle span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background-color: var(--text-primary);
+  position: absolute;
+  left: 3px;
+  transition: all 0.3s ease-in-out;
+}
+
+.mobile-menu-toggle span:first-child {
+  top: 8px;
+}
+
+.mobile-menu-toggle span:nth-child(2) {
+  top: 14px;
+}
+
+.mobile-menu-toggle span:last-child {
+  top: 20px;
+}
+
+/* X Icon Animation */
+.mobile-menu-toggle.active span:first-child {
+  transform: rotate(45deg);
+  top: 14px;
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-toggle.active span:last-child {
+  transform: rotate(-45deg);
+  top: 14px;
 }
 
 /* Footer Styles */
